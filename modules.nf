@@ -37,7 +37,8 @@ input:
     file starindex
 output: 
     file "${base}.star*"
-    file "${base}.starAligned.out.sam"
+    file "${base}.starAligned.out.bam"
+    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz"), file("${base}.starUnmapped.out.mate2.fastq.gz")
 script:
 """
 #!/bin/bash
@@ -49,8 +50,14 @@ STAR   \
     --genomeDir ${starindex}   \
     --readFilesIn ${r1} ${r2} \
     --readFilesCommand zcat      \
-    --outSAMunmapped Within \
+    --outSAMtype BAM Unsorted \
+    --outReadsUnmapped Fastx \
     --outFileNamePrefix ${base}.star  
 
+mv ${base}.starUnmapped.out.mate1 ${base}.starUnmapped.out.mate1.fastq
+mv ${base}.starUnmapped.out.mate2 ${base}.starUnmapped.out.mate2.fastq
+
+gzip ${base}.starUnmapped.out.mate1.fastq
+gzip ${base}.starUnmapped.out.mate2.fastq
 """
 }

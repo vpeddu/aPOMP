@@ -41,12 +41,13 @@ input_read_Ch = Channel
     .map { it -> [it[0], it[1][0], it[1][1]]}
 workflow{
     // defined at CLI    
-    Fastp_PE(
+    Trimming_FastP(
         input_read_Ch
         )
-    Star_PE(
+    Host_depletion(
         // access output of preceeding process
-        Fastp_PE.out[0],
+        Trimming_FastP.out[0],
         // collects all items emitted by a channel to a list, return
         Star_index_Ch.collect()
-        }
+        )
+    }

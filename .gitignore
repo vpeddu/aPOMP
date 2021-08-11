@@ -2,3 +2,5 @@
 *.bam
 work/*
 *testing*
+*.nextflow.log
+test_output/
