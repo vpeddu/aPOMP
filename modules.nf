@@ -89,12 +89,13 @@ conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2)
-    file starindex
+    tuple val(base), file(interleaved_fastq)
+    file metalign_db
 output: 
-    file "${base}.star*"
-    file "${base}.starAligned.out.bam"
-    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz"), file("${base}.starUnmapped.out.mate2.fastq.gz")
+    file "${base}.metalign.tempdir"
+
+
+
 script:
 """
 #!/bin/bash
@@ -102,6 +103,44 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+select_db.py ${interleaved_fastq} ${metalign_db} \
+    --keep_temp_files \
+    --strain_level
+    --temp_dir ${base}.metalign.tempdir
 
+"""
+}
+
+process Minimap2 { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "biocontainers/minimap2:v2.15dfsg-1-deb_cv1"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(r1)
+    file metalign_db
+output: 
+    file "${base}.minimap2.aligned.sam"
+
+script:
+"""
+#!/bin/bash
+
+#logging
+echo "ls of directory" 
+ls -lah 
+
+echo "running Minimap2 on ${base}"
+#TODO: FILL IN MINIMAP2 COMMAND 
+minimap2 \
+    -ax splice \
+    -t ${task.cpus} \
+    -L \
+    -Y \
+    -2 \
+    ${metalign_db}/cmashed_db.fna \
+    ${r1} > \
+    ${base}.minimap2.sam
 """
 }

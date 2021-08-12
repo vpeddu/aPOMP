@@ -32,9 +32,16 @@ if (params.help){
 
 include { Trimming_FastP } from './modules.nf'
 include { Host_depletion } from './modules.nf'
+include { Interleave_FASTQ } from './modules.nf'
+include { Metalign_db_selection } from './modules.nf'
+include { Minimap2 } from './modules.nf'
+
 
 Star_index_Ch = Channel
             .fromPath(params.HOST_STAR_INDEX)
+
+Metalign_db_Ch = Channel
+            .fromPath(params.METALIGN_DB)
 
 input_read_Ch = Channel
     .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
@@ -49,5 +56,16 @@ workflow{
         Trimming_FastP.out[0],
         // collects all items emitted by a channel to a list, return
         Star_index_Ch.collect()
+        )
+    Interleave_FASTQ(
+        Host_depletion.out[2]
+        )
+    Metalign_db_selection(
+        Interleave_FASTQ.out,
+        Metalign_db_Ch.collect()
+        )
+    minimap2( 
+        Interleave_FASTQ.out,
+        Metalign_db_selection.out.collect()
         )
     }
