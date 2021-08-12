@@ -35,6 +35,8 @@ include { Host_depletion } from './modules.nf'
 include { Interleave_FASTQ } from './modules.nf'
 include { Metalign_db_selection } from './modules.nf'
 include { Minimap2 } from './modules.nf'
+include { Metalign_profiling } from './modules.nf'
+
 
 
 Star_index_Ch = Channel
@@ -64,8 +66,12 @@ workflow{
         Interleave_FASTQ.out,
         Metalign_db_Ch.collect()
         )
-    minimap2( 
+    Minimap2( 
         Interleave_FASTQ.out,
         Metalign_db_selection.out.collect()
+        )
+    Metalign_profiling (
+        Minimap2.out,
+        Metalign_db_Ch.collect()
         )
     }
