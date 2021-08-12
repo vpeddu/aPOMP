@@ -3,7 +3,7 @@ process Trimming_FastP {
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
 container "bromberglab/fastp"
 beforeScript 'chmod o+rw .'
-cpus 4
+cpus 6
 input: 
     tuple val(base), file(r1), file(r2)
 output: 
@@ -31,7 +31,7 @@ process Host_depletion {
 publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
 beforeScript 'chmod o+rw .'
-cpus 4
+cpus 8
 input: 
     tuple val(base), file(r1), file(r2)
     file starindex
@@ -59,5 +59,49 @@ mv ${base}.starUnmapped.out.mate2 ${base}.starUnmapped.out.mate2.fastq
 
 gzip ${base}.starUnmapped.out.mate1.fastq
 gzip ${base}.starUnmapped.out.mate2.fastq
+"""
+}
+
+process Interleave_FASTQ { 
+publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
+container "staphb/bbtools"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(r1), file(r2)
+output: 
+    tuple val("${base}"), file("${base}.unmapped.interleaved.fastq.gz")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+reformat.sh in1=${r1} in2=${r2} out1=${base}.unmapped.interleaved.fastq.gz
+"""
+}
+
+process Metalign_db_selection { 
+publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
+//container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
+conda 'Metalign'
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(r1), file(r2)
+    file starindex
+output: 
+    file "${base}.star*"
+    file "${base}.starAligned.out.bam"
+    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz"), file("${base}.starUnmapped.out.mate2.fastq.gz")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+
 """
 }
