@@ -52,15 +52,15 @@ RUN apt-get -y update && \
     # libcurl4-openssl-dev \
     # libssl-dev
 
-RUN R -e "install.packages('BiocManager')"
-RUN R -e "install.packages('ape',dependencies=TRUE, repos='http://cran.rstudio.com/')"
-RUN R -e "BiocManager::install('ggtree')"
-RUN R -e "BiocManager::install('viridis')"
-RUN R -e "BiocManager::install('reshape2')"
-RUN R -e "BiocManager::install('tidyverse')"
-RUN R -e "BiocManager::install('Rsubread')"
-RUN R -e "BiocManager::install('Rsamtools')"
-RUN R -e "BiocManager::install('biomaRt')"
+# RUN R -e "install.packages('BiocManager')"
+# RUN R -e "install.packages('ape',dependencies=TRUE, repos='http://cran.rstudio.com/')"
+# RUN R -e "BiocManager::install('ggtree')"
+# RUN R -e "BiocManager::install('viridis')"
+# RUN R -e "BiocManager::install('reshape2')"
+# RUN R -e "BiocManager::install('tidyverse')"
+# RUN R -e "BiocManager::install('Rsubread')"
+# RUN R -e "BiocManager::install('Rsamtools')"
+# RUN R -e "BiocManager::install('biomaRt')"
 
 
 

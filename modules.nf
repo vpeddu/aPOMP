@@ -155,7 +155,7 @@ input:
     tuple val(base), file(sam)
     file metalign_db
 output: 
-    file "${base}.metalign.tempdir"
+    //file "${base}.metalign.tempdir"
 
 script:
 """
@@ -168,6 +168,7 @@ map_and_profile.py ${interleaved_fastq} ${metalign_db} \
     --length_normalize \
     --strain_level \
     --threads ${task.cpus} \
+    --output ${base}.abundances.tsv \
     --verbose
 
 """
