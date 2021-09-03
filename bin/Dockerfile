@@ -18,7 +18,8 @@ RUN apt update && \
                  ete3 \
 		 cython \
 		 pysam \
-         typing
+         typing \
+         pickle5
 
 
 # # conda stuff 
