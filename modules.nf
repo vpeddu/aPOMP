@@ -154,7 +154,6 @@ minimap2 \
 process Sam_conversion { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
 container "biocontainers/samtools"
-conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -178,7 +177,6 @@ samtools index ${base}.sorted.bam
 process Classify { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
-conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -202,7 +200,6 @@ python3 ${classify_script} ${bam} ${base}
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq"
-conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
