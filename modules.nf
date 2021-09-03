@@ -194,14 +194,14 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
-mv viral/*.dmp .
+cp viral/*.dmp .
 python3 ${classify_script} ${bam} ${base}
 """
 }
 
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
-container "evolbioinfo/krakenuniq"
+container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
