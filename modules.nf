@@ -114,7 +114,7 @@ ls -lah
 
 python3 ${extract_script} ${report}
 
-mv species.fasta ${base}.species.fasta
+mv species.fasta ${base}.species.fasta ${fastadb}
 
 """
 }
