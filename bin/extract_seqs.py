@@ -5,7 +5,7 @@ from ete3 import NCBITaxa
 
 ncbi = NCBITaxa()
 nucl_pkl = sys.argv[2] + "/nucl2gb_lookup.pkl"
-with open(nucl_pkl) as nucl2gb:
+with open(nucl_pkl, 'rb') as nucl2gb:
 	lookup = pickle.load(nucl2gb)
 print('done reading nucl2gb')
 
@@ -19,7 +19,8 @@ print('done reading nucl2gb')
 
 refnt_pkl = sys.argv[2] + "/ref_nt.pkl"
 #record_dict = SeqIO.to_dict(SeqIO.parse(refnt_pkl, "fasta"))
-record_dict = pickle.load(refnt_pkl)
+with open(refnt_pkl, 'rb') as refnt:
+    record_dict = pickle.load(refnt)
 #print(record_dict['NC_056724.1'].description)  # use any record ID
 
 print('done creating fasta lookup')
