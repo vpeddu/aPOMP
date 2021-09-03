@@ -122,7 +122,7 @@ mv species.fasta ${base}.species.fasta
 process Minimap2 { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "biocontainers/minimap2:v2.15dfsg-1-deb_cv1"
+container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
