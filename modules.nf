@@ -94,7 +94,7 @@ kraken2 --db ${kraken2_db} \
 process Extract_db { 
 //publishDir "${params.OUTPUT}//${base}", mode: 'symlink', overwrite: true
 //container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
-conda 'Metalign'
+container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -177,7 +177,7 @@ samtools index ${base}.sorted.bam
 
 process Classify { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
-container "biocontainers/samtools"
+container 'quay.io/vpeddu/evmeta'
 conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -201,7 +201,7 @@ python3 ${classify_script} ${bam} ${base}
 
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
-container "biocontainers/samtools"
+container "evolbioinfo/krakenuniq"
 conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8

@@ -32,10 +32,12 @@ if (params.help){
 
 include { Trimming_FastP } from './modules.nf'
 include { Host_depletion } from './modules.nf'
-include { Interleave_FASTQ } from './modules.nf'
-include { Metalign_db_selection } from './modules.nf'
+include { Kraken_prefilter } from './modules.nf'
+include { Extract_db } from './modules.nf'
 include { Minimap2 } from './modules.nf'
-include { Metalign_profiling } from './modules.nf'
+include { Sam_conversion } from './modules.nf'
+include { Classify } from './modules.nf'
+include { Write_report } from './modules.nf'
 
 
 
@@ -57,6 +59,7 @@ Krakenuniq_db = Channel
 input_read_Ch = Channel
     .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
     .map { it -> [it[0], it[1][0], it[1][1]]}
+
 workflow{
     // defined at CLI    
     Trimming_FastP(
