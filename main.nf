@@ -48,6 +48,12 @@ Kraken2_db = Channel
 NT_db = Channel
             .fromPath(params.NT_DB)
 
+Taxdump = Channel
+            .fromPath(params.TAXDUMP)
+
+Krakenuniq_db = Channel
+            .fromPath(params.KRAKENUNIQUE_DB)
+
 input_read_Ch = Channel
     .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
     .map { it -> [it[0], it[1][0], it[1][1]]}
@@ -75,8 +81,16 @@ workflow{
         Host_depletion.out[2],
         Extract_db.out
         )
-    Metalign_profiling (
-        Minimap2.out,
-        Metalign_db_Ch.collect()
+    Sam_conversion (
+        Minimap2.out
         )
+    Classify ( 
+        Sam_conversion.out, 
+        Taxdump.collect(),
+        file("${basedir}/bin/classify_reads.py")
+        )
+    Write_report(
+        Classify.out,
+        Krakenuniq_db.collect()
+    )
     }

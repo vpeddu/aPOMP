@@ -129,7 +129,7 @@ input:
     tuple val(base), file(r1), file(r2)
     tuple val(base), file(species_fasta)
 output: 
-    file "${base}.minimap2.aligned.sam"
+    tuple val("${base}"), file("${base}.minimap2.sam")
 
 script:
 """
@@ -151,7 +151,7 @@ minimap2 \
 """
 }
 
-process Metalign_profiling { 
+process Sam_conversion { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
 container "biocontainers/samtools"
 conda 'Metalign'
@@ -159,9 +159,8 @@ beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(sam)
-    file metalign_db
 output: 
-    //file "${base}.metalign.tempdir"
+    tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
 
 script:
 """
@@ -170,12 +169,57 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-map_and_profile.py ${interleaved_fastq} ${metalign_db} \
-    --length_normalize \
-    --strain_level \
-    --threads ${task.cpus} \
-    --output ${base}.abundances.tsv \
-    --verbose
+samtools view -Sb -@ ${task.cpus} ${sam} > ${base}.bam
+samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
+samtools index ${base}.sorted.bam
+"""
+}
 
+process Classify { 
+publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
+container "biocontainers/samtools"
+conda 'Metalign'
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(bam), file(bamindex)
+    file taxdump
+    file classify_script
+output: 
+    tuple val("${base}"), file("${base}.prekraken.tsv")
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+python3 ${classify_script} ${bam} ${base}
+"""
+}
+
+process Write_report { 
+publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
+container "biocontainers/samtools"
+conda 'Metalign'
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(prekraken)
+    file krakenuniqdb
+output: 
+    file "${base}.final.report.tsv"
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+krakenuniq-report --db ${krakenuniqdb} \
+ --taxon-counts \
+  ${prekraken} > ${base}.final.report.tsv
 """
 }
