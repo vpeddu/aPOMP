@@ -1,23 +1,25 @@
 import sys
+import pickle
 from Bio import SeqIO
 from ete3 import NCBITaxa
 
 ncbi = NCBITaxa()
 nucl_pkl = sys.argv[2] + "/nucl2gb_lookup.pkl"
 with open(nucl_pkl) as nucl2gb:
-	accs = nucl2gb.readlines()
+	lookup = pickle.load(nucl2gb)
 print('done reading nucl2gb')
 
-lookup = {}
-for acc in accs:
-	if acc.split()[2] not in lookup:
-		lookup[acc.split()[2]] = [acc.split()[1]]
-	else: 
-		lookup[acc.split()[2]].append(acc.split()[1])
-print('done creating accession to taxid lookup')
+# lookup = {}
+# for acc in accs:
+# 	if acc.split()[2] not in lookup:
+# 		lookup[acc.split()[2]] = [acc.split()[1]]
+# 	else: 
+# 		lookup[acc.split()[2]].append(acc.split()[1])
+# print('done creating accession to taxid lookup')
 
 refnt_pkl = sys.argv[2] + "/ref_nt.pkl"
-record_dict = SeqIO.to_dict(SeqIO.parse(refnt_pkl, "fasta"))
+#record_dict = SeqIO.to_dict(SeqIO.parse(refnt_pkl, "fasta"))
+record_dict = pickle.load(refnt_pkl)
 #print(record_dict['NC_056724.1'].description)  # use any record ID
 
 print('done creating fasta lookup')
