@@ -62,15 +62,16 @@ gzip ${base}.starUnmapped.out.mate2.fastq
 """
 }
 
-process Interleave_FASTQ { 
+process Kraken_prefilter { 
 publishDir "${params.OUTPUT}/Interleave_FASTQ/${base}", mode: 'symlink', overwrite: true
-container "staphb/bbtools"
+container "staphb/kraken2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1), file(r2)
+    file kraken2_db
 output: 
-    tuple val("${base}"), file("${base}.unmapped.interleaved.fastq.gz")
+    tuple val("${base}"), file("${base}.kraken2.report")
 script:
 """
 #!/bin/bash
@@ -78,22 +79,30 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-reformat.sh in1=${r1} in2=${r2} out1=${base}.unmapped.interleaved.fastq.gz
+kraken2 --db ${kraken2_db} \
+    --threads 24 \
+    --classified-out ${base}.kraken2.classified \
+    --output ${base}.kraken2.output \
+    --report ${base}.kraken2.report \
+    --gzip-compressed \
+    --unclassified-out ${base}.kraken2.unclassified \
+    ${r1} ${r2}
+
 """
 }
 
-process Metalign_db_selection { 
+process Extract_db { 
 //publishDir "${params.OUTPUT}//${base}", mode: 'symlink', overwrite: true
 //container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
 conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(interleaved_fastq)
-    file metalign_db
+    tuple val(base), file(report)
+    file fastadb
+    file extract_script
 output: 
-    file "${base}.metalign.tempdir"
-
+    tuple val("${base}"), file("${base}.species.fasta")
 
 
 script:
@@ -103,10 +112,9 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-select_db.py ${interleaved_fastq} ${metalign_db} \
-    --keep_temp_files \
-    --strain_level \
-    --temp_dir ${base}.metalign.tempdir
+python3 ${extract_script} ${report}
+
+mv species.fasta ${base}.species.fasta
 
 """
 }
@@ -118,8 +126,8 @@ container "biocontainers/minimap2:v2.15dfsg-1-deb_cv1"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1)
-    tuple val(base), file(metalign_db)
+    tuple val(base), file(r1), file(r2)
+    tuple val(base), file(species_fasta)
 output: 
     file "${base}.minimap2.aligned.sam"
 
@@ -134,20 +142,18 @@ ls -lah
 echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
-    -ax splice \
+    -ax sr \
     -t ${task.cpus} \
-    -L \
-    -Y \
     -2 \
-    ${metalign_db}/cmashed_db.fna \
-    ${r1} > \
+    ${species_fasta} \
+    ${r1} ${r2} > \
     ${base}.minimap2.sam
 """
 }
 
 process Metalign_profiling { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
-//container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
+container "biocontainers/samtools"
 conda 'Metalign'
 beforeScript 'chmod o+rw .'
 cpus 8

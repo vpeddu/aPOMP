@@ -42,8 +42,11 @@ include { Metalign_profiling } from './modules.nf'
 Star_index_Ch = Channel
             .fromPath(params.HOST_STAR_INDEX)
 
-Metalign_db_Ch = Channel
-            .fromPath(params.METALIGN_DB)
+Kraken2_db = Channel
+            .fromPath(params.KRAKEN2_DB)
+
+NT_db = Channel
+            .fromPath(params.NT_DB)
 
 input_read_Ch = Channel
     .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
@@ -59,16 +62,18 @@ workflow{
         // collects all items emitted by a channel to a list, return
         Star_index_Ch.collect()
         )
-    Interleave_FASTQ(
-        Host_depletion.out[2]
+    Kraken_prefilter(
+        Host_depletion.out[2],
+        KRAKEN2_DB.collect()
         )
-    Metalign_db_selection(
-        Interleave_FASTQ.out,
-        Metalign_db_Ch.collect()
+    Extract_db(
+        Kraken_prefilter.out,
+        NT_db.collect(),
+        file("${basedir}/bin/extract_seqs.py")
         )
     Minimap2( 
-        Interleave_FASTQ.out,
-        Metalign_db_selection.out.collect()
+        Host_depletion.out[2],
+        Extract_db.out
         )
     Metalign_profiling (
         Minimap2.out,

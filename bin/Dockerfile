@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # install dependencies from pip3
 
 RUN apt update && \
-    apt install -y python3 ncbi-blast+ && \
+    apt install -y python3 && \
     apt install -y python-biopython \
                    python3-pip \
                    python3-pysam \
@@ -41,6 +41,7 @@ RUN wget \
 
 RUN apt-get -y update && \
     apt-get install -y default-jdk
+RUN conda install -c bioconda metalign
     #r-cran-rjava
     #r-cran-nloptr 
     #libssh2-1-dev \
