@@ -190,7 +190,7 @@ for read in read_dict.keys():
     else: 
         assignments[lca] += 1
 
-outfilename = sys.argv[2] + 'prekraken.tsv'
+outfilename = sys.argv[2] + '.prekraken.tsv'
 
 with open(outfilename, 'w') as prekraken:
     for taxa in assignments.keys():
