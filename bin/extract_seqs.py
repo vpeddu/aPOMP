@@ -1,5 +1,5 @@
 import sys
-import pickle5
+import pickle5 as pickle
 from Bio import SeqIO
 from ete3 import NCBITaxa
 
