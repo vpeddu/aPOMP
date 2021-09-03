@@ -78,7 +78,7 @@ workflow{
     Extract_db(
         Kraken_prefilter.out,
         NT_db.collect(),
-        file("${basedir}/bin/extract_seqs.py")
+        file("${baseDir}/bin/extract_seqs.py")
         )
     Minimap2( 
         Host_depletion.out[2],
@@ -90,7 +90,7 @@ workflow{
     Classify ( 
         Sam_conversion.out, 
         Taxdump.collect(),
-        file("${basedir}/bin/classify_reads.py")
+        file("${baseDir}/bin/classify_reads.py")
         )
     Write_report(
         Classify.out,
