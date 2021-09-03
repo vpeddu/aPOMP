@@ -73,7 +73,7 @@ workflow{
         )
     Kraken_prefilter(
         Host_depletion.out[2],
-        KRAKEN2_DB.collect()
+        Kraken2_db.collect()
         )
     Extract_db(
         Kraken_prefilter.out,
