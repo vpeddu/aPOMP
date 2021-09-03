@@ -166,7 +166,7 @@ class read():
 bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
 read_dict = {}
 for record in bamfile: 
-    print(record.query_name)
+    #print(record.query_name)
     if record.query_name not in read_dict:
         read_dict[record.query_name] = read()
         read_dict[record.query_name].id = record.query_name
