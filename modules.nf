@@ -192,7 +192,7 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-
+mv taxonomy/*.dmp .
 python3 ${classify_script} ${bam} ${base}
 """
 }
