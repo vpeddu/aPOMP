@@ -3,7 +3,7 @@ from Bio import SeqIO
 from ete3 import NCBITaxa
 
 ncbi = NCBITaxa()
-nucl_pkl = sys.argv[3] + "/nucl2gb_lookup.pkl"
+nucl_pkl = sys.argv[2] + "/nucl2gb_lookup.pkl"
 with open(nucl_pkl) as nucl2gb:
 	accs = nucl2gb.readlines()
 print('done reading nucl2gb')
@@ -16,7 +16,7 @@ for acc in accs:
 		lookup[acc.split()[2]].append(acc.split()[1])
 print('done creating accession to taxid lookup')
 
-refnt_pkl = sys.argv[3] + "/ref_nt.pkl"
+refnt_pkl = sys.argv[2] + "/ref_nt.pkl"
 record_dict = SeqIO.to_dict(SeqIO.parse(refnt_pkl, "fasta"))
 #print(record_dict['NC_056724.1'].description)  # use any record ID
 

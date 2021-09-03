@@ -112,9 +112,9 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-python3 ${extract_script} ${report}
+python3 ${extract_script} ${report} ${fastadb}
 
-mv species.fasta ${base}.species.fasta ${fastadb}
+mv species.fasta ${base}.species.fasta
 
 """
 }
