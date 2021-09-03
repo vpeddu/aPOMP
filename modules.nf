@@ -193,6 +193,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 mv taxonomy/*.dmp .
+tar -xvzf taxdump.tar.gz
 python3 ${classify_script} ${bam} ${base}
 """
 }
