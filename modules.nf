@@ -168,7 +168,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-samtools view -Sb -@ ${task.cpus} ${sam} > ${base}.bam
+samtools view -Sb -@  -F 4 ${task.cpus} ${sam} > ${base}.bam
 samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
 samtools index ${base}.sorted.bam
 """
