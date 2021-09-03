@@ -194,6 +194,7 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
+find . -name *.dmp -exec cp {} . \\;
 python3 ${classify_script} ${bam} ${base}
 """
 }
