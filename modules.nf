@@ -153,7 +153,7 @@ minimap2 \
 
 process Sam_conversion { 
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
-container "biocontainers/samtools"
+container "staphb/samtools"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
