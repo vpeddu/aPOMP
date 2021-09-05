@@ -26,6 +26,32 @@ fastp -w ${task.cpus} \
     -O ${base}.trimmed.R2.fastq.gz
 """
 }
+process Low_complexity_filtering { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
+container "quay.io/biocontainers/bbmap:38.76--h516909a_0"
+beforeScript 'chmod o+rw .'
+cpus 6
+input: 
+    tuple val(base), file(r1), file(r2)
+output: 
+    tuple val(base), file("${base}.lcf_filtered.R1.fastq.gz"), file("${base}.lcf_filtered.R2.fastq.gz")
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+bbduk.sh \
+    in1=${r1} in2=${r2} \
+    out1=${base}.lcf_filtered.R1.fastq.gz out2=${base}.lcf_filtered.R2.fastq.gz \
+    entropy=0.7 \
+    entropywindow=50 \
+    entropyk=4 
+"""
+}
 
 process Host_depletion { 
 publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true

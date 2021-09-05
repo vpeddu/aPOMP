@@ -31,6 +31,7 @@ if (params.help){
 }
 
 include { Trimming_FastP } from './modules.nf'
+include { Low_complexity_filtering } from './modules.nf'
 include { Host_depletion } from './modules.nf'
 include { Kraken_prefilter } from './modules.nf'
 include { Extract_db } from './modules.nf'
@@ -65,9 +66,13 @@ workflow{
     Trimming_FastP(
         input_read_Ch
         )
+    Low_complexity_filtering(
+        Trimming_FastP.out[0],
+
+    )
     Host_depletion(
         // access output of preceeding process
-        Trimming_FastP.out[0],
+        Low_complexity_filtering.out[0],
         // collects all items emitted by a channel to a list, return
         Star_index_Ch.collect()
         )
