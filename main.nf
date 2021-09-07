@@ -95,8 +95,7 @@ workflow{
             Kraken_prefilter_nanopore.out
             )
         Minimap2_nanopore( 
-            MetaFlye.out.groupTuple(
-            ).join(
+            MetaFlye.out.groupTuple().join(
                 Extract_db.out)
             )
         Sam_conversion (
@@ -123,7 +122,6 @@ workflow{
             )
         Low_complexity_filtering(
             Trimming_FastP.out[0],
-
         )
         Host_depletion(
             // access output of preceeding process
@@ -144,7 +142,6 @@ workflow{
             Host_depletion.out[2](
             ).join(
                 Extract_db.out)
-            )
             )
         Sam_conversion (
             Minimap2.out
