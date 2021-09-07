@@ -92,7 +92,9 @@ workflow{
             Kraken2_db.collect()
         )
         Extract_db(
-            Kraken_prefilter_nanopore.out
+            Kraken_prefilter_nanopore.out,
+            NT_db.collect(),
+            file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2_nanopore( 
             MetaFlye.out.groupTuple().join(
