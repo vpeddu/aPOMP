@@ -44,6 +44,7 @@ include { NanoFilt } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
+include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 
