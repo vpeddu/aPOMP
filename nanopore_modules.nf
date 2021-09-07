@@ -114,7 +114,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-flye --nano-raw ${r1} --out-dir ${base}.flye \
+flye --nano-corr ${r1} --out-dir ${base}.flye \
     -t ${task.cpus} \
     --meta \
 
