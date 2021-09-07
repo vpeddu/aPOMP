@@ -50,7 +50,7 @@ NanoPlot -t ${task.cpus} \
     -p ${base} \
     --fastq ${r1} \
     --title ${base} \
-    --summary 
+    --summary ${base}.summary
 """
 }
 
