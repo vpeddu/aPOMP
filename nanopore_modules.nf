@@ -19,11 +19,9 @@ echo "ls of directory"
 ls -lah 
 echo "running Nanofilt on ${base}"
 
-gunzip ${r1} | \
-    NanoFilt -q 9 \
+gunzip ${r1} | NanoFilt -q 9 \
         --maxlength 5000 \
-        --length 200 | \
-        gzip > ${base}.filtered.fastq.gz
+        --length 200 | gzip > ${base}.filtered.fastq.gz
 
 """
 }
@@ -60,7 +58,7 @@ container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2)
+    tuple val(base), file(r1)
     file minimap2_host_index
 output: 
     tuple val("${base}"), file("${base}.host_filtered.sam")
