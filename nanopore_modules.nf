@@ -1,14 +1,13 @@
-process Trimming_FastP { 
+process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
-publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
-container "bromberglab/fastp"
+publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
+container " quay.io/biocontainers/nanofilt:2.8.0"
 beforeScript 'chmod o+rw .'
 cpus 6
 input: 
-    tuple val(base), file(r1), file(r2)
+    tuple val(base), file(r1)
 output: 
-    tuple val(base), file("${base}.trimmed.R1.fastq.gz"), file("${base}.trimmed.R2.fastq.gz")
-    tuple val(base), file("${base}.trimmed.R1.fastq.gz")
+    tuple val(base), file("${base}.filtered.fastq.gz")
     file "*"
 
 
@@ -18,24 +17,27 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-echo "running fastp on ${base}"
-fastp -w ${task.cpus} \
-    -i ${r1} \
-    -I ${r2} \
-    -o ${base}.trimmed.R1.fastq.gz \
-    -O ${base}.trimmed.R2.fastq.gz
+echo "running Nanofilt on ${base}"
+
+gunzip ${r1} | \
+    NanoFilt -q 9 \
+        --maxlength 5000 \
+        --length 200 | \
+        gzip > ${base}.filtered.fastq.gz
+
 """
 }
-process Low_complexity_filtering { 
+
+process NanoPlot { 
 //conda "${baseDir}/env/env.yml"
-publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/bbmap:38.76--h516909a_0"
+publishDir "${params.OUTPUT}/NanoPlot/${base}", mode: 'symlink', overwrite: true
+container "quay.io/biocontainers/nanoplot:1.38.1--pyhdfd78af_0"
 beforeScript 'chmod o+rw .'
-cpus 6
+cpus 2
 input: 
-    tuple val(base), file(r1), file(r2)
+    tuple val(base), file(r1) 
 output: 
-    tuple val(base), file("${base}.lcf_filtered.R1.fastq.gz"), file("${base}.lcf_filtered.R2.fastq.gz")
+    "*"
 
 script:
 """
@@ -44,47 +46,58 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-bbduk.sh \
-    in1=${r1} in2=${r2} \
-    out1=${base}.lcf_filtered.R1.fastq.gz out2=${base}.lcf_filtered.R2.fastq.gz \
-    entropy=0.7 \
-    entropywindow=50 \
-    entropyk=4 
+NanoPlot -t ${task.cpus} \
+    -p ${base} \
+    --fastq ${r1} \
+    --title ${base} \
+    --summary 
 """
 }
 
-process Host_depletion { 
-publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
+process Host_depletion_nanopore { 
+publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
+container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1), file(r2)
-    file starindex
+    file minimap2_host_index
 output: 
-    file "${base}.star*"
-    file "${base}.starAligned.out.bam"
-    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz"), file("${base}.starUnmapped.out.mate2.fastq.gz")
+    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz")
 script:
 """
 #!/bin/bash
 #logging
 echo "ls of directory" 
 ls -lah 
-STAR   \
-    --runThreadN ${task.cpus}  \
-    --genomeDir ${starindex}   \
-    --readFilesIn ${r1} ${r2} \
-    --readFilesCommand zcat      \
-    --outSAMtype BAM Unsorted \
-    --outReadsUnmapped Fastx \
-    --outFileNamePrefix ${base}.star  
 
-mv ${base}.starUnmapped.out.mate1 ${base}.starUnmapped.out.mate1.fastq
-mv ${base}.starUnmapped.out.mate2 ${base}.starUnmapped.out.mate2.fastq
+minimap2 \
+    -ax map-ont \
+    -t ${task.cpus} \
+    -2 \
+    ${minimap2_host_index}
+    ${r1} > \
+    ${base}.host_filtered.sam
+"""
+}
 
-gzip ${base}.starUnmapped.out.mate1.fastq
-gzip ${base}.starUnmapped.out.mate2.fastq
+process Host_depletion_extraction_nanopore { 
+publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
+container "staphb/samtools"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(sam)
+output: 
+    tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+samtools fastq -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
 """
 }
 
@@ -94,7 +107,7 @@ container "staphb/kraken2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2)
+    tuple val(base), file(r1)
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
@@ -106,7 +119,7 @@ echo "ls of directory"
 ls -lah 
 
 kraken2 --db ${kraken2_db} \
-    --threads 24 \
+    --threads ${task.cpus} \
     --classified-out ${base}.kraken2.classified \
     --output ${base}.kraken2.output \
     --report ${base}.kraken2.report \

@@ -30,15 +30,20 @@ if (params.help){
     // clean exit
 }
 
-include { Trimming_FastP } from './modules.nf'
-include { Low_complexity_filtering } from './modules.nf'
-include { Host_depletion } from './modules.nf'
-include { Kraken_prefilter } from './modules.nf'
-include { Extract_db } from './modules.nf'
-include { Minimap2 } from './modules.nf'
-include { Sam_conversion } from './modules.nf'
-include { Classify } from './modules.nf'
-include { Write_report } from './modules.nf'
+include { Trimming_FastP } from './illumina_modules.nf'
+include { Low_complexity_filtering } from './illumina_modules.nf'
+include { Host_depletion } from './illumina_modules.nf'
+include { Kraken_prefilter } from './illumina_modules.nf'
+include { Extract_db } from './illumina_modules.nf'
+include { Minimap2 } from './illumina_modules.nf'
+include { Sam_conversion } from './illumina_modules.nf'
+include { Classify } from './illumina_modules.nf'
+include { Write_report } from './illumina_modules.nf'
+
+include { NanoFilt } from './nanopore_modules.nf'
+include { NanoPlot } from './nanopore_modules.nf'
+include { Host_depletion_nanopore } from './nanopore_modules.nf'
+include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 
 
 
@@ -57,48 +62,73 @@ Taxdump = Channel
 Krakenuniq_db = Channel
             .fromPath(params.KRAKENUNIQUE_DB)
 
-input_read_Ch = Channel
-    .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
-    .map { it -> [it[0], it[1][0], it[1][1]]}
+
 
 workflow{
-    // defined at CLI    
-    Trimming_FastP(
-        input_read_Ch
+    if ( params.NANOPORE){
+        input_read_Ch = Channel
+            .fromFilePairs("${params.INPUT_FOLDER}**.fastq.gz")
+            .map { it -> [it[0], it[1][0]]}
+        NanoFilt(
+            input_read_Ch
         )
-    Low_complexity_filtering(
-        Trimming_FastP.out[0],
+        NanoPlot (
+            NanoFilt.out()
+        )
+        Host_depletion_nanopore( 
+            Nanofilt.out,
+            params.MINIMAP2_HOST_INDEX
+        )
+        Host_depletion_extraction_nanopore( 
+            Host_depletion_nanopore.out,
+        )
+        Kraken_prefilter_nanopore(
+            Host_depletion_extraction_nanopore.out,
+            Kraken2_db.collect()
+        )
+    }
+    else {
+        input_read_Ch = Channel
+            .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
+            .map { it -> [it[0], it[1][0], it[1][1]]}
+        // defined at CLI    
+        Trimming_FastP(
+            input_read_Ch
+            )
+        Low_complexity_filtering(
+            Trimming_FastP.out[0],
 
-    )
-    Host_depletion(
-        // access output of preceeding process
-        Low_complexity_filtering.out[0],
-        // collects all items emitted by a channel to a list, return
-        Star_index_Ch.collect()
         )
-    Kraken_prefilter(
-        Host_depletion.out[2],
-        Kraken2_db.collect()
+        Host_depletion(
+            // access output of preceeding process
+            Low_complexity_filtering.out[0],
+            // collects all items emitted by a channel to a list, return
+            Star_index_Ch.collect()
+            )
+        Kraken_prefilter(
+            Host_depletion.out[2],
+            Kraken2_db.collect()
+            )
+        Extract_db(
+            Kraken_prefilter.out,
+            NT_db.collect(),
+            file("${baseDir}/bin/extract_seqs.py")
+            )
+        Minimap2( 
+            Host_depletion.out[2],
+            Extract_db.out
+            )
+        Sam_conversion (
+            Minimap2.out
+            )
+        Classify ( 
+            Sam_conversion.out, 
+            Taxdump.collect(),
+            file("${baseDir}/bin/classify_reads.py")
+            )
+        Write_report(
+            Classify.out,
+            Krakenuniq_db.collect()
         )
-    Extract_db(
-        Kraken_prefilter.out,
-        NT_db.collect(),
-        file("${baseDir}/bin/extract_seqs.py")
-        )
-    Minimap2( 
-        Host_depletion.out[2],
-        Extract_db.out
-        )
-    Sam_conversion (
-        Minimap2.out
-        )
-    Classify ( 
-        Sam_conversion.out, 
-        Taxdump.collect(),
-        file("${baseDir}/bin/classify_reads.py")
-        )
-    Write_report(
-        Classify.out,
-        Krakenuniq_db.collect()
-    )
+    }
     }
