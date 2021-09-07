@@ -47,8 +47,7 @@ ls -lah
 NanoPlot -t ${task.cpus} \
     -p ${base} \
     --fastq ${r1} \
-    --title ${base} \
-    --summary ${base}.summary
+    --title ${base} 
 """
 }
 
