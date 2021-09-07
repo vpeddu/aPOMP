@@ -75,7 +75,7 @@ minimap2 \
     -ax map-ont \
     -t ${task.cpus} \
     -2 \
-    ${minimap2_host_index}
+    ${minimap2_host_index} \
     ${r1} > \
     ${base}.host_filtered.sam
 """
