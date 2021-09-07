@@ -152,8 +152,7 @@ container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2)
-    tuple val(base), file(species_fasta)
+    tuple val(base), file(r1), file(r2), file(species_fasta)
 output: 
     tuple val("${base}"), file("${base}.minimap2.sam")
 

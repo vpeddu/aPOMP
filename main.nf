@@ -44,6 +44,8 @@ include { NanoFilt } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
+include { MetaFlye } from './nanopore_modules.nf'
+include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 
 
 
@@ -82,10 +84,34 @@ workflow{
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
         )
+        MetaFlye(
+            Host_depletion_extraction_nanopore.out
+        )
         Kraken_prefilter_nanopore(
-            Host_depletion_extraction_nanopore.out,
+            MetaFlye.out,
             Kraken2_db.collect()
         )
+        Extract_db(
+            Kraken_prefilter_nanopore.out
+            )
+        Minimap2_nanopore( 
+            MetaFlye.out.groupTuple(
+            ).join(
+                Extract_db.out)
+            )
+        Sam_conversion (
+            Minimap2.out
+            )
+        Classify ( 
+            Sam_conversion.out, 
+            Taxdump.collect(),
+            file("${baseDir}/bin/classify_reads.py")
+            )
+        Write_report(
+            Classify.out,
+            Krakenuniq_db.collect()
+        )
+
     }
     else {
         input_read_Ch = Channel
@@ -115,8 +141,10 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2( 
-            Host_depletion.out[2],
-            Extract_db.out
+            Host_depletion.out[2](
+            ).join(
+                Extract_db.out)
+            )
             )
         Sam_conversion (
             Minimap2.out

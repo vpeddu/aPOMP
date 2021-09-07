@@ -101,13 +101,40 @@ samtools fastq -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
 """
 }
 
-process Kraken_prefilter { 
-publishDir "${params.OUTPUT}/Interleave_FASTQ/${base}", mode: 'symlink', overwrite: true
-container "staphb/kraken2"
+process MetaFlye { 
+publishDir "${params.OUTPUT}/MetaFlye/${base}", mode: 'symlink', overwrite: true
+container "staphb/flye:2.8"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1)
+output: 
+    tuple val("${base}"), file("${base}.flye.fasta")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+flye --nano-hq ${r1} \
+    -t ${task.cpus} \
+    --meta \
+    --out-dir ${base}.flye
+
+mv ${base}.flye/assembly.fasta ${base}.flye.fasta
+
+"""
+}
+
+
+process Kraken_prefilter_nanopore { 
+publishDir "${params.OUTPUT}/Kraken_prefilter/${base}", mode: 'symlink', overwrite: true
+container "staphb/kraken2"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(flye_assembly)
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
@@ -125,48 +152,20 @@ kraken2 --db ${kraken2_db} \
     --report ${base}.kraken2.report \
     --gzip-compressed \
     --unclassified-out ${base}.kraken2.unclassified \
-    ${r1} ${r2}
+    ${flye_assembly} 
 
 """
 }
 
-process Extract_db { 
-//publishDir "${params.OUTPUT}//${base}", mode: 'symlink', overwrite: true
-//container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
-container 'quay.io/vpeddu/evmeta'
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(report)
-    file fastadb
-    file extract_script
-output: 
-    tuple val("${base}"), file("${base}.species.fasta")
 
-
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-
-python3 ${extract_script} ${report} ${fastadb}
-
-mv species.fasta ${base}.species.fasta
-
-"""
-}
-
-process Minimap2 { 
+process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2)
-    tuple val(base), file(species_fasta)
+    tuple val(base), file(r1), file(species_fasta)
 output: 
     tuple val("${base}"), file("${base}.minimap2.sam")
 
@@ -181,83 +180,11 @@ ls -lah
 echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
-    -ax sr \
+    -ax map-ont \
     -t ${task.cpus} \
     -2 \
     ${species_fasta} \
-    ${r1} ${r2} > \
+    ${r1} > \
     ${base}.minimap2.sam
-"""
-}
-
-process Sam_conversion { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
-container "staphb/samtools"
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(sam)
-output: 
-    tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
-
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-
-samtools view -Sb -@  ${task.cpus} -F 4 ${sam} > ${base}.bam
-samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
-samtools index ${base}.sorted.bam
-"""
-}
-
-process Classify { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
-container 'quay.io/vpeddu/evmeta'
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(bam), file(bamindex)
-    file taxdump
-    file classify_script
-output: 
-    tuple val("${base}"), file("${base}.prekraken.tsv")
-
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-#mv taxonomy/taxdump.tar.gz .
-#tar -xvzf taxdump.tar.gz
-cp viral/*.dmp .
-python3 ${classify_script} ${bam} ${base}
-"""
-}
-
-process Write_report { 
-publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(prekraken)
-    file krakenuniqdb
-output: 
-    file "${base}.final.report.tsv"
-
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-
-krakenuniq-report --db ${krakenuniqdb} \
- --taxon-counts \
-  ${prekraken} > ${base}.final.report.tsv
 """
 }
