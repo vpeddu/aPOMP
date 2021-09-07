@@ -35,7 +35,7 @@ cpus 2
 input: 
     tuple val(base), file(r1) 
 output: 
-    "*"
+    file "*"
 
 script:
 """
@@ -114,7 +114,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-flye --nano-hq ${r1} --out-dir ${base}.flye \
+flye --nano-raw ${r1} --out-dir ${base}.flye \
     -t ${task.cpus} \
     --meta \
 
