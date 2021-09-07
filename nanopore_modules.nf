@@ -103,7 +103,7 @@ samtools fastq -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
 
 process MetaFlye { 
 publishDir "${params.OUTPUT}/MetaFlye/${base}", mode: 'symlink', overwrite: true
-container "staphb/flye:2.8"
+container "quay.io/biocontainers/flye:2.9--py27h6a42192_0"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
