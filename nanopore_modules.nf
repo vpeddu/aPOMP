@@ -63,7 +63,7 @@ input:
     tuple val(base), file(r1), file(r2)
     file minimap2_host_index
 output: 
-    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz")
+    tuple val("${base}"), file("${base}.host_filtered.sam")
 script:
 """
 #!/bin/bash
