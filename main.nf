@@ -75,7 +75,7 @@ workflow{
             input_read_Ch
         )
         NanoPlot (
-            NanoFilt.out()
+            NanoFilt.out
         )
         Host_depletion_nanopore( 
             Nanofilt.out,
