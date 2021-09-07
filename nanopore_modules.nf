@@ -19,7 +19,7 @@ echo "ls of directory"
 ls -lah 
 echo "running Nanofilt on ${base}"
 
-gunzip ${r1} | NanoFilt -q 9 \
+gunzip -c ${r1} | NanoFilt -q 9 \
         --maxlength 5000 \
         --length 200 | gzip > ${base}.filtered.fastq.gz
 
