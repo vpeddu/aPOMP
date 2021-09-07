@@ -117,10 +117,9 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-flye --nano-hq ${r1} \
+flye --nano-hq ${r1} --out-dir ${base}.flye \
     -t ${task.cpus} \
     --meta \
-    --out-dir ${base}.flye
 
 mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 
