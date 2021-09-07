@@ -102,7 +102,7 @@ workflow{
                 Extract_db.out)
             )
         Sam_conversion (
-            Minimap2.out
+            Minimap2_nanopore.out
             )
         Classify ( 
             Sam_conversion.out, 
