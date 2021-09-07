@@ -78,7 +78,7 @@ workflow{
             NanoFilt.out[0]
         )
         Host_depletion_nanopore( 
-            NanoFilt.out,
+            NanoFilt.out[0],
             params.MINIMAP2_HOST_INDEX
         )
         Host_depletion_extraction_nanopore( 
