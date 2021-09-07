@@ -1,7 +1,7 @@
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
-container " quay.io/biocontainers/nanofilt:2.8.0"
+container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
 beforeScript 'chmod o+rw .'
 cpus 6
 input: 
