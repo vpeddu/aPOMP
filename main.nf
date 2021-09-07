@@ -69,8 +69,8 @@ Krakenuniq_db = Channel
 workflow{
     if ( params.NANOPORE){
         input_read_Ch = Channel
-            .fromFilePairs("${params.INPUT_FOLDER}**.fastq.gz")
-            .map { it -> [it[0], it[1][0]]}
+            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
+            .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         NanoFilt(
             input_read_Ch
         )
