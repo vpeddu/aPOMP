@@ -98,7 +98,7 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2_nanopore( 
-            MetaFlye.out.groupTuple().join(
+            MetaFlye.out.groupTuple(size:1).join(
                 Extract_db.out)
             )
         Sam_conversion (
