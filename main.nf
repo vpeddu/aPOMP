@@ -85,9 +85,9 @@ workflow{
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
         )
-        MetaFlye(
-            Host_depletion_extraction_nanopore.out
-        )
+        // MetaFlye(
+        //     Host_depletion_extraction_nanopore.out
+        // )
         Kraken_prefilter_nanopore(
             Host_depletion_extraction_nanopore.out,
             Kraken2_db.collect()
