@@ -89,7 +89,7 @@ workflow{
             Host_depletion_extraction_nanopore.out
         )
         Kraken_prefilter_nanopore(
-            NanoFilt.out[0],
+            Host_depletion_extraction_nanopore.out,
             Kraken2_db.collect()
         )
         Extract_db(
