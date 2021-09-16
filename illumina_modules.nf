@@ -128,7 +128,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta")
+    tuple val("${base}"), file("${base}.species.fasta.gz")
 
 
 script:
@@ -148,9 +148,8 @@ echo adding \$i
 cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
 done
 
-gunzip species.fasta.gz
 
-mv species.fasta ${base}.species.fasta
+mv species.fasta.gz ${base}.species.fasta.gz
 
 """
 }
