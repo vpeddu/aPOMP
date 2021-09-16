@@ -144,7 +144,7 @@ ls -lah
 
 for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
-cat \$i.genus.fastq.gz >> species.fasta
+cat ${fastadb}/\$i.genus.fastq.gz >> species.fasta
 done
 
 mv species.fasta ${base}.species.fasta
