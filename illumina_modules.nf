@@ -178,7 +178,7 @@ echo "running Minimap2 on ${base}"
 minimap2 \
     -ax sr \
     -t ${task.cpus} \
-    -I 16G \
+    -K 16G \
     --split-prefix \
     -2 \
     ${species_fasta} \
