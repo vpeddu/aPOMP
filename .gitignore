@@ -4,3 +4,4 @@ work/*
 *testing*
 *.nextflow.log
 test_output/
+trace.txt.*
