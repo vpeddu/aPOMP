@@ -179,6 +179,7 @@ minimap2 \
     -ax map-ont \
     -t ${task.cpus} \
     -2 \
+    -I 16G \
     ${species_fasta} \
     ${r1} > \
     ${base}.minimap2.sam
