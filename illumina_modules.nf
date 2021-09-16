@@ -128,7 +128,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta.gz")
+    tuple val("${base}"), file("${base}.species.fasta")
 
 
 script:
@@ -145,10 +145,12 @@ ls -lah
 for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
 echo adding \$i
-cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta
+cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
 done
 
-mv species.fasta ${base}.species.fasta.gz
+gunzip species.fasta.gz
+
+mv species.fasta ${base}.species.fasta
 
 """
 }
@@ -178,6 +180,7 @@ minimap2 \
     -ax sr \
     -t ${task.cpus} \
     -I 16G \
+    --split-prefix \
     -2 \
     ${species_fasta} \
     ${r1} ${r2} > \
