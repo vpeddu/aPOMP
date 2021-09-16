@@ -138,7 +138,14 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-python3 ${extract_script} ${report} ${fastadb}
+# python3 ${extract_script} ${report} ${fastadb}
+
+#grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
+
+for i in `grep -P "\tG\t" ${report} | cut -f5`
+do
+cat \$i.genus.fastq.gz >> species.fasta
+done
 
 mv species.fasta ${base}.species.fasta
 
