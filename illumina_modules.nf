@@ -185,7 +185,7 @@ minimap2 \
 }
 
 process Sam_conversion { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/sam_conversion/${base}", mode: 'symlink', overwrite: true
 container "staphb/samtools"
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -193,6 +193,7 @@ input:
     tuple val(base), file(sam)
 output: 
     tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
+    file "${base}.unclassified.bam"
 
 script:
 """
@@ -204,6 +205,10 @@ ls -lah
 samtools view -Sb -@  ${task.cpus} -F 4 ${sam} > ${base}.bam
 samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
 samtools index ${base}.sorted.bam
+
+samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
+
+
 """
 }
 
