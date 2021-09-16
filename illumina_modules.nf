@@ -144,10 +144,10 @@ ls -lah
 
 for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
-cat ${fastadb}/\$i.genus.fastq.gz >> species.fasta
+cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta
 done
 
-mv species.fasta ${base}.species.fasta
+mv species.fasta ${base}.species.fasta.gz
 
 """
 }
