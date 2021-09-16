@@ -180,7 +180,7 @@ minimap2 \
     -t ${task.cpus} \
     -2 \
     --split-prefix \
-    -K 16G \
+    -K16G \
     ${species_fasta} \
     ${r1} > \
     ${base}.minimap2.sam
