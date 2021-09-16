@@ -128,7 +128,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta")
+    tuple val("${base}"), file("${base}.species.fasta.gz")
 
 
 script:
@@ -144,6 +144,7 @@ ls -lah
 
 for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
+echo adding \$i
 cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta
 done
 
