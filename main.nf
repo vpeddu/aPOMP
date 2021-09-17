@@ -111,7 +111,7 @@ workflow{
             file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
-            Classify.out,
+            Classify.out[0],
             Krakenuniq_db.collect()
         )
 
@@ -157,7 +157,7 @@ workflow{
             file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
-            Classify.out,
+            Classify.out[0],
             Krakenuniq_db.collect()
         )
     }

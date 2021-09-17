@@ -216,7 +216,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 }
 
 process Classify { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
@@ -228,6 +228,7 @@ input:
     file accessiontotaxid
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
+    file "${base}.accession_not_found.txt"
 
 script:
 """
