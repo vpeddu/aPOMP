@@ -161,6 +161,7 @@ class read():
         self.seen = false
 
 acc2taxid = open(sys.argv[3], 'r')
+# TODO: append these taxids within the fasta so we don't have to build this dictionary every time
 acc_dict = {}
 for acc in acc2taxid: 
     acc_dict[acc.split()[1]] = acc.split()[2]

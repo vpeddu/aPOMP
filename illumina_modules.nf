@@ -219,6 +219,7 @@ process Classify {
 publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
 cpus 8
 input: 
     tuple val(base), file(bam), file(bamindex)
@@ -245,6 +246,7 @@ process Write_report {
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
 cpus 8
 input: 
     tuple val(base), file(prekraken)
