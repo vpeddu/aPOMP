@@ -127,9 +127,7 @@ def get_common_ancestor(name_object, node_list: List[str]):
             if taxid in list2:  # Identify common nodes between the two genealogy
                 ancestral_list.append(taxid)
         list1 = ancestral_list  # Reassigning ancestral_list to list 1.
-    last_common_ancestor = ancestral_list[
-        0
-    ]  # Finally, the first node of the ancestral_list is the common ancestor of all nodes.
+    last_common_ancestor = ancestral_list[0]  # Finally, the first node of the ancestral_list is the common ancestor of all nodes.
     return last_common_ancestor  # Return a node
 
 def get_genealogy(name_object, leaf_node: str) -> List[str]:
