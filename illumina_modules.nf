@@ -196,7 +196,7 @@ input:
     tuple val(base), file(sam)
 output: 
     tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
-    file "${base}.unclassified.bam"
+    file "${base}.unclassfied.bam"
 
 script:
 """
