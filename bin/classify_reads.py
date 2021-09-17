@@ -160,8 +160,14 @@ class read():
         self.taxid = []
         self.seen = false
 
+acc2taxid = open(sys.argv[2], 'r')
+acc_dict = {}
+for acc in acc2taxid: 
+    acc_dict[acc.split()[1]] = acc.split()[2]
+print('done building accession to taxid dict')
 
 bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
+print('done reading in bamfile')
 read_dict = {}
 for record in bamfile: 
     #print(record.query_name)
@@ -171,12 +177,12 @@ for record in bamfile:
         read_dict[record.query_name].cigar = [record.cigarstring]
         read_dict[record.query_name].mapq = [record.query_qualities]
         read_dict[record.query_name].seq = record.query_sequence
-        read_dict[record.query_name].taxid = [record.reference_name]
+        read_dict[record.query_name].taxid = [acc_dict[record.reference_name]]
         read_dict[record.query_name].seen = True
     else: 
         read_dict[record.query_name].cigar.append(record.cigarstring)
         read_dict[record.query_name].mapq.append(record.query_qualities)
-        read_dict[record.query_name].taxid.append(record.reference_name)
+        read_dict[record.query_name].taxid.append(acc_dict[record.reference_name])
 #print(read_dict['SRR11786979.760008'].cigar)
 
 assignments = {}

@@ -107,7 +107,8 @@ workflow{
         Classify ( 
             Sam_conversion.out[0], 
             Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py")
+            file("${baseDir}/bin/classify_reads.py"),
+            file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
             Classify.out,
@@ -152,7 +153,8 @@ workflow{
         Classify ( 
             Sam_conversion.out, 
             Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py")
+            file("${baseDir}/bin/classify_reads.py"),
+            file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
             Classify.out,

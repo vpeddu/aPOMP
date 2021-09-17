@@ -224,6 +224,7 @@ input:
     tuple val(base), file(bam), file(bamindex)
     file taxdump
     file classify_script
+    file accessiontotaxid
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
 
@@ -236,7 +237,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp viral/*.dmp .
-python3 ${classify_script} ${bam} ${base}
+python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
 """
 }
 
