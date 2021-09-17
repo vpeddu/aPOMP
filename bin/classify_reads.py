@@ -179,21 +179,21 @@ for record in bamfile:
     
     if record.reference_name in acc_dict:
         record_tid = acc_dict[record.reference_name]
+        if record.query_name not in read_dict:
+            read_dict[record.query_name] = read()
+            read_dict[record.query_name].id = record.query_name
+            read_dict[record.query_name].cigar = [record.cigarstring]
+            read_dict[record.query_name].mapq = [record.query_qualities]
+            read_dict[record.query_name].seq = record.query_sequence
+            read_dict[record.query_name].taxid = [record_tid]
+            read_dict[record.query_name].seen = True
+        else: 
+            read_dict[record.query_name].cigar.append(record.cigarstring)
+            read_dict[record.query_name].mapq.append(record.query_qualities)
+            read_dict[record.query_name].taxid.append(record_tid)
     else:
         not_in_accs_file.writelines(record.reference_name)
 
-    if record.query_name not in read_dict:
-        read_dict[record.query_name] = read()
-        read_dict[record.query_name].id = record.query_name
-        read_dict[record.query_name].cigar = [record.cigarstring]
-        read_dict[record.query_name].mapq = [record.query_qualities]
-        read_dict[record.query_name].seq = record.query_sequence
-        read_dict[record.query_name].taxid = [acc_dict[record.reference_name]]
-        read_dict[record.query_name].seen = True
-    else: 
-        read_dict[record.query_name].cigar.append(record.cigarstring)
-        read_dict[record.query_name].mapq.append(record.query_qualities)
-        read_dict[record.query_name].taxid.append(acc_dict[record.reference_name])
 #print(read_dict['SRR11786979.760008'].cigar)
 
 assignments = {}
