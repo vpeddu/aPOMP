@@ -160,7 +160,7 @@ class read():
         self.taxid = []
         self.seen = false
 
-acc2taxid = open(sys.argv[2], 'r')
+acc2taxid = open(sys.argv[3], 'r')
 acc_dict = {}
 for acc in acc2taxid: 
     acc_dict[acc.split()[1]] = acc.split()[2]
