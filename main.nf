@@ -29,6 +29,7 @@ if (params.help){
     exit 0
     // clean exit
 }
+params.NANOPORE = false
 
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
