@@ -144,7 +144,8 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2( 
-            Host_depletion.out[2].join(Extract_db.out)
+            Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
+                Extract_db.out) 
             )
         Sam_conversion (
             Minimap2.out
