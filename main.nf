@@ -120,7 +120,7 @@ workflow{
     else {
         input_read_Ch = Channel
             .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
-            .map { it -> [it[0], it[1][0], it[1][1]]}
+            .map { it -> [it[0], it[1][0], it[1][1]] }
         // defined at CLI    
         Trimming_FastP(
             input_read_Ch
