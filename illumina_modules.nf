@@ -228,7 +228,7 @@ input:
     file accessiontotaxid
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
-    file "${base}.accession_not_found.txt"
+    file "${base}.accession_DNE.txt"
 
 script:
 """
