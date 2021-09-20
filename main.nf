@@ -86,36 +86,65 @@ workflow{
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
         )
-        // MetaFlye(
-        //     Host_depletion_extraction_nanopore.out
-        // )
-        Kraken_prefilter_nanopore(
-            Host_depletion_extraction_nanopore.out,
-            Kraken2_db.collect()
-        )
-        Extract_db(
-            Kraken_prefilter_nanopore.out,
-            NT_db.collect(),
-            file("${baseDir}/bin/extract_seqs.py")
+        if (params.METAFLYE){
+            MetaFlye(
+                Host_depletion_extraction_nanopore.out
             )
-        Minimap2_nanopore( 
-            Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
-                Extract_db.out)
+            Kraken_prefilter_nanopore(
+                MetaFlye.out,
+                Kraken2_db.collect()
             )
-        Sam_conversion (
-            Minimap2_nanopore.out
+            Extract_db(
+                Kraken_prefilter_nanopore.out,
+                NT_db.collect(),
+                file("${baseDir}/bin/extract_seqs.py")
+                )
+            Minimap2_nanopore( 
+                Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
+                    Extract_db.out)
+                )
+            Sam_conversion (
+                Minimap2_nanopore.out
+                )
+            Classify ( 
+                Sam_conversion.out[0], 
+                Taxdump.collect(),
+                file("${baseDir}/bin/classify_reads.py"),
+                file("${params.ACCESSIONTOTAXID}")
+                )
+            Write_report(
+                Classify.out[0],
+                Krakenuniq_db.collect()
             )
-        Classify ( 
-            Sam_conversion.out[0], 
-            Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py"),
-            file("${params.ACCESSIONTOTAXID}")
+            }
+        else {
+            Kraken_prefilter_nanopore(
+                Host_depletion_extraction_nanopore.out,
+                Kraken2_db.collect()
             )
-        Write_report(
-            Classify.out[0],
-            Krakenuniq_db.collect()
-        )
-
+            Extract_db(
+                Kraken_prefilter_nanopore.out,
+                NT_db.collect(),
+                file("${baseDir}/bin/extract_seqs.py")
+                )
+            Minimap2_nanopore( 
+                Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
+                    Extract_db.out)
+                )
+            Sam_conversion (
+                Minimap2_nanopore.out
+                )
+            Classify ( 
+                Sam_conversion.out[0], 
+                Taxdump.collect(),
+                file("${baseDir}/bin/classify_reads.py"),
+                file("${params.ACCESSIONTOTAXID}")
+                )
+            Write_report(
+                Classify.out[0],
+                Krakenuniq_db.collect()
+            )
+            }
     }
     else {
         input_read_Ch = Channel
