@@ -29,6 +29,7 @@ if (params.help){
     exit 0
     // clean exit
 }
+params.NANOPORE = false
 
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -105,12 +106,13 @@ workflow{
             Minimap2_nanopore.out
             )
         Classify ( 
-            Sam_conversion.out, 
+            Sam_conversion.out[0], 
             Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py")
+            file("${baseDir}/bin/classify_reads.py"),
+            file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
-            Classify.out,
+            Classify.out[0],
             Krakenuniq_db.collect()
         )
 
@@ -118,7 +120,7 @@ workflow{
     else {
         input_read_Ch = Channel
             .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
-            .map { it -> [it[0], it[1][0], it[1][1]]}
+            .map { it -> [it[0], it[1][0], it[1][1]] }
         // defined at CLI    
         Trimming_FastP(
             input_read_Ch
@@ -142,20 +144,20 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2( 
-            Host_depletion.out[2](
-            ).join(
-                Extract_db.out)
+            Host_depletion.out[2].groupTuple(size:1).join(
+                Extract_db.out) 
             )
         Sam_conversion (
             Minimap2.out
             )
         Classify ( 
-            Sam_conversion.out, 
+            Sam_conversion.out[0], 
             Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py")
+            file("${baseDir}/bin/classify_reads.py"),
+            file("${params.ACCESSIONTOTAXID}")
             )
         Write_report(
-            Classify.out,
+            Classify.out[0],
             Krakenuniq_db.collect()
         )
     }

@@ -179,6 +179,8 @@ minimap2 \
     -ax map-ont \
     -t ${task.cpus} \
     -2 \
+    --split-prefix \
+    -K16G \
     ${species_fasta} \
     ${r1} > \
     ${base}.minimap2.sam

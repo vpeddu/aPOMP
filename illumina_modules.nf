@@ -128,7 +128,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta")
+    tuple val("${base}"), file("${base}.species.fasta.gz")
 
 
 script:
@@ -138,9 +138,18 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-python3 ${extract_script} ${report} ${fastadb}
+# python3 ${extract_script} ${report} ${fastadb}
 
-mv species.fasta ${base}.species.fasta
+#grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
+
+for i in `grep -P "\tG\t" ${report} | cut -f5`
+do
+echo adding \$i
+cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+done
+
+
+mv species.fasta.gz ${base}.species.fasta.gz
 
 """
 }
@@ -169,6 +178,8 @@ echo "running Minimap2 on ${base}"
 minimap2 \
     -ax sr \
     -t ${task.cpus} \
+    -K 16G \
+    --split-prefix \
     -2 \
     ${species_fasta} \
     ${r1} ${r2} > \
@@ -177,7 +188,7 @@ minimap2 \
 }
 
 process Sam_conversion { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/sam_conversion/${base}", mode: 'symlink', overwrite: true
 container "staphb/samtools"
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -185,6 +196,7 @@ input:
     tuple val(base), file(sam)
 output: 
     tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
+    file "${base}.unclassfied.bam"
 
 script:
 """
@@ -196,20 +208,27 @@ ls -lah
 samtools view -Sb -@  ${task.cpus} -F 4 ${sam} > ${base}.bam
 samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
 samtools index ${base}.sorted.bam
+
+samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
+
+
 """
 }
 
 process Classify { 
-publishDir "${params.OUTPUT}/Profiling/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
 cpus 8
 input: 
     tuple val(base), file(bam), file(bamindex)
     file taxdump
     file classify_script
+    file accessiontotaxid
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
+    file "${base}.accession_DNE.txt"
 
 script:
 """
@@ -220,7 +239,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp viral/*.dmp .
-python3 ${classify_script} ${bam} ${base}
+python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
 """
 }
 
@@ -228,6 +247,7 @@ process Write_report {
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
 cpus 8
 input: 
     tuple val(base), file(prekraken)
