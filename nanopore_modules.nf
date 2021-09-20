@@ -102,6 +102,7 @@ process MetaFlye {
 publishDir "${params.OUTPUT}/MetaFlye/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/flye:2.9--py27h6a42192_0"
 beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
 cpus 16
 input: 
     tuple val(base), file(r1)
