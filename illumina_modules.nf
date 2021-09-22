@@ -53,6 +53,7 @@ bbduk.sh \
 """
 }
 
+//TODO: delete intermediate bam for space savings
 process Host_depletion { 
 publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
@@ -154,6 +155,7 @@ mv species.fasta.gz ${base}.species.fasta.gz
 """
 }
 
+//TODO: create containre with Minimap2 and samtools so we can get rid of intermediate sam for space savings
 process Minimap2 { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
