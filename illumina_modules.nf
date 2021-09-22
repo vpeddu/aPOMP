@@ -1,3 +1,5 @@
+//TODO: rebuild database but with taxids or full names appended 
+
 process Trimming_FastP { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true

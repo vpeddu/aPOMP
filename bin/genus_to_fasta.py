@@ -42,6 +42,7 @@ for file in tarballs:
             # Make sure the record exists in our accession to genus lookup dictionary 
             if record.id in lookup:
                 genus = lookup[record.id][1]
+                record.description = lookup[record.id][0]
                 # if genus is not in dictionary yet create a list containing just that record
                 if genus not in seen:
                     seen[genus] = [record]
