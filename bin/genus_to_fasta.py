@@ -30,7 +30,7 @@ for file in tarballs:
     fasta_extract_cmd = 'blastdbcmd -entry all -db ' + file.split('.tar.gz')[0] + ' -out temp.fasta'
     subprocess.call(tar_extract_cmd, shell=True)
     subprocess.call(fasta_extract_cmd, shell=True)
-    print('processing' + file)
+    print('processing ' + file)
     # initialize dictionary to hold each fasta record that falls into a genus
     # key is genus, value is the seqio fasta object
     seen = {}
@@ -43,6 +43,7 @@ for file in tarballs:
             if record.id in lookup:
                 genus = lookup[record.id][1]
                 record.description = lookup[record.id][0]
+                #record.id = str(record.id) + "|" + str(record.description)
                 # if genus is not in dictionary yet create a list containing just that record
                 if genus not in seen:
                     seen[genus] = [record]
@@ -51,6 +52,9 @@ for file in tarballs:
                     seen[genus].append(record) 
         print('done creating genus fasta dictionary')
         # write the genus to fasta dictionary to fastas within each genus
+        for g in tqdm(seen.keys(),total = len(seen.keys())): 
+            for i in seen[g]:
+                i.id = str(i.id) + "|" + str(i.description)
         for g in tqdm(seen.keys(),total = len(seen.keys())): 
             tempfastafilename = 'genus_organized/' + str(g) + '.' + str(file) + '.temp.fasta'
             record_list = seen[g]
@@ -68,6 +72,6 @@ for file in tarballs:
     fastafile.close()
     
 #concatenate all temp fastas into genus level final fastas
-print('concatenating all fastas')
-concatenate_cmd = 'ls genus_organized/ | cut -f1 -d . | sort | uniq | parallel -j 10 "cat genus_organized/{{}}.nt.* > final_index/{{}}.genus.fasta.gz"'
-subprocess.call(concatenate_cmd, shell = True)
+#print('concatenating all fastas')
+#concatenate_cmd = 'ls genus_organized/ | cut -f1 -d . | sort | uniq | parallel -j 10 "cat genus_organized/{{}}.nt.* > final_index/{{}}.genus.fasta.gz"'
+#subprocess.call(concatenate_cmd, shell = True)

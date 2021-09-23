@@ -164,7 +164,7 @@ for record in bamfile:
     #print(record.query_name)
     
     if record.reference_name in acc_dict:
-        record_tid = acc_dict[record.reference_name]
+        record_tid = acc_dict[record.reference_name.split('|')[0]]
         if record.query_name not in read_dict:
             read_dict[record.query_name] = read()
             read_dict[record.query_name].id = record.query_name
