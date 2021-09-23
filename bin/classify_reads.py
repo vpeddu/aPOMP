@@ -163,7 +163,8 @@ not_in_accs_file = open(not_in_accs_filename, 'w')
 for record in bamfile: 
     #print(record.query_name)
     #print(record.reference_name)
-    if record.reference_name in acc_dict:
+    acc_num = record.reference_name.split('|')[0]
+    if acc_num in acc_dict:
         print(record.reference_name)
         record_tid = acc_dict[record.reference_name.split('|')[0]]
         print(record_tid)
