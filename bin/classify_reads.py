@@ -161,8 +161,8 @@ not_in_accs_filename = sys.argv[2] + '.accession_DNE.txt'
 not_in_accs_file = open(not_in_accs_filename, 'w')
 
 for record in bamfile: 
-    #print(record.query_name)
-    
+    print(record.query_name)
+    print(record.reference_name)
     if record.reference_name in acc_dict:
         record_tid = acc_dict[record.reference_name.split('|')[0]]
         if record.query_name not in read_dict:
