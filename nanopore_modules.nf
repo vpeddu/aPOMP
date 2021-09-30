@@ -151,7 +151,7 @@ kraken2 --db ${kraken2_db} \
     --unclassified-out ${base}.kraken2.unclassified \
     ${flye_assembly} 
 
-cat  ${base}.kraken2.report | awk '/\\tG\\t/{print "base "\$5}'
+cat  ${base}.kraken2.report | awk '/\\tG\\t/{print \$5}'
 
 """
 }
