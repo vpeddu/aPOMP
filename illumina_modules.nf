@@ -225,7 +225,7 @@ do
     samtools sort -@ ${task.cpus} \$i.temp.bam > \$i.sorted.temp.bam
 done
 
-samtools merge -@ ${task.cpus} -o ${base}.final.sorted.bam *.temp.bam
+samtools merge -@ ${task.cpus} -o ${base}.final.sorted.bam *.sorted.temp.bam
 
 samtools index ${base}.final.sorted.bam
 
