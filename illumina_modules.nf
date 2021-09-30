@@ -222,7 +222,7 @@ ls -lah
 for i in *.sam
 do
     samtools view -Sb -@  ${task.cpus} -F 4 \$i > \$i.temp.bam
-    samtools sort -@ ${task.cpus} \i.temp.bam > \$i.sorted.temp.bam
+    samtools sort -@ ${task.cpus} \$i.temp.bam > \$i.sorted.temp.bam
 done
 
 samtools merge -@ ${task.cpus} -o ${base}.final.sorted.bam *.temp.bam
