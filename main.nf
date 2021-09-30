@@ -127,9 +127,9 @@ workflow{
                 Kraken_prefilter_nanopore.out[1]
                     .splitCsv()
                     .combine(Kraken_prefilter_nanopore.out[0].splitCsv())
-                    .toList().view()
-                    // .join(
-                    // Host_depletion_extraction_nanopore.out).view()
+                    .toList()
+                    .join(
+                    Host_depletion_extraction_nanopore.out).view()
             Minimap2_nanopore( 
                 Kraken_prefilter_nanopore.out[1]
                     .splitCsv()
