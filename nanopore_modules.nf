@@ -158,7 +158,7 @@ cat  ${base}.kraken2.report | awk '/\\tG\\t/{print "base "\$5}'
 }
 
 
-process Minimap2 { 
+process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "staphb/minimap2"
