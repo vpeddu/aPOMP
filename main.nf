@@ -134,8 +134,14 @@ workflow{
                 Kraken_prefilter_nanopore.out[1]
                     .splitCsv()
                     .combine(Kraken_prefilter_nanopore.out[0].splitCsv())
+                    .groupTuple()
                     .join(
                     Host_depletion_extraction_nanopore.out),
+                // Kraken_prefilter_nanopore.out[1]
+                //     .splitCsv()
+                //     .combine(Kraken_prefilter_nanopore.out[0].splitCsv())
+                //     .join(
+                //     Host_depletion_extraction_nanopore.out),
                 NT_db.collect()
                 )
             Sam_conversion (
