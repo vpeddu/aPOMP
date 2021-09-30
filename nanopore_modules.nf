@@ -134,7 +134,8 @@ input:
     tuple val(base), file(flye_assembly)
     file kraken2_db
 output: 
-    tuple val("${base}"), file("${base}.kraken2.report")
+    stdout krakenoutCh
+    val "${base}"
 script:
 """
 #!/bin/bash
@@ -151,20 +152,24 @@ kraken2 --db ${kraken2_db} \
     --unclassified-out ${base}.kraken2.unclassified \
     ${flye_assembly} 
 
+cat  ${base}.kraken2.report | awk '/\\tG\\t/{print "base "\$5}'
+
 """
 }
 
 
-process Minimap2_nanopore { 
+process Minimap2 { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(species_fasta)
+    tuple val(base), val(genus), file(r1)
+    file fastadb
+
 output: 
-    tuple val("${base}"), file("${base}.minimap2.sam")
+    tuple val("${base}"), file("${base}.${genus}.minimap2.sam")
 
 script:
 """
@@ -174,6 +179,9 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+echo "using db ${fastadb}/${genus}.fasta.gz"
+echo "read file is ${r1}"
+
 echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
@@ -182,8 +190,8 @@ minimap2 \
     -2 \
     --split-prefix \
     -K16G \
-    ${species_fasta} \
+    ${fastadb}/${genus}.fasta.gz \
     ${r1} > \
-    ${base}.minimap2.sam
+    ${base}.${genus}.minimap2.sam
 """
 }

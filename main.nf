@@ -125,9 +125,9 @@ workflow{
                 Kraken2_db.collect()
             )
             Minimap2_nanopore( 
-                Kraken_prefilter_nanopore.out
+                Kraken_prefilter_nanopore.out[0]
                     .splitCsv()
-                    .combine(bleh)
+                    .combine(Kraken_prefilter_nanopore.out[1])
                     .map{it -> [it[1], it[0]]}.groupTuple(size:1).join(
                     Host_depletion.out[2]),
                 NT_db.collect()
