@@ -181,8 +181,12 @@ ls -lah
 echo "using db ${fastadb}/${genus}.genus.fasta.gz"
 echo "read file is ${r1}"
 
+echo ${genus} | sed 's/[][]//g' | tr ',' '\\n' > genuses.txt 
+
+cat genuses.txt
+
+
 echo "running Minimap2 on ${base}"
-#TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax map-ont \
     -t ${task.cpus} \
