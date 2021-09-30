@@ -100,7 +100,8 @@ input:
     tuple val(base), file(r1), file(r2)
     file kraken2_db
 output: 
-    tuple val("${base}"), file("${base}.kraken2.report")
+    stdout krakenoutCh
+    //tuple val("${base}"), file("${base}.kraken2.report")
 script:
 """
 #!/bin/bash
@@ -117,6 +118,9 @@ kraken2 --db ${kraken2_db} \
     --unclassified-out ${base}.kraken2.unclassified \
     ${r1} ${r2}
 
+
+cat  ${base}.kraken2.report | awk '/\\tG\\t/{print "base "\$5}'
+
 """
 }
 
@@ -125,7 +129,7 @@ process Extract_db {
 //container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 1
 input: 
     tuple val(base), file(report)
     file fastadb
@@ -165,9 +169,11 @@ container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(r1), file(r2), file(species_fasta)
+    tuple val(base), val(genus), file(r1), file(r2)
+    file fastadb
+
 output: 
-    tuple val("${base}"), file("${base}.minimap2.sam")
+    tuple val("${base}"), file("${base}.${genus}.minimap2.sam")
 
 script:
 """
@@ -176,6 +182,9 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
+
+echo "using db ${fastadb}/${genus}.fasta.gz"
+echo "read files are ${r1} and ${r2}"
 
 echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
@@ -185,12 +194,13 @@ minimap2 \
     -K 16G \
     --split-prefix \
     -2 \
-    ${species_fasta} \
+    ${fastadb}/${genus}.fasta.gz \
     ${r1} ${r2} > \
-    ${base}.minimap2.sam
+    ${base}.${genus}.minimap2.sam
 """
 }
 
+//TODO: bring back the unclassified bam output
 process Sam_conversion { 
 publishDir "${params.OUTPUT}/sam_conversion/${base}", mode: 'symlink', overwrite: true
 container "staphb/samtools"
@@ -199,8 +209,8 @@ cpus 8
 input: 
     tuple val(base), file(sam)
 output: 
-    tuple val("${base}"), file("${base}.sorted.bam"), file("${base}.sorted.bam.bai")
-    file "${base}.unclassfied.bam"
+    tuple val("${base}"), file("${base}.final.sorted.bam"), file("${base}.final.sorted.bam.bai")
+    //file "${base}.unclassfied.bam"
 
 script:
 """
@@ -209,11 +219,17 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-samtools view -Sb -@  ${task.cpus} -F 4 ${sam} > ${base}.bam
-samtools sort -@ ${task.cpus} ${base}.bam > ${base}.sorted.bam
-samtools index ${base}.sorted.bam
+for i in *.sam
+do
+    samtools view -Sb -@  ${task.cpus} -F 4 \$i > \$i.temp.bam
+    samtools sort -@ ${task.cpus} \i.temp.bam > \$i.sorted.temp.bam
+done
 
-samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
+samtools merge -@ ${task.cpus} -o ${base}.final.sorted.bam *.temp.bam
+
+samtools index ${base}.final.sorted.bam
+
+#samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 
 
 """

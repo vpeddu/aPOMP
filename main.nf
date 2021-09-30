@@ -86,6 +86,7 @@ workflow{
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
         )
+        // if metaflye specified
         if (params.METAFLYE){
             MetaFlye(
                 Host_depletion_extraction_nanopore.out
@@ -117,22 +118,22 @@ workflow{
                 Krakenuniq_db.collect()
             )
             }
+        // metaflye not specified
         else {
             Kraken_prefilter_nanopore(
                 Host_depletion_extraction_nanopore.out,
                 Kraken2_db.collect()
             )
-            Extract_db(
-                Kraken_prefilter_nanopore.out,
-                NT_db.collect(),
-                file("${baseDir}/bin/extract_seqs.py")
-                )
             Minimap2_nanopore( 
-                Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
-                    Extract_db.out)
+                Kraken_prefilter_nanopore.out
+                    .splitCsv()
+                    .combine(bleh)
+                    .map{it -> [it[1], it[0]]}.groupTuple(size:1).join(
+                    Host_depletion.out[2]),
+                NT_db.collect()
                 )
             Sam_conversion (
-                Minimap2_nanopore.out
+                Minimap2_nanopore.out.groupTuple()
                 )
             Classify ( 
                 Sam_conversion.out[0], 
