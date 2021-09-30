@@ -134,7 +134,7 @@ input:
     tuple val(base), file(flye_assembly)
     file kraken2_db
 output: 
-    stdout krakenoutCh
+    stdout 
     val "${base}"
 script:
 """
