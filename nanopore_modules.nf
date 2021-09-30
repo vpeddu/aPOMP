@@ -135,7 +135,7 @@ input:
     file kraken2_db
 output: 
     stdout 
-    val "${base}"
+    tuple val("${base}"), val("${base}")
 script:
 """
 #!/bin/bash
