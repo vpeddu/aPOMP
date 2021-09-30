@@ -178,7 +178,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-echo "using db ${fastadb}/${genus}.fasta.gz"
+echo "using db ${fastadb}/${genus}.genus.fasta.gz"
 echo "read file is ${r1}"
 
 echo "running Minimap2 on ${base}"
