@@ -145,7 +145,7 @@ workflow{
                 NT_db.collect()
                 )
             Sam_conversion (
-                Minimap2_nanopore.out.groupTuple()
+                Minimap2_nanopore.out.collect()
                 )
             Classify ( 
                 Sam_conversion.out[0], 
