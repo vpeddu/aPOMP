@@ -168,7 +168,7 @@ input:
     file fastadb
 
 output: 
-    tuple val("${base}"), file("${base}.${genus}.minimap2.sam")
+    tuple val("${base}"), file("*.minimap2.sam")
 
 script:
 """
@@ -178,13 +178,13 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-echo "using db ${fastadb}/${genus}.genus.fasta.gz"
-echo "read file is ${r1}"
+#echo "using db ${fastadb}/${genus}.genus.fasta.gz"
+#echo "read file is ${r1}"
 
 echo ${genus} | sed 's/[][]//g' | tr ',' '\\n' > genuses.txt 
 
-cat genuses.txt
-
+for i in `cat genuses.txt`
+do
 
 echo "running Minimap2 on ${base}"
 minimap2 \
@@ -193,8 +193,9 @@ minimap2 \
     -2 \
     --split-prefix \
     -K16G \
-    ${fastadb}/${genus}.genus.fasta.gz \
+    ${fastadb}/\$i.genus.fasta.gz \
     ${r1} > \
-    ${base}.${genus}.minimap2.sam
+    ${base}.\$i.minimap2.sam
+done
 """
 }
