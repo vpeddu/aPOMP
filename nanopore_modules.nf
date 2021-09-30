@@ -140,8 +140,7 @@ script:
 """
 #!/bin/bash
 #logging
-echo "ls of directory" 
-ls -lah 
+# no logging because stdout has to stay clean
 
 kraken2 --db ${kraken2_db} \
     --threads ${task.cpus} \
