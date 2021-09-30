@@ -189,7 +189,7 @@ minimap2 \
     -2 \
     --split-prefix \
     -K16G \
-    ${fastadb}/${genus}.fasta.gz \
+    ${fastadb}/${genus}.genus.fasta.gz \
     ${r1} > \
     ${base}.${genus}.minimap2.sam
 """
