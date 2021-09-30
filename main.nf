@@ -129,7 +129,7 @@ workflow{
                     .splitCsv()
                     .combine(Kraken_prefilter_nanopore.out[1])
                     .map{it -> [it[1], it[0]]}.groupTuple(size:1).join(
-                    Host_depletion_extraction_nanopore.out[2]),
+                    Host_depletion_extraction_nanopore.out),
                 NT_db.collect()
                 )
             Sam_conversion (
