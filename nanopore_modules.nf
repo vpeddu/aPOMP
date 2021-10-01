@@ -162,7 +162,7 @@ process Minimap2_nanopore {
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 12
 input: 
     tuple val(base), val(genus), file(r1)
     file fastadb
