@@ -148,7 +148,9 @@ ls -lah
 for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
 echo adding \$i
-cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+    cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+fi
 done
 
 
