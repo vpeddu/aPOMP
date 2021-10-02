@@ -221,8 +221,13 @@ ls -lah
 
 for i in *.sam
 do
-    samtools view -Sb -@  ${task.cpus} -F 4 \$i > \$i.temp.bam
-    samtools sort -@ ${task.cpus} \$i.temp.bam > \$i.sorted.temp.bam
+    if [ -s \$i ]
+    then
+        samtools view -Sb -@  ${task.cpus} -F 4 \$i > \$i.temp.bam
+        samtools sort -@ ${task.cpus} \$i.temp.bam > \$i.sorted.temp.bam
+    else
+        echo "\$i does not exist"
+    fi
 done
 
 samtools merge -@ ${task.cpus} -o ${base}.final.sorted.bam *.sorted.temp.bam
