@@ -158,7 +158,7 @@ kraken2 --db ${kraken2_db} \
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "staphb/minimap2"
+container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 14
 input: 
