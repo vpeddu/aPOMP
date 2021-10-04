@@ -131,11 +131,8 @@ workflow{
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
                     Extract_db.out)
                 )
-            Sam_conversion (
-                Minimap2_nanopore.out
-                )
             Classify ( 
-                Sam_conversion.out[0], 
+                Minimap2_nanopore.out[0], 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
                 file("${params.ACCESSIONTOTAXID}")

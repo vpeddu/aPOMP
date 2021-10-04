@@ -160,11 +160,12 @@ process Minimap2_nanopore {
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "staphb/minimap2"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 14
 input: 
     tuple val(base), file(r1), file(species_fasta)
 output: 
-    tuple val("${base}"), file("${base}.minimap2.sam")
+    tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
+    file "${base}.unclassfied.bam"
 
 script:
 """
@@ -178,12 +179,21 @@ echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax map-ont \
-    -t ${task.cpus} \
+    -t ${task.cpus} "$((${task.cpus}-4))" \
     -2 \
     --split-prefix \
     -K16G \
     ${species_fasta} \
-    ${r1} > \
-    ${base}.minimap2.sam
+    ${r1} | samtools sort -@ 4 ${base}.bam > ${base}.sorted.bam
+
+
+samtools view -F 4 ${base}.bam > ${base}.sorted.filtered.bam
+samtools index ${base}.sorted.filtered.bam
+# output unclassified reads
+samtools view -Sb -@  ${task.cpus} -f 4 ${base}.sorted.bam > ${base}.unclassfied.bam
+
+# cleanup intermediate file
+rm ${base}.sorted.bam
+
 """
 }
