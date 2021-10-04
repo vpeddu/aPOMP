@@ -179,7 +179,7 @@ echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax map-ont \
-    -t ${task.cpus} "$((${task.cpus}-4))" \
+    -t ${task.cpus} "\$((${task.cpus}-4))" \
     -2 \
     --split-prefix \
     -K16G \
