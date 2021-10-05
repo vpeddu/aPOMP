@@ -160,7 +160,7 @@ process Minimap2_nanopore {
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
-cpus 14
+cpus 24
 input: 
     tuple val(base), file(r1), file(species_fasta)
 output: 
