@@ -184,16 +184,17 @@ minimap2 \
     --split-prefix \
     -K16G \
     ${species_fasta} \
-    ${r1} | samtools sort -@ 4 - > ${base}.sorted.bam
+    ${r1} | samtools view -@ 4 - > ${base}.bam
 
 
-samtools view -F 4 ${base}.bam > ${base}.sorted.filtered.bam
+samtools view -F 4 ${base}.bam > ${base}.filtered.bam
+samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
 samtools index ${base}.sorted.filtered.bam
 # output unclassified reads
-samtools view -Sb -@  ${task.cpus} -f 4 ${base}.sorted.bam > ${base}.unclassfied.bam
+samtools view -Sb -@  ${task.cpus} -f 4 ${base}.filtered.bam > ${base}.unclassfied.bam
 
 # cleanup intermediate file
-rm ${base}.sorted.bam
+#rm ${base}.sorted.bam
 
 """
 }
