@@ -193,7 +193,7 @@ samtools index ${base}.sorted.filtered.bam
 samtools view -Sb -@  ${task.cpus} -f 4 ${base}.filtered.bam > ${base}.unclassfied.bam
 
 # cleanup intermediate file
-#rm ${base}.sorted.bam
+rm ${base}.bam
 
 """
 }
