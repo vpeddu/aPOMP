@@ -184,7 +184,7 @@ minimap2 \
     --split-prefix \
     -K16G \
     ${species_fasta} \
-    ${r1} | samtools view -@ 4 - > ${base}.bam
+    ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
 
 samtools view -F 4 ${base}.bam > ${base}.filtered.bam
