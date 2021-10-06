@@ -165,9 +165,9 @@ for record in bamfile:
     #print(record.reference_name)
     acc_num = record.reference_name.split('|')[0]
     if acc_num in acc_dict:
-        print(record.reference_name)
+        #print(record.reference_name)
         record_tid = acc_dict[record.reference_name.split('|')[0]]
-        print(record_tid)
+        #print(record_tid)
         if record.query_name not in read_dict:
             read_dict[record.query_name] = read()
             read_dict[record.query_name].id = record.query_name
@@ -190,7 +190,7 @@ assignments = {}
 not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():
     #print(read, read_dict[read].taxid)
-    print(read_dict[read].taxid)
+    #print(read_dict[read].taxid)
     try:    
         lca = get_common_ancestor(ncbi_taxonomy,read_dict[read].taxid)
         if lca not in assignments:
