@@ -135,7 +135,8 @@ workflow{
                 Minimap2_nanopore.out[0], 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                file("${params.ACCESSIONTOTAXID}")
+                file("${params.ACCESSIONTOTAXID}"),
+                Minimap2_nanopore.out[1]
                 )
             Write_report(
                 Classify.out[0],
