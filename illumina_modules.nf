@@ -232,7 +232,7 @@ input:
     file taxdump
     file classify_script
     file accessiontotaxid
-    file unclassfied
+    file unclassified
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
     file "${base}.accession_DNE.txt"
@@ -247,7 +247,6 @@ ls -lah
 #tar -xvzf taxdump.tar.gz
 cp viral/*.dmp .
 python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
-echo samtools view -c ${unclassified}
 
 echo -e "0\\t `samtools view -c ${unclassified}`"  >> ${base}.prekraken.tsv
 
