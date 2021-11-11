@@ -165,7 +165,7 @@ input:
     tuple val(base), file(r1), file(species_fasta)
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
-    file "${base}.unclassfied.bam"
+    tuple val("${base}"), file("${base}.unclassfied.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
 """
@@ -195,5 +195,36 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassfied.bam
 # cleanup intermediate file
 rm ${base}.bam
 
+samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+
+"""
+}
+
+
+process Kraken_translated_alignment_unclassified { 
+publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
+container "staphb/kraken2"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(unclassified_bam), file(unclassified_fastq)
+    file kraken2_protein_db
+output: 
+    tuple val("${base}"), file("${base}.kraken2.report")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+kraken2 --db ${kraken2_protein_db} \
+    --threads ${task.cpus} \
+    --classified-out ${base}.kraken2.unassigned.translated.classified \
+    --output ${base}.kraken2.unassigned.translated.output \
+    --report ${base}.kraken2.unassigned.translated.report \
+    --gzip-compressed \
+    --unclassified-out ${base}.kraken2.unassigned.translated.unclassified \
+    ${unclassified_fastq} 
 """
 }
