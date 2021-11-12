@@ -237,6 +237,7 @@ if [[ ! -s ${unclassified_fastq} ]]
             --sensitive \
             --unal 1 \
     else
+        echo "THERE"
         touch ${base}.diamond.out.blankinput
 fi
 """
