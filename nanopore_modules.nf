@@ -235,7 +235,7 @@ if [[ -s ${unclassified_fastq} ]]
             --threads ${task.cpus} \
             --compress 1 \
             --sensitive \
-            --unal 1 \
+            --unal 1 
     else
         echo "THERE"
         touch ${base}.diamond.out.blankinput
