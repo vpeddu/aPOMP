@@ -227,8 +227,8 @@ ls -lah
 
 diamond blastx \
     --query ${unclassified_fastq}
-    -db ${diamond_protein_db} \
-    --out ${base}.diamond.out
+    --db ${diamond_protein_db} \
+    --out ${base}.diamond.out \
     --outfmt 0 \
     --threads ${task.cpus} \
     --compress 1 \
