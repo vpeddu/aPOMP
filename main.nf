@@ -48,7 +48,7 @@ include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
-include { Kraken_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
 
 
 
@@ -67,8 +67,8 @@ Taxdump = Channel
 Krakenuniq_db = Channel
             .fromPath(params.KRAKENUNIQUE_DB)
 
-Kraken2_protein_db = Channel
-            .fromPath(params.KRAKEN2_PROTEIN_DB)
+diamond_protein_db = file(params.KRAKEN2_PROTEIN_DB)
+
 
 workflow{
     if ( params.NANOPORE){
@@ -133,9 +133,9 @@ workflow{
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
                     Extract_db.out)
                 )
-            Kraken_translated_alignment_unclassified(
+            Diamond_translated_alignment_unclassified(
                 Minimap2_nanopore.out[1],
-                Kraken2_protein_db
+                diamond_protein_db
             )
             Classify ( 
                 Minimap2_nanopore.out[0], 

@@ -201,22 +201,40 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 }
 
 
-process Kraken_translated_alignment_unclassified { 
+process Diamond_translated_alignment_unclassified { 
 publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
-container "staphb/kraken2"
+container "quay.io/biocontainers/diamond:2.0.13--hdcc8f71_0"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(unclassified_bam), file(unclassified_fastq)
-    file kraken2_protein_db
+    file diamond_protein_db
 output: 
-    tuple val("${base}"), file("${base}.kraken2.report")
+    tuple val("${base}"), file("${base}.diamond*")
 script:
 """
 #!/bin/bash
 #logging
 echo "ls of directory" 
 ls -lah 
+
+    # diamond out formats
+	#0 = BLAST pairwise
+	#5 = BLAST XML
+	#6 = BLAST tabular
+	#100 = DIAMOND alignment archive (DAA)
+	#101 = SAM
+
+diamond blastx \
+    --query ${unclassfied_fastq}
+    -db ${diamond_protein_db} \
+    --out ${base}.diamond.out
+    --outfmt 0 \
+    --threads ${task.cpus} \
+    --compress 1 \
+    --sensitive \
+    --unal 1 \
+
 
 kraken2 --db ${kraken2_protein_db} \
     --threads ${task.cpus} \
