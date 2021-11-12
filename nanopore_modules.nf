@@ -226,6 +226,7 @@ ls -lah
 	#101 = SAM
 if [[ ! -s ${unclassified_fastq} ]] 
     then
+        echo "HERE"
         diamond blastx \
             --query ${unclassified_fastq} \
             --db ${diamond_protein_db} \
