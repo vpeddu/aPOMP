@@ -236,7 +236,7 @@ if [[ ! -s ${unclassified_fastq} ]]
             --sensitive \
             --unal 1 \
     else
-        touch ${base}.diamond.blankinput
+        touch ${base}.diamond.out.blankinput
 fi
 """
 }
