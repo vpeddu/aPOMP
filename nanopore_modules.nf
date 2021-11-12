@@ -200,10 +200,10 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 """
 }
 
-
+// TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
 process Diamond_translated_alignment_unclassified { 
 publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/0.9.14--h2e03b76_4"
+container "quay.io/biocontainers/diamond:0.9.14--h2e03b76_4"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
