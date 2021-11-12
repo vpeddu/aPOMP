@@ -224,16 +224,19 @@ ls -lah
 	#6 = BLAST tabular
 	#100 = DIAMOND alignment archive (DAA)
 	#101 = SAM
-
-diamond blastx \
-    --query ${unclassified_fastq} \
-    --db ${diamond_protein_db} \
-    --out ${base}.diamond.out \
-    --outfmt 0 \
-    --threads ${task.cpus} \
-    --compress 1 \
-    --sensitive \
-    --unal 1 \
-
+if [[ ! -s ${unclassified_fastq} ]] 
+    then
+        diamond blastx \
+            --query ${unclassified_fastq} \
+            --db ${diamond_protein_db} \
+            --out ${base}.diamond.out \
+            --outfmt 0 \
+            --threads ${task.cpus} \
+            --compress 1 \
+            --sensitive \
+            --unal 1 \
+    else
+        touch ${base}.diamond.blankinput
+fi
 """
 }
