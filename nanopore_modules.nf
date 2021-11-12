@@ -224,7 +224,7 @@ ls -lah
 	#6 = BLAST tabular
 	#100 = DIAMOND alignment archive (DAA)
 	#101 = SAM
-if [[ ! -s ${unclassified_fastq} ]] 
+if [[ -s ${unclassified_fastq} ]] 
     then
         echo "HERE"
         diamond blastx \
