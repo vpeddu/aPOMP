@@ -203,7 +203,7 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 
 process Diamond_translated_alignment_unclassified { 
 publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/diamond:2.0.13--hdcc8f71_0"
+container "quay.io/biocontainers/0.9.14--h2e03b76_4"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
