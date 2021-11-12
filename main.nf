@@ -67,7 +67,7 @@ Taxdump = Channel
 Krakenuniq_db = Channel
             .fromPath(params.KRAKENUNIQUE_DB)
 
-diamond_protein_db = file(params.KRAKEN2_PROTEIN_DB)
+Diamond_protein_db = file(params.DIAMOND_PROTEIN_DB)
 
 
 workflow{
@@ -135,7 +135,7 @@ workflow{
                 )
             Diamond_translated_alignment_unclassified(
                 Minimap2_nanopore.out[1],
-                diamond_protein_db
+                Diamond_protein_db
             )
             Classify ( 
                 Minimap2_nanopore.out[0], 

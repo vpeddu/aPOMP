@@ -235,14 +235,5 @@ diamond blastx \
     --sensitive \
     --unal 1 \
 
-
-kraken2 --db ${kraken2_protein_db} \
-    --threads ${task.cpus} \
-    --classified-out ${base}.kraken2.unassigned.translated.classified \
-    --output ${base}.kraken2.unassigned.translated.output \
-    --report ${base}.kraken2.unassigned.translated.report \
-    --gzip-compressed \
-    --unclassified-out ${base}.kraken2.unassigned.translated.unclassified \
-    ${unclassified_fastq} 
 """
 }
