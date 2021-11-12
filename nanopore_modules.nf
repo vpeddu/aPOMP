@@ -210,7 +210,7 @@ input:
     tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
-    tuple val("${base}"), file("${base}.diamond*")
+    tuple val("${base}"), file("*.diamond.out*")
 script:
 """
 #!/bin/bash
