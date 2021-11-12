@@ -226,7 +226,7 @@ ls -lah
 	#101 = SAM
 
 diamond blastx \
-    --query ${unclassfied_fastq}
+    --query ${unclassified_fastq}
     -db ${diamond_protein_db} \
     --out ${base}.diamond.out
     --outfmt 0 \
