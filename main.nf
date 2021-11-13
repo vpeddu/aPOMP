@@ -49,6 +49,7 @@ include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Extract_true_novel } from './nanopore_modules.nf'
 
 
 
@@ -139,6 +140,9 @@ workflow{
             Diamond_translated_alignment_unclassified(
                 MetaFlye.out,
                 Diamond_protein_db
+            )
+            Extract_true_novel(
+                MetaFlye.out
             )
             Classify ( 
                 Minimap2_nanopore.out[0], 
