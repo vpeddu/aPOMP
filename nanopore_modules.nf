@@ -236,9 +236,9 @@ if [[ -s ${unclassified_fastq} ]]
             --threads ${task.cpus} \
             --compress 1 \
             --unal 1 \
-            -F 15 \
-            --range-culling \
-            --top 10
+            --un ${base}.diamond.unaligned \
+            --frameshift 15 \
+            --top 10 
     else
     echo "THERE"
     touch ${base}.diamond.out.blankinput
