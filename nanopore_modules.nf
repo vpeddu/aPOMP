@@ -279,11 +279,8 @@ minimap2 \
     -2 \
     --split-prefix \
     -K16G \
-    ${metaflye_contigs} \
-    ${unassigned_fastq} | samtools view -Sb -f 4 -@ 4 - > ${base}.unassembled.unclassified.bam
-
-# cleanup intermediate file
-rm ${base}.bam
+    ${unassigned_fastq} \
+    ${metaflye_contigs}| samtools view -Sb -f 4 -@ 4 - > ${base}.unassembled.unclassified.bam
 
 samtools fastq -@ ${task.cpus} ${base}.unassembled.unclassified.bam | gzip > ${base}.unassembled.unclassified.fastq.gz
 
