@@ -165,7 +165,7 @@ input:
     tuple val(base), file(r1), file(species_fasta)
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
-    tuple val("${base}"), file("${base}.unclassfied.bam"), file ("${base}.unclassified.fastq.gz")
+    tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
 """
