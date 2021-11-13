@@ -133,8 +133,11 @@ workflow{
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
                     Extract_db.out)
                 )
+            MetaFlye( 
+                Minimap2_nanopore.out[1]
+            )
             Diamond_translated_alignment_unclassified(
-                Minimap2_nanopore.out[1],
+                MetaFlye.out[1],
                 Diamond_protein_db
             )
             Classify ( 

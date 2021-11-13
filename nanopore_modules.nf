@@ -105,7 +105,7 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 16
 input: 
-    tuple val(base), file(r1)
+    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
 output: 
     tuple val("${base}"), file("${base}.flye.fasta")
 script:
@@ -115,7 +115,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-flye --nano-corr ${r1} --out-dir ${base}.flye \
+flye --nano-corr ${unassigned_fastq} --out-dir ${base}.flye \
     -t ${task.cpus} \
     --meta \
 
@@ -207,7 +207,8 @@ container "quay.io/biocontainers/diamond:0.9.14--h2e03b76_4"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(unclassified_bam), file(unclassified_fastq)
+    tuple val(base), file(assembled_unassigned_fasta)
+    //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
     tuple val("${base}"), file("*.diamond.out*")
@@ -224,12 +225,12 @@ ls -lah
 	#6 = BLAST tabular
 	#100 = DIAMOND alignment archive (DAA)
 	#101 = SAM
-if [[ -s ${unclassified_fastq} ]] 
+if [[ -s ${assembled_unassigned_fasta} ]] 
     then
         echo "HERE"
         #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
         diamond blastx \
-            --query ${unclassified_fastq} \
+            --query ${assembled_unassigned_fasta} \
             --db ${diamond_protein_db} \
             --out ${base}.diamond.out \
             --outfmt 0 \
