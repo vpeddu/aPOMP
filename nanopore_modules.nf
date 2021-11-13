@@ -98,6 +98,7 @@ samtools fastq -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
 """
 }
 
+//TODO flag for nano-corr or nano-hq
 process MetaFlye { 
 publishDir "${params.OUTPUT}/MetaFlye/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/flye:2.9--py27h6a42192_0"
@@ -107,7 +108,7 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_bam), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta")
+    tuple val("${base}"), file("${base}.flye.fasta"), file("${unassigned_fastq}")
 script:
 """
 #!/bin/bash
@@ -115,9 +116,10 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-flye --nano-corr ${unassigned_fastq} --out-dir ${base}.flye \
+flye --nano-corr ${unassigned_fastq} \
+    --out-dir ${base}.flye \
     -t ${task.cpus} \
-    --meta \
+    --meta 
 
 mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 
@@ -202,12 +204,12 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
 process Diamond_translated_alignment_unclassified { 
-publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/Diamond_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/diamond:0.9.14--h2e03b76_4"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(assembled_unassigned_fasta)
+    tuple val(base), file(assembled_unassigned_fasta), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
@@ -245,5 +247,45 @@ if [[ -s ${assembled_unassigned_fasta} ]]
     touch ${base}.diamond.out.blankinput
 
 fi
+"""
+}
+
+
+process Extract_true_novel { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "quay.io/vpeddu/evmeta:latest"
+beforeScript 'chmod o+rw .'
+cpus 24
+input: 
+    tuple val(base), file(unassigned_fastq), file(metaflye_contigs)
+output: 
+    tuple val("${base}"), file("${base}.unassembled.unclassified.fastq.gz")
+
+
+script:
+"""
+#!/bin/bash
+
+#logging
+echo "ls of directory" 
+ls -lah 
+
+echo "remapping ${base} to contigs to find unassembled reads"
+#TODO: FILL IN MINIMAP2 COMMAND 
+minimap2 \
+    -ax map-ont \
+    -t "\$((${task.cpus}-4))" \
+    -2 \
+    --split-prefix \
+    -K16G \
+    ${metaflye_contigs} \
+    ${unassigned_fastq} | samtools view -Sb -f 4 -@ 4 - > ${base}.unassembled.unclassified.bam
+
+# cleanup intermediate file
+rm ${base}.bam
+
+samtools fastq -@ ${task.cpus} ${base}.unassembled.unclassified.bam | gzip > ${base}.unassembled.unclassified.fastq.gz
+
 """
 }
