@@ -227,9 +227,6 @@ ls -lah
 if [[ -s ${unclassified_fastq} ]] 
     then
         echo "HERE"
-        touch ${base}.diamond.out.blankinput
-    else
-        echo "THERE"
         diamond blastx \
             --query ${unclassified_fastq} \
             --db ${diamond_protein_db} \
@@ -239,6 +236,10 @@ if [[ -s ${unclassified_fastq} ]]
             --compress 1 \
             --sensitive \
             --unal 1 
+    else
+    echo "THERE"
+    touch ${base}.diamond.out.blankinput
+
 fi
 """
 }
