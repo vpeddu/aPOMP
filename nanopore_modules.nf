@@ -205,7 +205,7 @@ process Diamond_translated_alignment_unclassified {
 publishDir "${params.OUTPUT}/Kraken_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/diamond:0.9.14--h2e03b76_4"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 16
 input: 
     tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
@@ -227,6 +227,7 @@ ls -lah
 if [[ -s ${unclassified_fastq} ]] 
     then
         echo "HERE"
+        #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
         diamond blastx \
             --query ${unclassified_fastq} \
             --db ${diamond_protein_db} \
@@ -234,7 +235,6 @@ if [[ -s ${unclassified_fastq} ]]
             --outfmt 0 \
             --threads ${task.cpus} \
             --compress 1 \
-            --sensitive \
             --unal 1 \
             -F 15 \
             --range-culling \
