@@ -137,7 +137,7 @@ workflow{
                 Minimap2_nanopore.out[1]
             )
             Diamond_translated_alignment_unclassified(
-                MetaFlye.out[1],
+                MetaFlye.out,
                 Diamond_protein_db
             )
             Classify ( 
