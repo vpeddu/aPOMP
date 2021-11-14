@@ -253,7 +253,7 @@ fi
 
 process Extract_true_novel { 
 //conda "${baseDir}/env/env.yml"
-publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+publishDir "${params.OUTPUT}/novel_reads/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 24
