@@ -207,9 +207,9 @@ process Diamond_translated_alignment_unclassified {
 publishDir "${params.OUTPUT}/Diamond_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/diamond:2.0.13--hdcc8f71_0"
 beforeScript 'chmod o+rw .'
-cpus 16
+cpus 20
 input: 
-    tuple val(base), file(assembled_unassigned_fasta), file(unassigned_fastq)
+    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
@@ -227,12 +227,12 @@ ls -lah
 	#6 = BLAST tabular
 	#100 = DIAMOND alignment archive (DAA)
 	#101 = SAM
-if [[ -s ${assembled_unassigned_fasta} ]] 
+if [[ -s ${unassigned_fastq} ]] 
     then
         echo "HERE"
         #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
         diamond blastx \
-            --query ${assembled_unassigned_fasta} \
+            --query ${unassigned_fastq} \
             --db ${diamond_protein_db} \
             --out ${base}.diamond.out \
             --outfmt 101 \
