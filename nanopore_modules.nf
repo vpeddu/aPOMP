@@ -235,7 +235,7 @@ if [[ -s ${assembled_unassigned_fasta} ]]
             --query ${assembled_unassigned_fasta} \
             --db ${diamond_protein_db} \
             --out ${base}.diamond.out \
-            --outfmt 0 \
+            --outfmt 101 \
             --threads ${task.cpus} \
             --compress 1 \
             --unal 1 \
@@ -244,8 +244,8 @@ if [[ -s ${assembled_unassigned_fasta} ]]
             -F 15 \
             --range-culling
     else
-    echo "THERE"
-    touch ${base}.diamond.out.blankinput
+        echo "THERE"
+        touch ${base}.diamond.out.blankinput
 
 fi
 """
