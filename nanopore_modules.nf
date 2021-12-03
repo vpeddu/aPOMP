@@ -251,6 +251,53 @@ fi
 """
 }
 
+process Mmseq2_translated_alignment_unclassified { 
+publishDir "${params.OUTPUT}/Mmsesq2_unclassified_translated/${base}", mode: 'symlink', overwrite: true
+container "quay.io/biocontainers/mmseqs2:13.45111--h95"
+beforeScript 'chmod o+rw .'
+cpus 20
+input: 
+    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
+    //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
+    file diamond_protein_db
+output: 
+    tuple val("${base}"), file("*.diamond.out*")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+    # diamond out formats
+	#0 = BLAST pairwise
+	#5 = BLAST XML
+	#6 = BLAST tabular
+	#100 = DIAMOND alignment archive (DAA)
+	#101 = SAM
+if [[ -s ${unassigned_fastq} ]] 
+    then
+        echo "HERE"
+        #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
+        diamond blastx \
+            --query ${unassigned_fastq} \
+            --db ${diamond_protein_db} \
+            --out ${base}.diamond.out \
+            --outfmt 101 \
+            --threads ${task.cpus} \
+            --compress 1 \
+            --unal 1 \
+            --un ${base}.diamond.unaligned \
+            --top 10 \
+            -F 15 \
+            --range-culling
+    else
+        echo "THERE"
+        touch ${base}.diamond.out.blankinput
+
+fi
+"""
+}
 
 process Extract_true_novel { 
 //conda "${baseDir}/env/env.yml"
