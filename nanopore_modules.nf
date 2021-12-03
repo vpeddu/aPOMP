@@ -279,18 +279,32 @@ if [[ -s ${unassigned_fastq} ]]
     then
         echo "HERE"
         #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
-        diamond blastx \
-            --query ${unassigned_fastq} \
-            --db ${diamond_protein_db} \
-            --out ${base}.diamond.out \
-            --outfmt 101 \
-            --threads ${task.cpus} \
-            --compress 1 \
-            --unal 1 \
-            --un ${base}.diamond.unaligned \
-            --top 10 \
-            -F 15 \
-            --range-culling
+        #diamond blastx \
+        #    --query ${unassigned_fastq} \
+        #    --db ${diamond_protein_db} \
+        #    --out ${base}.diamond.out \
+        #    --outfmt 101 \
+        #    --threads ${task.cpus} \
+        #   --compress 1 \
+        #    --unal 1 \
+        #    --un ${base}.diamond.unaligned \
+        #    --top 10 \
+        #    -F 15 \
+        #    --range-culling
+
+        # create read database
+        mmseqs createdb ${unassigned_fastq} reads
+
+        #cluster with linclust 
+        mmseqs linclust reads reads_clu tmp 
+        mmseqs createsubdb reads_clu reads reads_clu_rep 
+        
+        # extract clustered fasta
+        mmseqs convert2fasta reads_clu_rep read_clu_rep.fasta
+
+        taxonomy reads_clu_rep ${diamond_protein_db} lca_result tmp -s 2 --threads ${task.cpus}
+        mmseqs taxonomyreport ${diamond_protein_db}  lca_result ${base}.report.html --report-mode 1
+
     else
         echo "THERE"
         touch ${base}.diamond.out.blankinput
