@@ -138,7 +138,7 @@ workflow{
                 )
             Mmseq2_translated_alignment_unclassified(
                 Minimap2_nanopore.out[1],
-                Diamond_protein_db
+                Diamond_protein_db.collect()
             )
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],
