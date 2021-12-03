@@ -261,7 +261,7 @@ input:
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
-    tuple val("${base}"), file("*.diamond.out*")
+    tuple val("${base}"), file("${base}.read_clu_rep.fasta"), file("${base}.mmseq.report.html")
 script:
 """
 #!/bin/bash
@@ -300,10 +300,10 @@ if [[ -s ${unassigned_fastq} ]]
         mmseqs createsubdb reads_clu reads reads_clu_rep 
         
         # extract clustered fasta
-        mmseqs convert2fasta reads_clu_rep read_clu_rep.fasta
+        mmseqs convert2fasta reads_clu_rep ${base}.read_clu_rep.fasta
 
         mmseqs taxonomy reads_clu_rep ${diamond_protein_db}/swissprot lca_result tmp -s 2 --threads ${task.cpus}
-        mmseqs taxonomyreport ${diamond_protein_db}/swissprot  lca_result ${base}.report.html --report-mode 1
+        mmseqs taxonomyreport ${diamond_protein_db}/swissprot  lca_result ${base}.mmseq.report.html --report-mode 1
 
     else
         echo "THERE"
