@@ -253,7 +253,7 @@ fi
 
 process Mmseq2_translated_alignment_unclassified { 
 publishDir "${params.OUTPUT}/Mmsesq2_unclassified_translated/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/mmseqs2:13.45111--h95"
+container "quay.io/biocontainers/mmseqs2:13.45111--h95f258a_1"
 beforeScript 'chmod o+rw .'
 cpus 20
 input: 
