@@ -302,7 +302,7 @@ if [[ -s ${unassigned_fastq} ]]
         # extract clustered fasta
         mmseqs convert2fasta reads_clu_rep read_clu_rep.fasta
 
-        taxonomy reads_clu_rep ${diamond_protein_db} lca_result tmp -s 2 --threads ${task.cpus}
+        mmseqs taxonomy reads_clu_rep ${diamond_protein_db} lca_result tmp -s 2 --threads ${task.cpus}
         mmseqs taxonomyreport ${diamond_protein_db}  lca_result ${base}.report.html --report-mode 1
 
     else
