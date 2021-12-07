@@ -139,7 +139,7 @@ workflow{
                 )
             Eggnog_mapper(
                 Minimap2_nanopore.out[1],
-                EGGNOG_DB.collect()
+                Eggnog_db.collect()
             )
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],
