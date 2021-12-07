@@ -50,6 +50,7 @@ include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
 include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
 
 
@@ -69,8 +70,8 @@ Taxdump = Channel
 Krakenuniq_db = Channel
             .fromPath(params.KRAKENUNIQUE_DB)
 
-Diamond_protein_db = Channel
-            .fromPath(params.DIAMOND_PROTEIN_DB)
+Eggnog_db = Channel
+            .fromPath(params.EGGNOG_DB)
 
 
 workflow{
@@ -136,9 +137,9 @@ workflow{
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
                     Extract_db.out)
                 )
-            Mmseq2_translated_alignment_unclassified(
+            Eggnog_mapper(
                 Minimap2_nanopore.out[1],
-                Diamond_protein_db.collect()
+                EGGNOG_DB.collect()
             )
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],

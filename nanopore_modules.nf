@@ -255,13 +255,13 @@ process Mmseq2_translated_alignment_unclassified {
 publishDir "${params.OUTPUT}/Mmsesq2_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/mmseqs2:13.45111--h95f258a_1"
 beforeScript 'chmod o+rw .'
-cpus 20
+cpus 8
 input: 
     tuple val(base), file(unassigned_bam), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
-    tuple val("${base}"), file("${base}.read_clu_rep.fasta"), file("${base}.mmseq.report.html")
+    tuple val("${base}"), file("${base}.read_clu_rep.fasta"), file("${base}.mmseq.report.tsv")
 script:
 """
 #!/bin/bash
@@ -303,8 +303,46 @@ if [[ -s ${unassigned_fastq} ]]
         mmseqs convert2fasta reads_clu_rep ${base}.read_clu_rep.fasta
 
         mmseqs taxonomy reads_clu_rep ${diamond_protein_db}/swissprot lca_result tmp -s 2 --threads ${task.cpus}
-        mmseqs taxonomyreport ${diamond_protein_db}/swissprot  lca_result ${base}.mmseq.report.html --report-mode 1
+        mmseqs taxonomyreport ${diamond_protein_db}/swissprot  lca_result ${base}.mmseq.report.tsv 
 
+    else
+        echo "THERE"
+        touch ${base}.diamond.out.blankinput
+
+fi
+"""
+}
+
+process Eggnog_mapper { 
+publishDir "${params.OUTPUT}/Eggnog/${base}", mode: 'symlink', overwrite: true
+container "quay.io/biocontainers/eggnog-mapper:2.1.6--pyhdfd78af_0"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
+    //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
+    file eggnog_db
+output: 
+    tuple val("${base}"), file("*")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+if [[ -s ${unassigned_fastq} ]] 
+    then
+        echo "HERE"
+        # convert unclassified fastq to fasta for eggnog
+        sed -n '1~4s/^@/>/p;2~4p' < `gunzip ${unassigned_fastq}` > ${base}.unassigned.fasta
+        emapper.py \
+            -m mmseqs \
+            --itype metagenome \
+            -i ${base}.unassigned.fasta \
+            --cpu ${task.cpus} \
+            --data_dir . \
+            -o test 
     else
         echo "THERE"
         touch ${base}.diamond.out.blankinput
