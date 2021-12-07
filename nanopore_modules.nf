@@ -341,7 +341,7 @@ if [[ -s ${unassigned_fastq} ]]
             --itype metagenome \
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
-            --data_dir ${eggnog_db}/ \
+            --data_dir ${eggnog_db} \
             -o test 
     else
         echo "THERE"
