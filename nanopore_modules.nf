@@ -330,13 +330,13 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-
+mv ${eggnog_db}/* .
 if [[ -s ${unassigned_fastq} ]] 
     then
         echo "HERE"
         # convert unclassified fastq to fasta for eggnog
         gunzip -f ${unassigned_fastq} 
-        sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unassigned.fasta
+        sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
         emapper.py \
             -m mmseqs \
             --itype metagenome \
