@@ -335,7 +335,7 @@ if [[ -s ${unassigned_fastq} ]]
     then
         echo "HERE"
         # convert unclassified fastq to fasta for eggnog
-        gunzip ${unassigned_fastq} 
+        gunzip -f ${unassigned_fastq} 
         sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unassigned.fasta
         emapper.py \
             -m mmseqs \
