@@ -330,7 +330,6 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-mv ${eggnog_db}/* .
 if [[ -s ${unassigned_fastq} ]] 
     then
         echo "HERE"
@@ -342,7 +341,7 @@ if [[ -s ${unassigned_fastq} ]]
             --itype metagenome \
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
-            --data_dir . \
+            --data_dir ${eggnog_db}/ \
             -o test 
     else
         echo "THERE"
