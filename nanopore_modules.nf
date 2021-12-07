@@ -340,7 +340,7 @@ if [[ -s ${unassigned_fastq} ]]
         emapper.py \
             -m mmseqs \
             --itype metagenome \
-            -i ${base}.unassigned.fasta \
+            -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
             --data_dir . \
             -o test 
