@@ -337,7 +337,8 @@ if [[ -s ${unassigned_fastq} ]]
         gunzip -f ${unassigned_fastq} 
         sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
         emapper.py \
-            -m mmseqs \
+            --dmnd_frameshift 15 \
+            #-m mmseqs \
             --itype metagenome \
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
