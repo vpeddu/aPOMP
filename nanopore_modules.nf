@@ -338,7 +338,6 @@ if [[ -s ${unassigned_fastq} ]]
         sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
         emapper.py \
             --dmnd_frameshift 15 \
-            #-m mmseqs \
             --itype metagenome \
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
@@ -349,6 +348,7 @@ if [[ -s ${unassigned_fastq} ]]
         touch ${base}.diamond.out.blankinput
 
 fi
+#-m mmseqs 
 """
 }
 
