@@ -344,7 +344,7 @@ if [[ -s ${unassigned_fastq} ]]
             --data_dir ${eggnog_db} \
             --excel \
             --report_orthologs \
-            --decorate_gff \
+            --decorate_gff yes \
             -o test 
     else
         echo "THERE"
