@@ -342,6 +342,9 @@ if [[ -s ${unassigned_fastq} ]]
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
             --data_dir ${eggnog_db} \
+            --excel \
+            --report_orthologs \
+            --decorate_gff \
             -o test 
     else
         echo "THERE"
