@@ -342,7 +342,6 @@ if [[ -s ${unassigned_fastq} ]]
             -i ${base}.unclassified.fasta \
             --cpu ${task.cpus} \
             --data_dir ${eggnog_db} \
-            --excel \
             --report_orthologs \
             --decorate_gff yes \
             -o test 
@@ -351,7 +350,9 @@ if [[ -s ${unassigned_fastq} ]]
         touch ${base}.diamond.out.blankinput
 
 fi
+# removed 
 #-m mmseqs 
+#--excel 
 """
 }
 
