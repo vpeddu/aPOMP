@@ -246,7 +246,7 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
-cp viral/*.dmp .
+cp taxdump/*.dmp .
 python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
 
 echo -e "0\\t `samtools view -c ${unclassified}`"  >> ${base}.prekraken.tsv
