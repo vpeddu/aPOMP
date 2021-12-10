@@ -187,7 +187,7 @@ for read in read_dict.keys():
         else: 
             assignments[lca] += 1
     except:
-        not_in_accs_file.write(str(read_dict[read].taxid))
+        not_in_accs_file.write(str(read_dict[read]))
             
 outfilename = sys.argv[2] + '.orthologs.prekraken.tsv'
 

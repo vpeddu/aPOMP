@@ -53,6 +53,7 @@ include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf
 include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
 include { Classify_orthologs } from './illumina_modules.nf'
+include { Write_report_orthologs } from './illumina_modules.nf'
 
 
 
@@ -147,6 +148,10 @@ workflow{
                 Taxdump.collect(),
                 file("${baseDir}/bin/orthologs_to_pavian.py"),
                 file("${params.ACCESSIONTOTAXID}")
+            )
+            Write_report_orthologs(
+                Classify_orthologs.out[0],
+                Krakenuniq_db.collect()
             )
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],

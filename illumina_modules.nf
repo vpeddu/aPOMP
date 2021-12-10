@@ -284,6 +284,7 @@ python3 ${classify_script} test.emapper.annotations ${base} ${accessiontotaxid}/
 
 """
 }
+
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
@@ -295,6 +296,31 @@ input:
     file krakenuniqdb
 output: 
     file "${base}.final.report.tsv"
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+krakenuniq-report --db ${krakenuniqdb} \
+--taxon-counts \
+${prekraken} > ${base}.final.report.tsv
+"""
+}
+
+process Write_report_orthologs { 
+publishDir "${params.OUTPUT}/ortholog_reports/", mode: 'symlink', overwrite: true
+container "evolbioinfo/krakenuniq:v0.5.8"
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 8
+input: 
+    tuple val(base), file(prekraken)
+    file krakenuniqdb
+output: 
+    file "${base}.orthologs.final.report.tsv"
 
 script:
 """
