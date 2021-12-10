@@ -263,6 +263,8 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
 input: 
+    // need to fix input cardinality coming from eggnog
+    // need to calculate number of still unassigned reads and output those too 
     tuple val(base), file(bam), file(bamindex), file(unclassified_bam), file(unclassified_fastq)
     file taxdump
     file classify_script
@@ -331,6 +333,6 @@ ls -lah
 
 krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
-${prekraken} > ${base}.final.report.tsv
+${prekraken} > ${base}.orthologs.final.report.tsv
 """
 }
