@@ -221,6 +221,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 """
 }
 
+//TODO: ADD ACCESSION DNE OUTPUT BACK IN 
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
