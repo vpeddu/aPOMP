@@ -235,7 +235,7 @@ input:
     file unclassified
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
-    file "${base}.accession_DNE.txt"
+    //file "${base}.accession_DNE.txt"
 
 script:
 """
@@ -249,6 +249,7 @@ cp viral/*.dmp .
 python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
 
 echo -e "0\\t `samtools view -c ${unclassified}`"  >> ${base}.prekraken.tsv
+
 
 """
 }
