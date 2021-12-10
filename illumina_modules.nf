@@ -248,7 +248,7 @@ ls -lah
 cp taxdump/*.dmp .
 python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
 
-samtools sort ${unclassified} -o ${base}.unclassified.sorted.bam
+samtools sort ${unclassified_bam} -o ${base}.unclassified.sorted.bam
 samtools index ${base}.unclassified.sorted.bam
 echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
