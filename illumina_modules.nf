@@ -256,6 +256,34 @@ echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.pr
 """
 }
 
+process Classify_orthologs { 
+publishDir "${params.OUTPUT}/Classify_orthologs/${base}", mode: 'symlink', overwrite: true
+container 'quay.io/vpeddu/evmeta'
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 8
+input: 
+    tuple val(base), file(bam), file(bamindex), file(unclassified_bam), file(unclassified_fastq)
+    file taxdump
+    file classify_script
+    file accessiontotaxid
+output: 
+    tuple val("${base}"), file("${base}.orthologs.prekraken.tsv")
+    //file "${base}.accession_DNE.txt"
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+#mv taxonomy/taxdump.tar.gz .
+#tar -xvzf taxdump.tar.gz
+cp taxdump/*.dmp .
+python3 ${classify_script} ${base}.emapper.annotations ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
+
+"""
+}
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
@@ -276,7 +304,7 @@ echo "ls of directory"
 ls -lah 
 
 krakenuniq-report --db ${krakenuniqdb} \
- --taxon-counts \
-  ${prekraken} > ${base}.final.report.tsv
+--taxon-counts \
+${prekraken} > ${base}.final.report.tsv
 """
 }

@@ -52,6 +52,7 @@ include { Diamond_translated_alignment_unclassified } from './nanopore_modules.n
 include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf'
 include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
+include { Classify_orthologs } from './nanopore_modules.nf'
 
 
 
@@ -141,6 +142,12 @@ workflow{
                 Minimap2_nanopore.out[1],
                 Eggnog_db.collect()
             )
+            Classify_orthologs(
+                Eggnog_mapper.out, 
+                Taxdump.collect(),
+                file("${baseDir}/bin/orthologs_to_pavian.py"),
+                file("${params.ACCESSIONTOTAXID}")
+            )
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],
             //     Diamond_protein_db
@@ -152,6 +159,7 @@ workflow{
             //     MetaFlye.out
             // )
             Classify ( 
+                // works but can clean up groupTuple later
                 Minimap2_nanopore.out[0].groupTuple(size:1).join(
                 Minimap2_nanopore.out[1]), 
                 Taxdump.collect(),
