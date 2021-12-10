@@ -52,7 +52,7 @@ include { Diamond_translated_alignment_unclassified } from './nanopore_modules.n
 include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf'
 include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
-include { Classify_orthologs } from './nanopore_modules.nf'
+include { Classify_orthologs } from './illumina_modules.nf'
 
 
 
