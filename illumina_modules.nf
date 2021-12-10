@@ -229,11 +229,10 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
 input: 
-    tuple val(base), file(bam), file(bamindex)
+    tuple val(base), file(bam), file(bamindex), file(unclassified_bam), file(unclassified_fastq)
     file taxdump
     file classify_script
     file accessiontotaxid
-    file unclassified
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
     //file "${base}.accession_DNE.txt"

@@ -152,11 +152,11 @@ workflow{
             //     MetaFlye.out
             // )
             Classify ( 
-                Minimap2_nanopore.out[0], 
+                Minimap2_nanopore.out[0].groupTuple(size:1).join(
+                Minimap2_nanopore.out[1]), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                file("${params.ACCESSIONTOTAXID}"),
-                Minimap2_nanopore.out[1]
+                file("${params.ACCESSIONTOTAXID}")
                 )
             Write_report(
                 Classify.out[0],
