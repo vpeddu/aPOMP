@@ -247,9 +247,11 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}
+python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
 
-echo -e "0\\t `samtools view -c ${unclassified}`"  >> ${base}.prekraken.tsv
+samtools sort ${unclassified} -o ${base}.unclassified.sorted.bam
+samtools index ${base}.unclassified.sorted.bam
+echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
 
 """
