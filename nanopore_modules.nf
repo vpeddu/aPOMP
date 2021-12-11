@@ -344,7 +344,7 @@ if [[ -s ${unassigned_fastq} ]]
             --data_dir ${eggnog_db} \
             --report_orthologs \
             --decorate_gff yes \
-            -o test 
+            -o ${base} 
     else
         echo "THERE"
         touch ${base}.diamond.out.blankinput
