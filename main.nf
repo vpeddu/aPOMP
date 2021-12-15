@@ -48,6 +48,12 @@ include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
+include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Eggnog_mapper } from './nanopore_modules.nf'
+include { Extract_true_novel } from './nanopore_modules.nf'
+include { Classify_orthologs } from './illumina_modules.nf'
+include { Write_report_orthologs } from './illumina_modules.nf'
 
 
 
@@ -66,6 +72,8 @@ Taxdump = Channel
 Krakenuniq_db = Channel
             .fromPath(params.KRAKENUNIQUE_DB)
 
+Eggnog_db = Channel
+            .fromPath(params.EGGNOG_DB)
 
 
 workflow{
@@ -131,12 +139,37 @@ workflow{
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
                     Extract_db.out)
                 )
+            Eggnog_mapper(
+                Minimap2_nanopore.out[1],
+                Eggnog_db.collect()
+            )
+            Classify_orthologs(
+                Eggnog_mapper.out, 
+                Taxdump.collect(),
+                file("${baseDir}/bin/orthologs_to_pavian.py"),
+                file("${params.ACCESSIONTOTAXID}")
+            )
+            Write_report_orthologs(
+                Classify_orthologs.out[0],
+                Krakenuniq_db.collect()
+            )
+            // Diamond_translated_alignment_unclassified(
+            //     Minimap2_nanopore.out[1],
+            //     Diamond_protein_db
+            // )
+            // MetaFlye( 
+            //     Minimap2_nanopore.out[1]
+            // )
+            // Extract_true_novel(
+            //     MetaFlye.out
+            // )
             Classify ( 
-                Minimap2_nanopore.out[0], 
+                // works but can clean up groupTuple later
+                Minimap2_nanopore.out[0].groupTuple(size:1).join(
+                Minimap2_nanopore.out[1]), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                file("${params.ACCESSIONTOTAXID}"),
-                Minimap2_nanopore.out[1]
+                file("${params.ACCESSIONTOTAXID}")
                 )
             Write_report(
                 Classify.out[0],
