@@ -163,7 +163,7 @@ mv species.fasta.gz ${base}.species.fasta.gz
 process Minimap2_illumina { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "quay.io/vpeddu/evmeta:83af5629"
+container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
