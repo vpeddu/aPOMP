@@ -57,28 +57,28 @@ include { Write_report_orthologs } from './illumina_modules.nf'
 
 
 Star_index_Ch = Channel
-            .fromPath("${params.INDEX/star_host/}")
+            .fromPath("${params.INDEX}/star_host/")
 
 Kraken2_db = Channel
-            .fromPath("${params.INDEX/kraken2_db/}")
+            .fromPath("${params.INDEX}/kraken2_db/")
 
 NT_db = Channel
-            .fromPath("${params.INDEX/nt_fasta_index/}")
+            .fromPath("${params.INDEX}/nt_fasta_index/")
 
 Taxdump = Channel
-            .fromPath("${params.INDEX/taxdump/}")
+            .fromPath("${params.INDEX}/taxdump/")
 
 Krakenuniq_db = Channel
-            .fromPath("${params.INDEX/krakenuniq_db/}")
+            .fromPath("${params.INDEX}/krakenuniq_db/")
 
 Eggnog_db = Channel
-            .fromPath("${params.INDEX/eggnog_db/}")
+            .fromPath("${params.INDEX}/eggnog_db/")
 
 Accession_to_taxid = Channel
-                    .fromPath("${params.INDEX/accession2taxid/}")
+                    .fromPath("${params.INDEX}/accession2taxid/")
 
 Minimap2_host_index = Channel
-                    .fromPath("${params.INDEX/minimap2_host/minimap2_hg38.mmi}")
+                    .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
 
 workflow{
     if ( params.NANOPORE){
