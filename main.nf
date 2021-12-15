@@ -56,25 +56,29 @@ include { Classify_orthologs } from './illumina_modules.nf'
 include { Write_report_orthologs } from './illumina_modules.nf'
 
 
-
 Star_index_Ch = Channel
-            .fromPath(params.HOST_STAR_INDEX)
+            .fromPath("${params.INDEX/star_host/}")
 
 Kraken2_db = Channel
-            .fromPath(params.KRAKEN2_DB)
+            .fromPath("${params.INDEX/kraken2_db/}")
 
 NT_db = Channel
-            .fromPath(params.NT_DB)
+            .fromPath("${params.INDEX/nt_fasta_index/}")
 
 Taxdump = Channel
-            .fromPath(params.TAXDUMP)
+            .fromPath("${params.INDEX/taxdump/}")
 
 Krakenuniq_db = Channel
-            .fromPath(params.KRAKENUNIQUE_DB)
+            .fromPath("${params.INDEX/krakenuniq_db/}")
 
 Eggnog_db = Channel
-            .fromPath(params.EGGNOG_DB)
+            .fromPath("${params.INDEX/eggnog_db/}")
 
+Accession_to_taxid = Channel
+                    .fromPath("${params.INDEX/accession2taxid/}")
+
+Minimap2_host_index = Channel
+                    .fromPath("${params.INDEX/minimap2_host/minimap2_hg38.mmi}")
 
 workflow{
     if ( params.NANOPORE){
@@ -89,7 +93,7 @@ workflow{
         )
         Host_depletion_nanopore( 
             NanoFilt.out[0],
-            params.MINIMAP2_HOST_INDEX
+            Minimap2_host_index
         )
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
@@ -118,7 +122,7 @@ workflow{
                 Sam_conversion.out[0], 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                file("${params.ACCESSIONTOTAXID}")
+                Accession_to_taxid
                 )
             Write_report(
                 Classify.out[0],
@@ -147,7 +151,7 @@ workflow{
                 Eggnog_mapper.out, 
                 Taxdump.collect(),
                 file("${baseDir}/bin/orthologs_to_pavian.py"),
-                file("${params.ACCESSIONTOTAXID}")
+                Accession_to_taxid
             )
             Write_report_orthologs(
                 Classify_orthologs.out[0],
@@ -169,7 +173,7 @@ workflow{
                 Minimap2_nanopore.out[1]), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                file("${params.ACCESSIONTOTAXID}")
+                Accession_to_taxid
                 )
             Write_report(
                 Classify.out[0],
@@ -178,10 +182,12 @@ workflow{
             }
     }
     else {
+        // Workflow assumes reads are paired 
+        // Only runs classification with NT. No protein level classification
+        // input channel structure: {val(base), file(R1), file(R2)}
         input_read_Ch = Channel
             .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
             .map { it -> [it[0], it[1][0], it[1][1]] }
-        // defined at CLI    
         Trimming_FastP(
             input_read_Ch
             )
@@ -189,9 +195,7 @@ workflow{
             Trimming_FastP.out[0],
         )
         Host_depletion(
-            // access output of preceeding process
             Low_complexity_filtering.out[0],
-            // collects all items emitted by a channel to a list, return
             Star_index_Ch.collect()
             )
         Kraken_prefilter(
@@ -214,11 +218,11 @@ workflow{
             Sam_conversion.out[0], 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
-            file("${params.ACCESSIONTOTAXID}")
+            Accession_to_taxid
             )
         Write_report(
             Classify.out[0],
             Krakenuniq_db.collect()
         )
     }
-    }
+}
