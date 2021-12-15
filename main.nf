@@ -36,7 +36,7 @@ include { Low_complexity_filtering } from './illumina_modules.nf'
 include { Host_depletion } from './illumina_modules.nf'
 include { Kraken_prefilter } from './illumina_modules.nf'
 include { Extract_db } from './illumina_modules.nf'
-include { Minimap2 } from './illumina_modules.nf'
+include { Minimap2_illumina } from './illumina_modules.nf'
 include { Sam_conversion } from './illumina_modules.nf'
 include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
@@ -207,15 +207,14 @@ workflow{
             NT_db.collect(),
             file("${baseDir}/bin/extract_seqs.py")
             )
-        Minimap2( 
+        Minimap2_illumina( 
             Host_depletion.out[2].groupTuple(size:1).join(
                 Extract_db.out) 
             )
-        Sam_conversion (
-            Minimap2.out
-            )
         Classify ( 
-            Sam_conversion.out[0], 
+            // works but can clean up groupTuple later
+            Minimap2_nanopore.out[0].groupTuple(size:1).join(
+            Minimap2_nanopore.out[1]), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             Accession_to_taxid
@@ -223,6 +222,7 @@ workflow{
         Write_report(
             Classify.out[0],
             Krakenuniq_db.collect()
+        )
         )
     }
 }

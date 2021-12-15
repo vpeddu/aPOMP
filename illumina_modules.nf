@@ -160,16 +160,17 @@ mv species.fasta.gz ${base}.species.fasta.gz
 }
 
 //TODO: create containre with Minimap2 and samtools so we can get rid of intermediate sam for space savings
-process Minimap2 { 
+process Minimap2_illumina { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "staphb/minimap2"
+container "quay.io/vpeddu/evmeta:83af5629"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1), file(r2), file(species_fasta)
 output: 
-    tuple val("${base}"), file("${base}.minimap2.sam")
+    tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
+    tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
 """
@@ -180,7 +181,6 @@ echo "ls of directory"
 ls -lah 
 
 echo "running Minimap2 on ${base}"
-#TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax sr \
     -t ${task.cpus} \
@@ -188,8 +188,19 @@ minimap2 \
     --split-prefix \
     -2 \
     ${species_fasta} \
-    ${r1} ${r2} > \
-    ${base}.minimap2.sam
+    ${r1} ${r2} | samtools view -Sb -@ 4 - > ${base}.bam
+
+samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+samtools index ${base}.sorted.filtered.bam
+# output unclassified reads
+samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+# cleanup intermediate file
+rm ${base}.bam
+
+samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+
 """
 }
 
