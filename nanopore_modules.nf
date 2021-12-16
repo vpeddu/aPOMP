@@ -108,7 +108,7 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta")
+    tuple val("${base}"), file("${base}.flye.fasta.gz")
 script:
 """
 #!/bin/bash
@@ -123,6 +123,7 @@ flye --nano-corr ${unassigned_fastq} \
 
 mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 
+gzip ${base}.flye.fasta
 """
 }
 
