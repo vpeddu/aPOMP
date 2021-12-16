@@ -106,9 +106,9 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 16
 input: 
-    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
+    tuple val(base), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta"), file("${unassigned_fastq}")
+    tuple val("${base}"), file("${base}.flye.fasta")
 script:
 """
 #!/bin/bash
