@@ -11,28 +11,28 @@ The full aPOMP database is 427GB and can be downloaded at <insert tarball link>.
 * Eggnog DB (downloaded 12/2021)
 
 ## Nanopore workflow
-run command:  
+quick run command:  
 ```
   nextflow run vpeddu/ev-meta \
     --NANOPORE \
-	--INPUT_FOLDER <Input Folder> \
-	--OUTPUT new_index_test \
-	--INDEX <Index Location>  \
+	--INPUT_FOLDER <Input folder> \
+	--OUTPUT <Output folder> \
+	--INDEX <Index location>  \
 	--NUCL_TYPE <RNA or DNA> \
 	-with-docker ubuntu:18.04 
     -latest \
-    -with-report \
+    -with-report 
 ```
 ## Illumina workflow 
-run command:  
+quick run command:  
 ```
   nextflow run vpeddu/ev-meta \
     --ILLUMINA \
-	--INPUT_FOLDER <Input Folder> \
-	--OUTPUT new_index_test \
-	--INDEX <Index Location>  \
+	--INPUT_FOLDER <Input folder> \
+	--OUTPUT <Output folder> \
+	--INDEX <Index location>  \
 	--NUCL_TYPE <RNA or DNA> \
 	-with-docker ubuntu:18.04 
     -latest \
-    -with-report \
+    -with-report 
 ```
