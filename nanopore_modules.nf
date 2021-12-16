@@ -165,12 +165,11 @@ beforeScript 'chmod o+rw .'
 cpus 24
 input: 
     tuple val(base), file(r1), file(species_fasta)
-    val nucl_type
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
-if ( nucl_type == 'DNA')
+if ( params.NUCL_TYPE == 'DNA')
 script:
 """
 #!/bin/bash
@@ -203,7 +202,7 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 
 """
 
-else if (nucl_type == 'RNA')
+else if ( params.NUCL_TYPE == 'RNA')
 script:
 """
 #!/bin/bash
