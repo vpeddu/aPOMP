@@ -181,7 +181,7 @@ workflow{
             )
             }
     }
-    else {
+    else if (params.ILLUMINA) {
         // Workflow assumes reads are paired 
         // Only runs classification with NT. No protein level classification
         // input channel structure: {val(base), file(R1), file(R2)}

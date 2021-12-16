@@ -366,7 +366,6 @@ echo "ls of directory"
 ls -lah 
 if [[ -s ${unassigned_fastq} ]] 
     then
-        echo "HERE"
         # convert unclassified fastq to fasta for eggnog
         gunzip -f ${unassigned_fastq} 
         sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
@@ -380,7 +379,6 @@ if [[ -s ${unassigned_fastq} ]]
             --decorate_gff yes \
             -o ${base} 
     else
-        echo "THERE"
         touch ${base}.diamond.out.blankinput
 
 fi
