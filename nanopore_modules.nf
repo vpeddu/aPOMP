@@ -169,72 +169,71 @@ output:
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
-if ( "${params.NUCL_TYPE}" == 'DNA') {
 script:
-"""
-#!/bin/bash
+    if ( "${params.NUCL_TYPE}" == 'DNA') {
+    """
+    #!/bin/bash
 
-#logging
-echo "ls of directory" 
-ls -lah 
+    #logging
+    echo "ls of directory" 
+    ls -lah 
 
-echo "running Minimap2 on ${base}"
-#TODO: FILL IN MINIMAP2 COMMAND 
-minimap2 \
-    -ax map-ont \
-    -t "\$((${task.cpus}-4))" \
-    -2 \
-    --split-prefix \
-    -K16G \
-    ${species_fasta} \
-    ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+    echo "running Minimap2 on ${base}"
+    #TODO: FILL IN MINIMAP2 COMMAND 
+    minimap2 \
+        -ax map-ont \
+        -t "\$((${task.cpus}-4))" \
+        -2 \
+        --split-prefix \
+        -K16G \
+        ${species_fasta} \
+        ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
-samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
-samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-samtools index ${base}.sorted.filtered.bam
-# output unclassified reads
-samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+    samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+    samtools index ${base}.sorted.filtered.bam
+    # output unclassified reads
+    samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
-# cleanup intermediate file
-rm ${base}.bam
+    # cleanup intermediate file
+    rm ${base}.bam
 
-samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
-"""
-    }
-else if ( "${params.NUCL_TYPE}" == 'RNA') {
-script:
-"""
-#!/bin/bash
+    """
+        }
+    else if ( "${params.NUCL_TYPE}" == 'RNA') {
+    """
+    #!/bin/bash
 
-#logging
-echo "ls of directory" 
-ls -lah 
+    #logging
+    echo "ls of directory" 
+    ls -lah 
 
-echo "running Minimap2 on ${base}"
-#TODO: FILL IN MINIMAP2 COMMAND 
-minimap2 \
-    -ax splice \
-    -t "\$((${task.cpus}-4))" \
-    -2 \
-    --split-prefix \
-    -K16G \
-    ${species_fasta} \
-    ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+    echo "running Minimap2 on ${base}"
+    #TODO: FILL IN MINIMAP2 COMMAND 
+    minimap2 \
+        -ax splice \
+        -t "\$((${task.cpus}-4))" \
+        -2 \
+        --split-prefix \
+        -K16G \
+        ${species_fasta} \
+        ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
-samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
-samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-samtools index ${base}.sorted.filtered.bam
-# output unclassified reads
-samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+    samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+    samtools index ${base}.sorted.filtered.bam
+    # output unclassified reads
+    samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
-# cleanup intermediate file
-rm ${base}.bam
+    # cleanup intermediate file
+    rm ${base}.bam
 
-samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
-"""
-    }
+    """
+        }
 }
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
