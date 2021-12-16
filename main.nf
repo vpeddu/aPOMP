@@ -113,7 +113,8 @@ workflow{
                 )
             Minimap2_nanopore( 
                 Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
-                    Extract_db.out)
+                    Extract_db.out,
+                    params.NUCL_TYPE)
                 )
             Sam_conversion (
                 Minimap2_nanopore.out

@@ -160,15 +160,17 @@ kraken2 --db ${kraken2_db} \
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "quay.io/vpeddu/evmeta:latest"
+container "quay.io/vpeddu/evmeta:83af5629"
 beforeScript 'chmod o+rw .'
 cpus 24
 input: 
     tuple val(base), file(r1), file(species_fasta)
+    val nucl_type
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
+if ( nucl_type == 'DNA')
 script:
 """
 #!/bin/bash
@@ -181,6 +183,39 @@ echo "running Minimap2 on ${base}"
 #TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax map-ont \
+    -t "\$((${task.cpus}-4))" \
+    -2 \
+    --split-prefix \
+    -K16G \
+    ${species_fasta} \
+    ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+
+samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+samtools index ${base}.sorted.filtered.bam
+# output unclassified reads
+samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+# cleanup intermediate file
+rm ${base}.bam
+
+samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+
+"""
+
+else if (nucl_type == 'RNA')
+script:
+"""
+#!/bin/bash
+
+#logging
+echo "ls of directory" 
+ls -lah 
+
+echo "running Minimap2 on ${base}"
+#TODO: FILL IN MINIMAP2 COMMAND 
+minimap2 \
+    -ax splice \
     -t "\$((${task.cpus}-4))" \
     -2 \
     --split-prefix \
