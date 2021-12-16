@@ -169,7 +169,7 @@ output:
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
-if ( "${params.NUCL_TYPE}" == 'DNA')
+if ( "${params.NUCL_TYPE}" == 'DNA') {
 script:
 """
 #!/bin/bash
@@ -201,8 +201,8 @@ rm ${base}.bam
 samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
 """
-
-else if ( "${params.NUCL_TYPE}" == 'RNA')
+    }
+else if ( "${params.NUCL_TYPE}" == 'RNA') {
 script:
 """
 #!/bin/bash
@@ -234,6 +234,7 @@ rm ${base}.bam
 samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
 """
+    }
 }
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
