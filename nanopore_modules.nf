@@ -169,7 +169,7 @@ output:
     tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
-if ( params.NUCL_TYPE == 'DNA')
+if ( "${params.NUCL_TYPE}" == 'DNA')
 script:
 """
 #!/bin/bash
@@ -202,7 +202,7 @@ samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclass
 
 """
 
-else if ( params.NUCL_TYPE == 'RNA')
+else if ( "${params.NUCL_TYPE}" == 'RNA')
 script:
 """
 #!/bin/bash
