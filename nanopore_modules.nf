@@ -160,7 +160,7 @@ kraken2 --db ${kraken2_db} \
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "quay.io/vpeddu/evmeta:83af5629"
+container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 24
 input: 
@@ -178,7 +178,7 @@ script:
     echo "ls of directory" 
     ls -lah 
 
-    echo "running Minimap2 on ${base}"
+    echo "running Minimap2 DNA on ${base}"
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
         -ax map-ont \
@@ -210,7 +210,7 @@ script:
     echo "ls of directory" 
     ls -lah 
 
-    echo "running Minimap2 on ${base}"
+    echo "running Minimap2 RNA on ${base}"
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
         -ax splice \
