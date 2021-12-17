@@ -36,3 +36,6 @@ quick run command:
     -latest \
     -with-report 
 ```
+
+## TODO: 
+    add in seq and mapq score filtering
