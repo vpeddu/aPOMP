@@ -229,7 +229,7 @@ workflow{
             Minimap2_illumina.out[1]), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
-            Accession_to_taxid
+            file("${params.INDEX}/accession2taxid/")
             )
         Write_report(
             Classify.out[0],
