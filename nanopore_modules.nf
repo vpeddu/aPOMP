@@ -82,7 +82,7 @@ process Host_depletion_extraction_nanopore {
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
 container "staphb/samtools"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 4
 input: 
     tuple val(base), file(sam)
 output: 
@@ -94,7 +94,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-samtools fastq -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
+samtools fastq -@ 4 -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
 """
 }
 
@@ -199,7 +199,7 @@ script:
     # cleanup intermediate file
     rm ${base}.bam
 
-    samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
     """
         }
@@ -231,7 +231,7 @@ script:
     # cleanup intermediate file
     rm ${base}.bam
 
-    samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
     """
         }
@@ -420,7 +420,7 @@ minimap2 \
     ${unassigned_fastq} \
     ${metaflye_contigs}| samtools view -Sb -f 4 -@ 4 - > ${base}.unassembled.unclassified.bam
 
-samtools fastq -@ ${task.cpus} ${base}.unassembled.unclassified.bam | gzip > ${base}.unassembled.unclassified.fastq.gz
+samtools fastq -@ 4 ${base}.unassembled.unclassified.bam | gzip > ${base}.unassembled.unclassified.fastq.gz
 
 """
 }

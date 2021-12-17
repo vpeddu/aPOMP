@@ -77,8 +77,8 @@ Eggnog_db = Channel
 Accession_to_taxid = Channel
                     .fromPath("${params.INDEX}/accession2taxid/")
 
-Minimap2_host_index = Channel
-                    .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
+// Minimap2_host_index = Channel
+                    // .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
 
 workflow{
     if ( params.NANOPORE){
@@ -93,7 +93,8 @@ workflow{
         )
         Host_depletion_nanopore( 
             NanoFilt.out[0],
-            Minimap2_host_index
+            //Minimap2_host_index
+            file("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
         )
         Host_depletion_extraction_nanopore( 
             Host_depletion_nanopore.out,
