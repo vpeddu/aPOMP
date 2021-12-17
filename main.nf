@@ -163,7 +163,7 @@ workflow{
                 Eggnog_mapper.out, 
                 Taxdump.collect(),
                 file("${baseDir}/bin/orthologs_to_pavian.py"),
-                Accession_to_taxid
+                file("${params.INDEX}/accession2taxid/")
             )
             Write_report_orthologs(
                 Classify_orthologs.out[0],
