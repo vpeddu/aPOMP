@@ -74,8 +74,8 @@ Krakenuniq_db = Channel
 Eggnog_db = Channel
             .fromPath("${params.INDEX}/eggnog_db/")
 
-Accession_to_taxid = Channel
-                    .fromPath("${params.INDEX}/accession2taxid/")
+// Accession_to_taxid = Channel
+//                     .fromPath("${params.INDEX}/accession2taxid/")
 
 // Minimap2_host_index = Channel
                     // .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
@@ -96,9 +96,9 @@ workflow{
             //Minimap2_host_index
             file("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
         )
-        Host_depletion_extraction_nanopore( 
-            Host_depletion_nanopore.out,
-        )
+        // Host_depletion_extraction_nanopore( 
+        //     Host_depletion_nanopore.out,
+        //)
         // if (params.METAFLYE){
         //     MetaFlye(
         //         Host_depletion_extraction_nanopore.out
@@ -133,7 +133,7 @@ workflow{
         // else {
         if( params.METAFLYE ) {
             MetaFlye(
-                Host_depletion_extraction_nanopore.out
+                Host_depletion_nanopore.out[0]
             )
             Kraken_prefilter_nanopore(
                 MetaFlye.out,
@@ -142,7 +142,7 @@ workflow{
         }
         else{
             Kraken_prefilter_nanopore(
-                Host_depletion_extraction_nanopore.out,
+                Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
         }
@@ -152,7 +152,7 @@ workflow{
                 file("${baseDir}/bin/extract_seqs.py")
                 )
             Minimap2_nanopore( 
-                Host_depletion_extraction_nanopore.out.groupTuple(size:1).join(
+                Host_depletion_nanopore.out[0].groupTuple(size:1).join(
                     Extract_db.out)
                 )
             Eggnog_mapper(
@@ -185,7 +185,7 @@ workflow{
                 Minimap2_nanopore.out[1]), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
-                Accession_to_taxid
+                file("${params.INDEX}/accession2taxid/")
                 )
             Write_report(
                 Classify.out[0],

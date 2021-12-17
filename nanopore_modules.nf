@@ -53,14 +53,16 @@ NanoPlot -t ${task.cpus} \
 
 process Host_depletion_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "staphb/minimap2"
+container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1)
     file minimap2_host_index
 output: 
-    tuple val("${base}"), file("${base}.host_filtered.sam")
+    tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
+    file "${base}.host_mapped.bam"
+
 script:
 """
 #!/bin/bash
@@ -70,14 +72,18 @@ ls -lah
 
 minimap2 \
     -ax map-ont \
-    -t ${task.cpus} \
+    -t "\$((${task.cpus}-2))" \
     -2 \
     ${minimap2_host_index} \
-    ${r1} > \
-    ${base}.host_filtered.sam
+    ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
+    samtools fastq -@ 4 -n -f 4 ${base}.bam | gzip > ${base}.host_filtered.fastq.gz
+
+    mv ${base}.bam ${base}.host_mapped.bam
+
 """
 }
 
+//shouldn't need this anymore 
 process Host_depletion_extraction_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
 container "staphb/samtools"
@@ -163,7 +169,7 @@ process Minimap2_nanopore {
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
-cpus 24
+cpus 28
 input: 
     tuple val(base), file(r1), file(species_fasta)
 output: 
@@ -352,7 +358,7 @@ process Eggnog_mapper {
 publishDir "${params.OUTPUT}/Eggnog/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/eggnog-mapper:2.1.6--pyhdfd78af_0"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 24
 input: 
     tuple val(base), file(unassigned_bam), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
