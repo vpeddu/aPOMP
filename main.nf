@@ -18,23 +18,21 @@ def helpMessage() {
 }
 
 // show help message
-// accessible via nextflow run $project --help
 params.help = false
 // The params scope allows you to define parameters that will be accessible in the pipeline script
-// my guess is params.help is a global boolean that depends on --help at CLI
 if (params.help){
-    // if help == T
     helpMessage()
-    // run helpMessage()
     exit 0
-    // clean exit
 }
+
 //Nanopore mode on by default 
 params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 params.MINIMAPSPLICE = false
 //Eggnog off by default 
 params.EGGNOG = false
+//Flye assembly off be default
+params.METAFLYE = false
 
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
