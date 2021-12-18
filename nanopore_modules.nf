@@ -1,3 +1,5 @@
+params.MINIMAPSPLICE = False
+
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
@@ -177,6 +179,7 @@ output:
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
+    // Default is False
     if ( "${params.MINIMAPSPLICE}") {
     """
     #!/bin/bash

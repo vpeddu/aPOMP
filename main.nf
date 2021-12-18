@@ -155,11 +155,12 @@ workflow{
                 Host_depletion_nanopore.out[0].groupTuple(size:1).join(
                     Extract_db.out)
                 )
-            Eggnog_mapper(
-                Minimap2_nanopore.out[1],
-                Eggnog_db.collect()
-            )
+
             if (params.EGGNOG){
+                Eggnog_mapper(
+                    Minimap2_nanopore.out[1],
+                    Eggnog_db.collect()
+                )
                 Classify_orthologs(
                     Eggnog_mapper.out, 
                     Taxdump.collect(),
