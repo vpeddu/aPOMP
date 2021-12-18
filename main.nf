@@ -159,16 +159,18 @@ workflow{
                 Minimap2_nanopore.out[1],
                 Eggnog_db.collect()
             )
-            Classify_orthologs(
-                Eggnog_mapper.out, 
-                Taxdump.collect(),
-                file("${baseDir}/bin/orthologs_to_pavian.py"),
-                file("${params.INDEX}/accession2taxid/")
-            )
-            Write_report_orthologs(
-                Classify_orthologs.out[0],
-                Krakenuniq_db.collect()
-            )
+            if (params.EGGNOG){
+                Classify_orthologs(
+                    Eggnog_mapper.out, 
+                    Taxdump.collect(),
+                    file("${baseDir}/bin/orthologs_to_pavian.py"),
+                    file("${params.INDEX}/accession2taxid/")
+                )
+                Write_report_orthologs(
+                    Classify_orthologs.out[0],
+                    Krakenuniq_db.collect()
+                )
+            }
             // Diamond_translated_alignment_unclassified(
             //     Minimap2_nanopore.out[1],
             //     Diamond_protein_db

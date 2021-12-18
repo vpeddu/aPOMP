@@ -177,7 +177,7 @@ output:
     tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
-    if ( "${params.NUCL_TYPE}" == 'DNA') {
+    if ( "${params.MINIMAPSPLICE}") {
     """
     #!/bin/bash
 
@@ -188,7 +188,7 @@ script:
     echo "running Minimap2 DNA on ${base}"
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
-        -ax map-ont \
+        -ax splice \
         -t "\$((${task.cpus}-4))" \
         -2 \
         --split-prefix \
@@ -209,7 +209,7 @@ script:
 
     """
         }
-    else if ( "${params.NUCL_TYPE}" == 'RNA') {
+    else {
     """
     #!/bin/bash
 
@@ -220,7 +220,7 @@ script:
     echo "running Minimap2 RNA on ${base}"
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
-        -ax splice \
+        -ax map-ont \
         -t "\$((${task.cpus}-4))" \
         -2 \
         --split-prefix \
@@ -422,7 +422,6 @@ minimap2 \
     -t "\$((${task.cpus}-4))" \
     -2 \
     --split-prefix \
-    -K16G \
     ${unassigned_fastq} \
     ${metaflye_contigs}| samtools view -Sb -f 4 -@ 4 - > ${base}.unassembled.unclassified.bam
 
