@@ -29,7 +29,12 @@ if (params.help){
     exit 0
     // clean exit
 }
-params.NANOPORE = false
+//Nanopore mode on by default 
+params.NANOPORE = true
+//Minimap2 -ax splice off by default 
+params.MINIMAPSPLICE = false
+//Eggnog off by default 
+params.EGGNOG = false
 
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -81,7 +86,7 @@ Eggnog_db = Channel
                     // .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
 
 workflow{
-    if ( params.NANOPORE){
+    if ( params.NANOPORE ){
         input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
