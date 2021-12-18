@@ -1,4 +1,4 @@
-params.MINIMAPSPLICE = False
+params.MINIMAPSPLICE = false
 
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
