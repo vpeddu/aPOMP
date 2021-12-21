@@ -19,7 +19,8 @@ RUN apt update && \
 		 cython \
 		 pysam \
          typing \
-         pickle5
+         pickle5 \
+         taxopy
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \

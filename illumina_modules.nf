@@ -91,6 +91,8 @@ gzip ${base}.starUnmapped.out.mate2.fastq
 """
 }
 
+//BIG BUG: if kraken can't classify past the phylum level we aren't 
+// pulling any genuses so those reads are left unclassified
 process Kraken_prefilter { 
 publishDir "${params.OUTPUT}/Interleave_FASTQ/${base}", mode: 'symlink', overwrite: true
 container "staphb/kraken2"
@@ -159,7 +161,6 @@ mv species.fasta.gz ${base}.species.fasta.gz
 """
 }
 
-//TODO: create containre with Minimap2 and samtools so we can get rid of intermediate sam for space savings
 process Minimap2_illumina { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
@@ -233,6 +234,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 }
 
 //TODO: ADD ACCESSION DNE OUTPUT BACK IN 
+//TODO: CHANGE TO LCA* 
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
