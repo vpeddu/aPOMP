@@ -1,4 +1,3 @@
-params.MINIMAPSPLICE = false
 
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
@@ -199,7 +198,7 @@ script:
         ${species_fasta} \
         ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
-    samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+    samtools view -Sb -F 4 -q 40 ${base}.bam > ${base}.filtered.bam
     samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
     samtools index ${base}.sorted.filtered.bam
     # output unclassified reads
