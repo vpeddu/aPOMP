@@ -308,7 +308,6 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_bam), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
-    file diamond_protein_db
 output: 
     tuple val("${base}"), file("${base}.mmseq.clustered.fasta")
 script:
