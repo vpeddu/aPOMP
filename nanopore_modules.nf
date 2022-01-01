@@ -1,4 +1,5 @@
-
+//default phred score for nanofilt read quality filtering 
+params.NANOFILT_QUALITY = 12
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
@@ -20,7 +21,7 @@ echo "ls of directory"
 ls -lah 
 echo "running Nanofilt on ${base}"
 
-gunzip -c ${r1} | NanoFilt -q 9 \
+gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
         --maxlength 5000 \
         --length 200 | gzip > ${base}.filtered.fastq.gz
 
@@ -209,6 +210,11 @@ script:
 
     samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
+    echo "reads in filtered bam"
+    samtools view -c ${base}.filtered.bam
+
+    echo "reads in unclassified bam"
+    samtools view -c  ${base}.unclassified.bam
     """
         }
     else {
@@ -294,17 +300,17 @@ fi
 """
 }
 
-process Mmseq2_translated_alignment_unclassified { 
+process Cluster_unclassified_reads { 
 publishDir "${params.OUTPUT}/Mmsesq2_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/mmseqs2:13.45111--h95f258a_1"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 16
 input: 
     tuple val(base), file(unassigned_bam), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file diamond_protein_db
 output: 
-    tuple val("${base}"), file("${base}.read_clu_rep.fasta"), file("${base}.mmseq.report.tsv")
+    tuple val("${base}"), file("${base}.mmseq.clustered.fasta")
 script:
 """
 #!/bin/bash
@@ -312,47 +318,15 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-    # diamond out formats
-	#0 = BLAST pairwise
-	#5 = BLAST XML
-	#6 = BLAST tabular
-	#100 = DIAMOND alignment archive (DAA)
-	#101 = SAM
-if [[ -s ${unassigned_fastq} ]] 
-    then
-        echo "HERE"
-        #https://currentprotocols.onlinelibrary.wiley.com/doi/full/10.1002/cpz1.59
-        #diamond blastx \
-        #    --query ${unassigned_fastq} \
-        #    --db ${diamond_protein_db} \
-        #    --out ${base}.diamond.out \
-        #    --outfmt 101 \
-        #    --threads ${task.cpus} \
-        #   --compress 1 \
-        #    --unal 1 \
-        #    --un ${base}.diamond.unaligned \
-        #    --top 10 \
-        #    -F 15 \
-        #    --range-culling
+#create mmseq db
+mmseqs createdb ${unassigned_fastq} ${base}.mmseq.DB
 
-        # create read database
-        mmseqs createdb ${unassigned_fastq} reads
+# cluster with mmseq cluster2
+mmseqs cluster --threads ${task.cpus} ${base}.mmseq.DB ${base}.mmseq.DB_clu tmp
+#extract representative sequences and convert back to fasta
+mmseqs createsubdb ${base}.mmseq.DB_clu ${base}.mmseq.DB ${base}.mmseq.clu_rep
+mmseqs convert2fasta ${base}.mmseq.clu_rep ${base}.mmseq.clustered.fasta
 
-        #cluster with linclust 
-        mmseqs linclust reads reads_clu tmp 
-        mmseqs createsubdb reads_clu reads reads_clu_rep 
-        
-        # extract clustered fasta
-        mmseqs convert2fasta reads_clu_rep ${base}.read_clu_rep.fasta
-
-        mmseqs taxonomy reads_clu_rep ${diamond_protein_db}/swissprot lca_result tmp -s 2 --threads ${task.cpus}
-        mmseqs taxonomyreport ${diamond_protein_db}/swissprot  lca_result ${base}.mmseq.report.tsv 
-
-    else
-        echo "THERE"
-        touch ${base}.diamond.out.blankinput
-
-fi
 """
 }
 
@@ -362,7 +336,7 @@ container "quay.io/biocontainers/eggnog-mapper:2.1.6--pyhdfd78af_0"
 beforeScript 'chmod o+rw .'
 cpus 24
 input: 
-    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
+    tuple val(base), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
     file eggnog_db
 output: 

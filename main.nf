@@ -52,7 +52,7 @@ include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
-include { Mmseq2_translated_alignment_unclassified } from './nanopore_modules.nf'
+include { Cluster_unclassified_reads } from './nanopore_modules.nf'
 include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
 include { Classify_orthologs } from './illumina_modules.nf'
@@ -160,8 +160,15 @@ workflow{
                 )
 
             if (params.EGGNOG){
-                Eggnog_mapper(
+                Cluster_unclassified_reads(
                     Minimap2_nanopore.out[1],
+                )
+                MetaFlye(
+                    Cluster_unclassified_reads.out
+                )
+                // need to fix this so it doesn't collide with pre-classification metaflye
+                Eggnog_mapper(
+                    MetaFlye.out,
                     Eggnog_db.collect()
                 )
                 Classify_orthologs(
