@@ -350,11 +350,11 @@ if [[ -s ${unassigned_fastq} ]]
     then
         # convert unclassified fastq to fasta for eggnog
         gunzip -f ${unassigned_fastq} 
-        sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
+        #sed -n '1~4s/^@/>/p;2~4p' ${base}.unclassified.fastq > ${base}.unclassified.fasta
         emapper.py \
             --dmnd_frameshift 15 \
             --itype metagenome \
-            -i ${base}.unclassified.fasta \
+            -i ${base}.flye.fasta \
             --cpu ${task.cpus} \
             --data_dir ${eggnog_db} \
             --report_orthologs \
