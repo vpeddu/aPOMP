@@ -15,6 +15,7 @@ class read():
         self.seq = ''
         self.taxid = []
         self.seen = False
+        self.final_assignment = ''
 
 
 #print('done building accession to taxid dict')
@@ -48,7 +49,7 @@ for record in bamfile:
         # used to weight LCA below
         read_dict[record.query_name].ascore = [record.get_tag("AS")]
         # store mapq
-        read_dict[record.query_name].mapq = [record.query_qualities]
+        read_dict[record.query_name].mapq = [record.mapping_quality]
         # store sequence (probably don't need this)
         read_dict[record.query_name].seq = record.query_sequence
         # store taxid in a list as taxopy object
@@ -58,10 +59,11 @@ for record in bamfile:
         read_dict[record.query_name].seen = True
     # if read aready exists in read dictionary 
     else: 
-        # append alignment scores
+        if not read_dict[record.query_name].seq: 
+            read_dict[record.query_name].seq = record.query_sequence
         read_dict[record.query_name].ascore.append(record.get_tag("AS"))
         # store mapq
-        read_dict[record.query_name].mapq.append(record.query_qualities)
+        read_dict[record.query_name].mapq.append(record.mapping_quality)
         # append this taxid to the read taxid list as taxopy object
         read_dict[record.query_name].taxid.append(taxopy.Taxon(int(record_tid),taxdb))
 
@@ -74,5 +76,35 @@ def find_taxid(query_tid):
                 continue
     return out_dict
 
+
+## debugging proteobacteria problem
+assignments = {}
+assignmentdict = {}
+for read in read_dict.keys():
+    if len(read_dict[read].taxid) <= 1:
+        lca = read_dict[read].taxid[0].taxid
+        #print(lca)
+        read_dict[read].final_assignment = str(lca)
+        if lca not in assignments:
+            assignments[lca] = 1
+        else: 
+            assignments[lca] += 1
+    else:
+        # normalize alignment scores against the maximum alignment score for weighting
+        #norm_ascore = [math.exp(math.sqrt(abs(i))) for i in read_dict[read].ascore]
+        lca_lineage = taxopy.find_majority_vote(read_dict[read].taxid, taxdb)   
+        lca = lca_lineage.taxid
+        read_dict[read].final_assignment = str(lca)
+        if lca not in assignments:
+            assignments[lca] = 1
+        else: 
+            assignments[lca] += 1
+    # except:
+    #     not_in_accs_file.write(str(read_dict[read].taxid))
+
+f = []
+for i in read_dict.keys():
+    if read_dict[i].final_assignment == '201174':
+        f.append(i)
 
 from IPython import embed; embed()
