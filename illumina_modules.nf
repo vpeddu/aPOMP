@@ -263,7 +263,7 @@ cp taxdump/*.dmp .
 python3 ${classify_script} ${bam} ${base} 
 
 # counting unassigned reads to add back into final report
-samtools sort -@ ${taks.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
+samtools sort -@ ${task.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
 samtools index ${base}.unclassified.sorted.bam
 echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
