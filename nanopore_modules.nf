@@ -61,29 +61,63 @@ cpus 8
 input: 
     tuple val(base), file(r1)
     file minimap2_host_index
+    file ribosome_trna
 output: 
     tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
+    file "${base}.trna.mapped.bam"
 
 script:
+if ( "${params.CLEAN_RIBOSOME_TRNA}") {
+    """
+    #!/bin/bash
+    #logging
+    echo "ls of directory" 
+    ls -lah 
+
+    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+    minimap2 \
+        -ax map-ont \
+        -t "\$((${task.cpus}-2))" \
+        -2 \
+        ${ribosome_trna} \
+        ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+
+        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | gzip > ${base}.trna_filtered.fastq.gz
+        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
+
+    minimap2 \
+        -ax map-ont \
+        -t "\$((${task.cpus}-2))" \
+        -2 \
+        ${minimap2_host_index} \
+        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
+        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | gzip > ${base}.host_filtered.fastq.gz
+
 """
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
+    }
+else{
+    """
+    #!/bin/bash
+    #logging
+    echo "ls of directory" 
+    ls -lah 
 
-minimap2 \
-    -ax map-ont \
-    -t "\$((${task.cpus}-2))" \
-    -2 \
-    ${minimap2_host_index} \
-    ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
-    samtools fastq -@ 4 -n -f 4 ${base}.bam | gzip > ${base}.host_filtered.fastq.gz
+    minimap2 \
+        -ax map-ont \
+        -t "\$((${task.cpus}-2))" \
+        -2 \
+        ${minimap2_host_index} \
+        ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
+        samtools fastq -@ 4 -n -f 4 ${base}.bam | gzip > ${base}.host_filtered.fastq.gz
 
-    mv ${base}.bam ${base}.host_mapped.bam
+        mv ${base}.bam ${base}.host_mapped.bam
 
-"""
+    """
+    }
 }
+
 
 //shouldn't need this anymore 
 process Host_depletion_extraction_nanopore { 
@@ -164,7 +198,6 @@ kraken2 --db ${kraken2_db} \
 
 """
 }
-
 
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
