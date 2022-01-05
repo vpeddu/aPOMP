@@ -97,7 +97,7 @@ workflow{
         Host_depletion_nanopore( 
             NanoFilt.out[0],
             //Minimap2_host_index
-            file("${params.INDEX}/minimap2_host/hg38.fa")
+            file("${params.INDEX}/minimap2_host/hg38.fa"),
             file("${params.INDEX}/ribosome_trna/all_trna.fa")
         )
         if( params.METAFLYE ) {
