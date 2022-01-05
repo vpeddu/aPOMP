@@ -87,7 +87,7 @@ for read in read_dict.keys():
         #norm_ascore = [math.exp(math.sqrt(abs(i))) for i in read_dict[read].ascore]
         #norm_ascore = [(.9**(abs(i) + 1)) for i in read_dict[read].ascore]
         #norm_ascore = [float(i)/max(read_dict[read].ascore) for i in read_dict[read].ascore]
-        lca_lineage = taxopy.find_majority_vote(read_dict[read].taxid, taxdb, weights=norm_ascore,)   
+        lca_lineage = taxopy.find_majority_vote(read_dict[read].taxid, taxdb)   
         #print(lca_lineage)
         lca = lca_lineage.taxid
         #print(lca)
