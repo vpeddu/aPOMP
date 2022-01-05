@@ -58,6 +58,8 @@ for record in bamfile:
         read_dict[record.query_name].seen = True
     # if read aready exists in read dictionary 
     else: 
+        if not read_dict[record.query_name].seq: 
+            read_dict[record.query_name].seq = record.query_sequence
         # append alignment scores
         read_dict[record.query_name].ascore.append(record.get_tag("AS"))
         # store mapq
