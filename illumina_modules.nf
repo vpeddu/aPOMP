@@ -235,6 +235,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 
 //TODO: ADD ACCESSION DNE OUTPUT BACK IN 
 //TODO: CHANGE TO LCA* 
+//TODO: do something about the stupid cp taxdump/*.dmp step
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
@@ -259,9 +260,10 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
+python3 ${classify_script} ${bam} ${base} 
 
-samtools sort ${unclassified_bam} -o ${base}.unclassified.sorted.bam
+# counting unassigned reads to add back into final report
+samtools sort -@ ${taks.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
 samtools index ${base}.unclassified.sorted.bam
 echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
