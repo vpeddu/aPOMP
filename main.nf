@@ -179,12 +179,18 @@ workflow{
         input_read_Ch = Channel
             .fromFilePairs("${params.INPUT_FOLDER}**_R{1,2}*.fastq.gz")
             .map { it -> [it[0], it[1][0], it[1][1]] }
-        Trimming_FastP(
-            input_read_Ch
+        if (params.SKIP_TRIMMING){
+            Low_complexity_filtering(
+                input_read_Ch,
+        }
+        else{
+            Trimming_FastP(
+                input_read_Ch
             )
         Low_complexity_filtering(
             Trimming_FastP.out[0],
-        )
+            )
+        }
         Host_depletion(
             Low_complexity_filtering.out[0],
             Star_index_Ch.collect()
