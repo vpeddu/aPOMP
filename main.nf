@@ -26,7 +26,7 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-params.NANOPORE = true
+//params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 params.MINIMAPSPLICE = false
 //Eggnog off by default 
