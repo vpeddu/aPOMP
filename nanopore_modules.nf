@@ -1,5 +1,8 @@
+params.MINIMAPSPLICE = false
+params.FASTA_SPLIT_CHUNKS = 5
+
 //default phred score for nanofilt read quality filtering 
-params.NANOFILT_QUALITY = 12
+params.NANOFILT_QUALITY = 10
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
@@ -163,6 +166,15 @@ flye --nano-corr ${unassigned_fastq} \
     -t ${task.cpus} \
     --meta 
 
+if [[ -f ${base}.flye/assembly.fasta ]]
+then
+    echo "flye assembled reads"
+    mv ${base}.fly e/assembly.fasta ${base}.flye.fasta
+else
+    echo "flye did not assemble reads" 
+    mv ${unassigned_fastq} ${base}.flye.fasta
+fi
+
 mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 
 gzip ${base}.flye.fasta
@@ -213,7 +225,7 @@ output:
 
 script:
     // Default is False
-    if ( "${params.MINIMAPSPLICE}") {
+    if ( params.MINIMAPSPLICE ) {
     """
     #!/bin/bash
 
@@ -227,8 +239,7 @@ script:
         -ax splice \
         -t "\$((${task.cpus}-4))" \
         -2 \
-        --split-prefix \
-        -K16G \
+        --split-prefix ${base}.split \
         ${species_fasta} \
         ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
@@ -239,7 +250,7 @@ script:
     samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
     # cleanup intermediate file
-    rm ${base}.bam
+   # rm ${base}.bam
 
     samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
 
@@ -250,6 +261,7 @@ script:
     samtools view -c  ${base}.unclassified.bam
     """
         }
+
     else {
     """
     #!/bin/bash
@@ -264,8 +276,8 @@ script:
         -ax map-ont \
         -t "\$((${task.cpus}-4))" \
         -2 \
-        --split-prefix \
-        -K16G \
+        -K 25M \
+        --split-prefix ${base}.split \
         ${species_fasta} \
         ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 

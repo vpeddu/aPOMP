@@ -158,6 +158,8 @@ done
 
 mv species.fasta.gz ${base}.species.fasta.gz
 
+
+
 """
 }
 
@@ -297,7 +299,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${base}.emapper.annotations ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
+python3 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }
