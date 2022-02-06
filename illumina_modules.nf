@@ -1,3 +1,4 @@
+params.FASTA_SPLIT_CHUNKS = 10
 //TODO: rebuild database but with taxids or full names appended 
 
 process Trimming_FastP { 
@@ -133,7 +134,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta.gz")
+    file("${base}__*")
 
 
 script:
@@ -151,13 +152,24 @@ for i in `grep -P "\tG\t" ${report} | cut -f5`
 do
 echo adding \$i
 if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-    cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+    ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+    cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
 fi
 done
 
+# TODO need to optimize this 
+##mv species.fasta.gz ${base}.species.fasta.gz
 
-mv species.fasta.gz ${base}.species.fasta.gz
+##gunzip ${base}.species.fasta.gz
 
+##pyfasta split -n ${params.FASTA_SPLIT_CHUNKS} ${base}.species.fasta
+
+##pigz ${base}.species.fasta 
+
+
+##for f in *.fasta; do mv "\$f" "${base}__-\$f"; done
+
+##for i in *.fasta; do pigz \$i; done
 """
 }
 
@@ -263,11 +275,14 @@ cp taxdump/*.dmp .
 python3 ${classify_script} ${bam} ${base} 
 
 # counting unassigned reads to add back into final report
-samtools sort -@ ${task.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
-samtools index ${base}.unclassified.sorted.bam
-echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
+#samtools sort -@ ${task.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
+#samtools index ${base}.unclassified.sorted.bam
+#echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
-
+ echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
+ linecount=\$(zcat ${unclassified_fastq} | wc -l)
+ fastqlinecount=\$(echo \$linecount/4|bc)
+ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 """
 }
 
@@ -297,7 +312,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${base}.emapper.annotations ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
+python3 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }

@@ -1,5 +1,7 @@
+params.MINIMAPSPLICE = false
+
 //default phred score for nanofilt read quality filtering 
-params.NANOFILT_QUALITY = 12
+params.NANOFILT_QUALITY = 10
 process NanoFilt { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
@@ -163,6 +165,15 @@ flye --nano-corr ${unassigned_fastq} \
     -t ${task.cpus} \
     --meta 
 
+if [[ -f ${base}.flye/assembly.fasta ]]
+then
+    echo "flye assembled reads"
+    mv ${base}.fly e/assembly.fasta ${base}.flye.fasta
+else
+    echo "flye did not assemble reads" 
+    mv ${unassigned_fastq} ${base}.flye.fasta
+fi
+
 mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 
 gzip ${base}.flye.fasta
@@ -206,14 +217,14 @@ container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 28
 input: 
-    tuple val(base), file(r1), file(species_fasta)
+    tuple val(base), file(species_fasta), file(r1)
 output: 
-    tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
-    tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
+    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
+    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
 
 script:
     // Default is False
-    if ( "${params.MINIMAPSPLICE}") {
+    if ( params.MINIMAPSPLICE ) {
     """
     #!/bin/bash
 
@@ -225,31 +236,31 @@ script:
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
         -ax splice \
-        -t "\$((${task.cpus}-4))" \
+        -t "\$((${task.cpus}-2))" \
         -2 \
-        --split-prefix \
-        -K16G \
+        --split-prefix ${base}.split \
         ${species_fasta} \
-        ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+        ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
 
     samtools view -Sb -F 4 -q 40 ${base}.bam > ${base}.filtered.bam
-    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-    samtools index ${base}.sorted.filtered.bam
+    samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+    #samtools index ${base}.sorted.filtered.bam
     # output unclassified reads
     samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
     # cleanup intermediate file
-    rm ${base}.bam
+   # rm ${base}.bam
 
-    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools view -Sb ${base}.unclassified.bam | cut -f1 > ${base}.\$RANDOM.unclassified_reads.txt
+    #echo "reads in filtered bam"
+    #samtools view -c ${base}.filtered.bam
 
-    echo "reads in filtered bam"
-    samtools view -c ${base}.filtered.bam
-
-    echo "reads in unclassified bam"
-    samtools view -c  ${base}.unclassified.bam
+    #echo "reads in unclassified bam"
+    #samtools view -c  ${base}.unclassified.bam
     """
         }
+
     else {
     """
     #!/bin/bash
@@ -264,24 +275,75 @@ script:
         -ax map-ont \
         -t "\$((${task.cpus}-4))" \
         -2 \
-        --split-prefix \
-        -K16G \
+        -K 25M \
+        --split-prefix ${base}.split \
         ${species_fasta} \
         ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
     samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
-    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-    samtools index ${base}.sorted.filtered.bam
+    samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+
     # output unclassified reads
     samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
     # cleanup intermediate file
     rm ${base}.bam
 
-    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools view -Sb ${base}.unclassified.bam | cut -f1 > ${base}.\$RANDOM.unclassified_reads.txt
+    
+    mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$RANDOM.bam
+    samtools index ${base}.sorted.filtered.*.bam
 
+    echo "reads in filtered bam"
+    samtools view -c ${base}.filtered.bam
+
+    echo "reads in unclassified bam"
+    samtools view -c  ${base}.unclassified.bam
     """
         }
+}
+process Collect_alignment_results{ 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "quay.io/vpeddu/evmeta:latest"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(filtered_bam), file(bam_index)
+output: 
+    tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
+
+script:
+    """
+    #!/bin/bash
+
+    samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    samtools index ${base}.merged.sorted.bam 
+
+    """
+}
+
+process Collect_unassigned_results{ 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "quay.io/vpeddu/evmeta:latest"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(unclassified_fastq)
+output: 
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz")
+
+script:
+    """
+    #!/bin/bash
+
+    cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
+    #> ${base}.merged.unclassified.fastq.gz
+
+    """
 }
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND

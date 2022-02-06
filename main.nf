@@ -28,7 +28,6 @@ if (params.help){
 //Nanopore mode on by default 
 //params.NANOPORE = true
 //Minimap2 -ax splice off by default 
-params.MINIMAPSPLICE = false
 //Eggnog off by default 
 params.EGGNOG = false
 //Flye assembly off be default
@@ -49,6 +48,8 @@ include { NanoPlot } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 include { Minimap2_nanopore } from './nanopore_modules.nf'
+include { Collect_alignment_results } from './nanopore_modules.nf'
+include { Collect_unassigned_results } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
@@ -86,7 +87,7 @@ Eggnog_db = Channel
 workflow{
     if ( params.NANOPORE ){
         input_read_Ch = Channel
-            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
+            .fromPath("${params.INPUT_FOLDER}*.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         NanoFilt(
             input_read_Ch
@@ -121,13 +122,19 @@ workflow{
                 file("${baseDir}/bin/extract_seqs.py")
                 )
             Minimap2_nanopore( 
-                Host_depletion_nanopore.out[0].groupTuple(size:1).join(
-                    Extract_db.out)
+                    Extract_db.out.flatten().map{
+                        it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
                 )
+            Collect_alignment_results(
+                Minimap2_nanopore.out[0].groupTuple()
+            )
+            Collect_unassigned_results(
+                Minimap2_nanopore.out[1].groupTuple()
+            )
 
             if (params.EGGNOG){
                 Cluster_unclassified_reads(
-                    Minimap2_nanopore.out[1],
+                    Collect_unassigned_results.out,
                 )
                 MetaFlye(
                     Cluster_unclassified_reads.out
@@ -160,8 +167,8 @@ workflow{
             // )
             Classify ( 
                 // works but can clean up groupTuple later
-                Minimap2_nanopore.out[0].groupTuple(size:1).join(
-                Minimap2_nanopore.out[1]), 
+                Collect_alignment_results.out.groupTuple(size:1).join(
+                Collect_unassigned_results.out), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
                 file("${params.INDEX}/accession2taxid/")

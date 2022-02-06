@@ -13,6 +13,7 @@ RUN apt update && \
                    curl \
 		           bedtools \
                    samtools \
+                   pigz \
                    unzip && \
     pip3 install biopython \
                  ete3 \
@@ -20,7 +21,8 @@ RUN apt update && \
 		 pysam \
          typing \
          pickle5 \
-         taxopy
+         taxopy \
+         pyfasta
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \
