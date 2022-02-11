@@ -1,4 +1,5 @@
 params.FASTA_SPLIT_CHUNKS = 10
+params.KRAKEN2_THRESHOLD = 10
 //TODO: rebuild database but with taxids or full names appended 
 
 process Trimming_FastP { 
@@ -147,8 +148,8 @@ ls -lah
 # python3 ${extract_script} ${report} ${fastadb}
 
 #grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
-
-for i in `grep -P "\tG\t" ${report} | cut -f5`
+# could filter by kraken report column 2 for all above some parameter (if > 25)
+for i in `grep -P "\tG\t" ${report} | awk '\$2>${params.KRAKEN2_THRESHOLD}' | cut -f5`
 do
 echo adding \$i
 if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
@@ -255,10 +256,11 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
 input: 
-    tuple val(base), file(bam), file(bamindex), file(unclassified_bam), file(unclassified_fastq)
+    tuple val(base), file(bam), file(bamindex), file(unclassified_fastq), file(plasmid_fastq), val(plasmid_count)
     file taxdump
     file classify_script
     file accessiontotaxid
+
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
     //file "${base}.accession_DNE.txt"
@@ -275,7 +277,7 @@ cp taxdump/*.dmp .
 python3 ${classify_script} ${bam} ${base} 
 
 # counting unassigned reads to add back into final report
-#samtools sort -@ ${task.cpus} ${unclassified_bam} -o ${base}.unclassified.sorted.bam
+#samtools sort -@ ${task.cpus}-o ${base}.unclassified.sorted.bam
 #samtools index ${base}.unclassified.sorted.bam
 #echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
 
@@ -283,6 +285,10 @@ python3 ${classify_script} ${bam} ${base}
  linecount=\$(zcat ${unclassified_fastq} | wc -l)
  fastqlinecount=\$(echo \$linecount/4|bc)
  echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
+
+echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
+
+
 """
 }
 
