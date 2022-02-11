@@ -1,5 +1,4 @@
 params.MINIMAPSPLICE = false
-params.FASTA_SPLIT_CHUNKS = 5
 
 //default phred score for nanofilt read quality filtering 
 params.NANOFILT_QUALITY = 10
@@ -58,20 +57,22 @@ NanoPlot -t ${task.cpus} \
 
 process Host_depletion_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "quay.io/vpeddu/evmeta:latest"
+container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1)
     file minimap2_host_index
     file ribosome_trna
+    file minimap2_plasmid_db
 output: 
-    tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
+    tuple val("${base}"), file("${base}.host_filtered.plasmid_removed.fastq.gz")
     file "${base}.host_mapped.bam"
     file "${base}.trna.mapped.bam"
+    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), env(plasmid_count)
 
 script:
-if ( "${params.CLEAN_RIBOSOME_TRNA}") {
+if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
     """
     #!/bin/bash
     #logging
@@ -97,10 +98,27 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}") {
         ${minimap2_host_index} \
         ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
         samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | gzip > ${base}.host_filtered.fastq.gz
+    
+    minimap2 \
+        -ax map-ont \
+        -t ${task.cpus} \
+        --sam-hit-only \
+        ${minimap2_plasmid_db} \
+        ${base}.host_filtered.fastq.gz | samtools view -Sb - > ${base}.plasmid_extraction.bam
+
+
+    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+    plasmid_count=`cat ${base}.plasmid_read_ids.txt | wc -l`
+    echo "\$plasmid_count sequences mapped to plasmid" 
+
+    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+    /usr/local/miniconda/bin/seqkit grep -v -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.host_filtered.plasmid_removed.fastq.gz 
+
 
 """
     }
-else{
+else if ("${params.CLEAN_RIBOSOME_TRNA}" == false) {
     """
     #!/bin/bash
     #logging
@@ -116,6 +134,22 @@ else{
         samtools fastq -@ 4 -n -f 4 ${base}.bam | gzip > ${base}.host_filtered.fastq.gz
 
         mv ${base}.bam ${base}.host_mapped.bam
+
+        minimap2 \
+        -ax map-ont \
+        -t ${task.cpus} \
+        --sam-hit-only \
+        ${minimap2_plasmid_db} \
+        ${base}.host_filtered.fastq.gz | samtools view -Sb - > ${base}.plasmid_extraction.bam
+
+    plasmid_count=`samtools view -c ${base}.plasmid_extraction.bam
+    echo "\$plasmid_count sequences mapped to plasmid" 
+
+    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > plasmid_read_ids.txt
+
+    /usr/local/miniconda/bin/seqkit grep -f plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+    /usr/local/miniconda/bin/seqkit grep -v -f plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.host_filtered.plasmid_removed.fastq.gz 
+
 
     """
     }
@@ -181,6 +215,34 @@ gzip ${base}.flye.fasta
 """
 }
 
+process Low_complexity_filtering_nanopore { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/low_comnplexity_filter_nanopore/${base}", mode: 'symlink', overwrite: true
+container "quay.io/biocontainers/bbmap:38.76--h516909a_0"
+beforeScript 'chmod o+rw .'
+cpus 6
+input: 
+    tuple val(base), file(r1)
+output: 
+    tuple val(base), file("${base}.lcf_filtered.fastq.gz")
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+bbduk.sh \
+    in1=${r1} \
+    out1=${base}.lcf_filtered.fastq.gz \
+    --ignorebadquality \
+    entropy=0.7 \
+    qin=33 \
+    entropywindow=50 \
+    entropyk=4 
+"""
+}
 
 process Kraken_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Kraken_prefilter/${base}", mode: 'symlink', overwrite: true
@@ -217,11 +279,13 @@ publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 28
+errorStrategy 'retry'
+maxRetries 3
 input: 
-    tuple val(base), file(r1), file(species_fasta)
+    tuple val(base), file(species_fasta), file(r1)
 output: 
-    tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
-    tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
+    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
+    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
 
 script:
     // Default is False
@@ -237,28 +301,30 @@ script:
     #TODO: FILL IN MINIMAP2 COMMAND 
     minimap2 \
         -ax splice \
-        -t "\$((${task.cpus}-4))" \
+        -t "\$((${task.cpus}-2))" \
         -2 \
         --split-prefix ${base}.split \
         ${species_fasta} \
-        ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+        ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
 
     samtools view -Sb -F 4 -q 40 ${base}.bam > ${base}.filtered.bam
-    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-    samtools index ${base}.sorted.filtered.bam
+    samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+    #samtools index ${base}.sorted.filtered.bam
     # output unclassified reads
     samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
     # cleanup intermediate file
    # rm ${base}.bam
 
-    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
-    echo "reads in filtered bam"
-    samtools view -c ${base}.filtered.bam
+    ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+    samtools view -Sb ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.unclassified_reads.txt
+    #echo "reads in filtered bam"
+    #samtools view -c ${base}.filtered.bam
 
-    echo "reads in unclassified bam"
-    samtools view -c  ${base}.unclassified.bam
+    #echo "reads in unclassified bam"
+    #samtools view -c  ${base}.unclassified.bam
     """
         }
 
@@ -270,30 +336,153 @@ script:
     echo "ls of directory" 
     ls -lah 
 
-    echo "running Minimap2 RNA on ${base}"
-    #TODO: FILL IN MINIMAP2 COMMAND 
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-4))" \
-        -2 \
-        -K 25M \
-        --split-prefix ${base}.split \
-        ${species_fasta} \
-        ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+    species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
-    samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
-    samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
-    samtools index ${base}.sorted.filtered.bam
-    # output unclassified reads
-    samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
-    # cleanup intermediate file
-    rm ${base}.bam
+    if [ "${task.attempt}" -eq "1" ]
+    then
+        echo "running Minimap2 RNA on ${base}"
+        #TODO: FILL IN MINIMAP2 COMMAND 
+        minimap2 \
+            -ax map-ont \
+            -t "\$((${task.cpus}-4))" \
+            -2 \
+            -K 25M \
+            --split-prefix ${base}.split \
+            ${species_fasta} \
+            ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
-    samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+        samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+        samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
 
+        # output unclassified reads
+        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+        # cleanup intermediate file
+        #rm ${base}.bam
+
+        ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        samtools index ${base}.sorted.filtered.*.bam
+
+        readsmapped=`samtools view -c ${base}.filtered.bam`
+        readsunmapped=`samtools view -c  ${base}.unclassified.bam`
+        echo "reads in filtered bam"
+        echo \$readsmapped
+
+        echo "reads in unclassified bam"
+        echo \$readsunmapped
+
+        if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
+        then
+            echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+            exit 1
+        fi
+    
+    
+    
+    else
+
+        #split_num=\$(( ${task.attempt} + 1))
+        echo "running Minimap2 RNA on ${base} attempt ${task.attempt}"
+        #echo "fasta being split \$split_num times"
+        #cp ${species_fasta} genus_to_split.fasta.gz
+        
+        # faSplit has some weird splitting activity but it works
+        /usr/local/miniconda/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
+        
+        #TODO: FILL IN MINIMAP2 COMMAND 
+
+        for f in `ls genus_split*`
+        do
+            minimap2 \
+                -ax map-ont \
+                -t "\$((${task.cpus}-4))" \
+                -2 \
+                --split-prefix ${base}.split \
+                \$f \
+                ${r1} | samtools view -Sb -@ 4 - > ${base}.\$f.bam
+            samtools sort -@ ${task.cpus} ${base}.\$f.bam -o ${base}.sorted.\$RANDOM.bam
+        done
+
+        samtools merge ${base}.merged.bam ${base}.sorted.*.bam
+
+        samtools view -Sb -F 4 ${base}.merged.bam > ${base}.filtered.bam
+        samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+
+        # output unclassified reads
+        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+        # cleanup intermediate file
+        #rm ${base}.bam
+
+        ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        samtools index ${base}.sorted.filtered.*.bam
+
+        readsmapped=`samtools view -c ${base}.filtered.bam`
+        readsunmapped=`samtools view -c  ${base}.unclassified.bam`
+        echo "reads in filtered bam"
+        echo \$readsmapped
+
+        echo "reads in unclassified bam"
+        echo \$readsunmapped
+
+        if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
+        then
+            echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+            exit 1
+        fi
+    fi
     """
         }
+}
+process Collect_alignment_results{ 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "quay.io/vpeddu/evmeta:latest"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(filtered_bam), file(bam_index)
+output: 
+    tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
+
+script:
+    """
+    #!/bin/bash
+
+    samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    samtools index ${base}.merged.sorted.bam 
+
+    """
+}
+
+process Collect_unassigned_results{ 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "staphb/seqtk:1.3"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(unclassified_fastq), file(depleted_fastq)
+    
+output: 
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz")
+
+script:
+    """
+    #!/bin/bash
+
+    cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
+    seqtk subseq ${depleted_fastq} unique_unclassified_read_ids.txt | gzip > ${base}.merged.unclassified.fastq.gz
+
+    """
 }
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND

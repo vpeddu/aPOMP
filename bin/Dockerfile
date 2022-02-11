@@ -4,6 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # install dependencies from pip3
 
+
 RUN apt update && \
     apt install -y python3 && \
     apt install -y python-biopython \
@@ -13,6 +14,7 @@ RUN apt update && \
                    curl \
 		           bedtools \
                    samtools \
+                   pigz \
                    unzip && \
     pip3 install biopython \
                  ete3 \
@@ -37,3 +39,13 @@ RUN wget https://github.com/samtools/samtools/releases/download/1.13/samtools-1.
     make && \
     make install 
 
+# Install conda, bowtie2, and krakenuniq
+RUN cd /usr/local/ && \
+    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /usr/local/miniconda && \
+    rm Miniconda3-latest-Linux-x86_64.sh && \
+    ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
+    conda init bash && \
+    /bin/bash -c "source /root/.bashrc" && \
+    conda install -c bioconda ucsc-fasplit seqkit && \
+    conda clean -afy

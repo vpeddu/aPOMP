@@ -50,23 +50,23 @@ for record in bamfile:
         # store mapq
         read_dict[record.query_name].mapq = [record.query_qualities]
         # store sequence (probably don't need this)
-        read_dict[record.query_name].seq = record.query_sequence
+        #read_dict[record.query_name].seq = record.query_sequence
         # store taxid in a list as taxopy object
         # this is necessary for LCA later on 
-        read_dict[record.query_name].taxid = [taxopy.Taxon(int(record_tid),taxdb)]
+        read_dict[record.query_name].taxid = [record_tid]
         # read has been seen (probably don't need this)
         read_dict[record.query_name].seen = True
     # if read aready exists in read dictionary 
     else: 
-        if not read_dict[record.query_name].seq: 
-            read_dict[record.query_name].seq = record.query_sequence
+        #if not read_dict[record.query_name].seq: 
+            # read_dict[record.query_name].seq = record.query_sequence
         # append alignment scores
         read_dict[record.query_name].ascore.append(record.get_tag("AS"))
         # store mapq
         read_dict[record.query_name].mapq.append(record.query_qualities)
         # append this taxid to the read taxid list as taxopy object
-        read_dict[record.query_name].taxid.append(taxopy.Taxon(int(record_tid),taxdb))
-
+        read_dict[record.query_name].taxid.append(record_tid)
+print('done creating read dictionary')
 
 assignments = {}
 not_in_accs_file.writelines('failed LCA: \n')
@@ -75,8 +75,11 @@ for read in read_dict.keys():
     #print((read_dict[read].taxid))
     #print(read_dict[read].id)
     #print('\n')
-    if len(read_dict[read].taxid) <= 1:
-        lca = read_dict[read].taxid[0].taxid
+    taxopy_read_list = []
+    for tid in read_dict[read].taxid: 
+        taxopy_read_list.append(taxopy.Taxon(int(tid),taxdb))
+    if len(taxopy_read_list) <= 1:
+        lca = taxopy_read_list[0].taxid
         #print(lca)
         if lca not in assignments:
             assignments[lca] = 1
@@ -87,7 +90,7 @@ for read in read_dict.keys():
         #norm_ascore = [math.exp(math.sqrt(abs(i))) for i in read_dict[read].ascore]
         #norm_ascore = [(.9**(abs(i) + 1)) for i in read_dict[read].ascore]
         #norm_ascore = [float(i)/max(read_dict[read].ascore) for i in read_dict[read].ascore]
-        lca_lineage = taxopy.find_majority_vote(read_dict[read].taxid, taxdb)   
+        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb)   
         #print(lca_lineage)
         lca = lca_lineage.taxid
         #print(lca)

@@ -45,9 +45,12 @@ include { Write_report } from './illumina_modules.nf'
 
 include { NanoFilt } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
+include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 include { Minimap2_nanopore } from './nanopore_modules.nf'
+include { Collect_alignment_results } from './nanopore_modules.nf'
+include { Collect_unassigned_results } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
@@ -85,7 +88,7 @@ Eggnog_db = Channel
 workflow{
     if ( params.NANOPORE ){
         input_read_Ch = Channel
-            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
+            .fromPath("${params.INPUT_FOLDER}*.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         NanoFilt(
             input_read_Ch
@@ -93,12 +96,25 @@ workflow{
         NanoPlot (
             NanoFilt.out[0]
         )
-        Host_depletion_nanopore( 
-            NanoFilt.out[0],
-            //Minimap2_host_index
-            file("${params.INDEX}/minimap2_host/hg38.fa"),
-            file("${params.INDEX}/ribosome_trna/all_trna.fa")
+        if( params.LOW_COMPLEXITY_FILTER_NANOPORE){
+            Low_complexity_filtering_nanopore(
+                NanoFilt.out[0]
+            )
+            Host_depletion_nanopore(
+                Low_complexity_filtering_nanopore.out[0],
+                file("${params.INDEX}/minimap2_host/hg38.fa"),
+                file("${params.INDEX}/ribosome_trna/all_trna.fa")
+            )
+        }
+        else {
+            Host_depletion_nanopore( 
+                NanoFilt.out[0],
+                //Minimap2_host_index
+                file("${params.INDEX}/minimap2_host/hg38.fa"),
+                file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+                file("${params.INDEX}/plasmid_db/plsdb.mmi")
         )
+        }
         if( params.METAFLYE ) {
             MetaFlye(
                 Host_depletion_nanopore.out[0]
@@ -120,13 +136,21 @@ workflow{
                 file("${baseDir}/bin/extract_seqs.py")
                 )
             Minimap2_nanopore( 
-                Host_depletion_nanopore.out[0].groupTuple(size:1).join(
-                    Extract_db.out)
+                    Extract_db.out.flatten().map{
+                        it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
                 )
+            Collect_alignment_results(
+                Minimap2_nanopore.out[0].groupTuple()
+            )
+            Collect_unassigned_results(
+                Minimap2_nanopore.out[1].groupTuple().join(
+                Host_depletion_nanopore.out[0]
+                )
+            )
 
             if (params.EGGNOG){
                 Cluster_unclassified_reads(
-                    Minimap2_nanopore.out[1],
+                    Collect_unassigned_results.out,
                 )
                 MetaFlye(
                     Cluster_unclassified_reads.out
@@ -157,12 +181,14 @@ workflow{
             // Extract_true_novel(
             //     MetaFlye.out
             // )
+                            Collect_alignment_results.out.join(
+                Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]).view()
             Classify ( 
                 // works but can clean up groupTuple later
-                Minimap2_nanopore.out[0].groupTuple(size:1).join(
-                Minimap2_nanopore.out[1]), 
+                Collect_alignment_results.out.join(
+                Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]), 
                 Taxdump.collect(),
-                file("${baseDir}/bin/classify_reads.py"),
+                file("${baseDir}/bin/new_classify.py"),
                 file("${params.INDEX}/accession2taxid/")
                 )
             Write_report(
