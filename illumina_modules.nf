@@ -251,7 +251,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 //TODO: do something about the stupid cp taxdump/*.dmp step
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'quay.io/vpeddu/evmeta'
+container 'vpeddu/nanopore_metagenomics:latest'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
@@ -288,7 +288,7 @@ python3 ${classify_script} ${bam} ${base}
 
 echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
-
+echo \$fastqlinecount \$linecount unclassified reads 
 """
 }
 

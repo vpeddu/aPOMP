@@ -88,7 +88,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         ${ribosome_trna} \
         ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
 
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | gzip > ${base}.trna_filtered.fastq.gz
+        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
         samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
 
     minimap2 \
@@ -97,7 +97,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         -2 \
         ${minimap2_host_index} \
         ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | gzip > ${base}.host_filtered.fastq.gz
+        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
     
     minimap2 \
         -ax map-ont \
@@ -131,7 +131,7 @@ else if ("${params.CLEAN_RIBOSOME_TRNA}" == false) {
         -2 \
         ${minimap2_host_index} \
         ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.bam | gzip > ${base}.host_filtered.fastq.gz
+        samtools fastq -@ 4 -n -f 4 ${base}.bam | pigz > ${base}.host_filtered.fastq.gz
 
         mv ${base}.bam ${base}.host_mapped.bam
 
@@ -152,9 +152,43 @@ else if ("${params.CLEAN_RIBOSOME_TRNA}" == false) {
 
 
     """
-    }
+    }  
+
 }
 
+process Identify_resistant_plasmids { 
+publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
+container "vpeddu/nanopore_metagenomics:latest"
+beforeScript 'chmod o+rw .'
+cpus 8
+errorStrategy 'ignore'
+input: 
+    tuple val(base), file(plasmid_fastq), val(plasmidreadcount)
+    file amrdb
+output: 
+    tuple val("${base}"), file("${base}.amrfinder.out.txt"), file("${base}.plasmid.flye/assembly.fasta")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+/Flye/bin/flye --plasmids \
+    --meta \
+    -t ${task.cpus} \
+    -o ${base}.plasmid.flye \
+    --nano-hq ${plasmid_fastq}
+
+/amrfinder/amrfinder \
+    -n ${base}.plasmid.flye/assembly.fasta \
+    --threads ${task.cpus} \
+    -d ${amrdb}/2021-12-21.1/ \
+    -o ${base}.amrfinder.out.txt
+
+
+"""
+}
 
 //shouldn't need this anymore 
 process Host_depletion_extraction_nanopore { 
@@ -393,8 +427,8 @@ script:
         # faSplit has some weird splitting activity but it works
         /usr/local/miniconda/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
         
-        #TODO: FILL IN MINIMAP2 COMMAND 
-
+        #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
+        # something like if bam empty, exit 1
         for f in `ls genus_split*`
         do
             minimap2 \
@@ -404,7 +438,14 @@ script:
                 --split-prefix ${base}.split \
                 \$f \
                 ${r1} | samtools view -Sb -@ 4 - > ${base}.\$f.bam
-            samtools sort -@ ${task.cpus} ${base}.\$f.bam -o ${base}.sorted.\$RANDOM.bam
+            samtools sort -@ ${task.cpus} ${base}.\$f.bam -o ${base}.sorted.temp.bam
+            bamcount=`samtools view -c ${base}.sorted.temp.bam`
+            if [ "\$bamcount" -eq "0" ]
+                then
+                echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+                exit 1
+            fi
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
         done
 
         samtools merge ${base}.merged.bam ${base}.sorted.*.bam
@@ -418,7 +459,7 @@ script:
         # cleanup intermediate file
         #rm ${base}.bam
 
-        ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+        ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
         
         mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
@@ -540,7 +581,7 @@ container "quay.io/biocontainers/mmseqs2:13.45111--h95f258a_1"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(unassigned_bam), file(unassigned_fastq)
+    tuple val(base), file(unassigned_fastq)
     //tuple val(base), file(unclassified_bam), file(unclassified_fastq)
 output: 
     tuple val("${base}"), file("${base}.mmseq.clustered.fasta")

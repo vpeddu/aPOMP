@@ -18,6 +18,7 @@ class read():
         self.seen = False
         self.alen = ''
         self.qlen = ''
+        self.weights = ''
 
 
 #print('done building accession to taxid dict')
@@ -84,10 +85,13 @@ for read in read_dict.keys():
         taxid_list = numpy.array(read_dict[read].taxid)
         #print(taxid_list[indexed_overlap_sort][::-1][0:10])
         read_dict[read].taxid = taxid_list[top_10]
+        read_dict[read].weights = top_10
         #print(read_dict[read].alen,read_dict[read].alen[numpy.array([indexed_overlap_sort])][::-1])
 
 
-
+def most_frequent(List):
+    return max(set(List), key = List.count)
+    
 assignments = {}
 not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():
@@ -110,7 +114,12 @@ for read in read_dict.keys():
         #norm_ascore = [math.exp(math.sqrt(abs(i))) for i in read_dict[read].ascore]
         #norm_ascore = [(.9**(abs(i) + 1)) for i in read_dict[read].ascore]
         #norm_ascore = [float(i)/max(read_dict[read].ascore) for i in read_dict[read].ascore]
-        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb)   
+        
+        #if taxopy_read_list.count(most_frequent(taxopy_read_list)) / len(taxopy_read_list) > .5:
+        #        lca = most_frequent(taxopy_read_list)
+        #else:
+        #        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb)   
+        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())   
         #print(lca_lineage)
         lca = lca_lineage.taxid
         # if lca == 543:
@@ -130,3 +139,4 @@ with open(outfilename, 'w') as prekraken:
     for taxa in assignments.keys():
         line = str(taxa) + '\t' + str(assignments[taxa])
         prekraken.write("%s\n" % line)
+#from IPython import embed; embed()

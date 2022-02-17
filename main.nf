@@ -49,6 +49,7 @@ include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_extraction_nanopore } from './nanopore_modules.nf'
 include { Minimap2_nanopore } from './nanopore_modules.nf'
+include { Identify_resistant_plasmids } from './nanopore_modules.nf'
 include { Collect_alignment_results } from './nanopore_modules.nf'
 include { Collect_unassigned_results } from './nanopore_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
@@ -59,6 +60,7 @@ include { Eggnog_mapper } from './nanopore_modules.nf'
 include { Extract_true_novel } from './nanopore_modules.nf'
 include { Classify_orthologs } from './illumina_modules.nf'
 include { Write_report_orthologs } from './illumina_modules.nf'
+
 
 
 Star_index_Ch = Channel
@@ -79,6 +81,8 @@ Krakenuniq_db = Channel
 Eggnog_db = Channel
             .fromPath("${params.INDEX}/eggnog_db/")
 
+Amrfinder_db = Channel
+            .fromPath("${params.INDEX}/plasmid_db/amrfinder/")
 // Accession_to_taxid = Channel
 //                     .fromPath("${params.INDEX}/accession2taxid/")
 
@@ -114,6 +118,12 @@ workflow{
                 file("${params.INDEX}/ribosome_trna/all_trna.fa"),
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
         )
+        }
+        if ( params.IDENTIFY_RESISTANCE_PLASMIDS ){ 
+            Identify_resistant_plasmids(
+                Host_depletion_nanopore.out[3],
+                Amrfinder_db.collect()
+            )
         }
         if( params.METAFLYE ) {
             MetaFlye(
@@ -181,8 +191,8 @@ workflow{
             // Extract_true_novel(
             //     MetaFlye.out
             // )
-                            Collect_alignment_results.out.join(
-                Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]).view()
+                //             Collect_alignment_results.out.join(
+                // Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]).view()
             Classify ( 
                 // works but can clean up groupTuple later
                 Collect_alignment_results.out.join(

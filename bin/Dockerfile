@@ -15,6 +15,8 @@ RUN apt update && \
 		           bedtools \
                    samtools \
                    pigz \
+                   git \
+                   bc \
                    unzip && \
     pip3 install biopython \
                  ete3 \
@@ -47,5 +49,19 @@ RUN cd /usr/local/ && \
     ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
     conda init bash && \
     /bin/bash -c "source /root/.bashrc" && \
-    conda install -c bioconda ucsc-fasplit seqkit && \
-    conda clean -afy
+    conda install -c bioconda ucsc-fasplit seqkit blast hmmer libcurl
+
+RUN git clone https://github.com/fenderglass/Flye && \
+    cd Flye && \
+    make
+
+RUN mkdir amrfinder && cd amrfinder && \
+# Get the URL of the latest binary tarball (linux only)
+URL=`curl -s https://api.github.com/repos/ncbi/amr/releases/latest \
+    | grep "browser_download_url.*amrfinder_binaries" \
+    | cut -d '"' -f 4` && \
+    # Download the latest binary tarball
+curl -sOL "$URL" && \
+# untar AMRFinderPlus
+filename=`basename $URL` && \
+tar xvfz $filename
