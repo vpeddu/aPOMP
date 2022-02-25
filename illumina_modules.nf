@@ -288,7 +288,7 @@ python3 ${classify_script} ${bam} ${base}
 
 echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
-echo \$fastqlinecount unclassified reads 
+echo \$fastqlinecount \$linecount unclassified reads 
 """
 }
 
