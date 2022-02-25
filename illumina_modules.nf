@@ -283,12 +283,12 @@ python3 ${classify_script} ${bam} ${base}
 
  echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
  linecount=\$(zcat ${unclassified_fastq} | wc -l)
- fastqlinecount=\$(echo \$linecount/4|bc)
+ fastqlinecount=\$( echo \$linecount/4|bc )
  echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
 echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
-echo \$fastqlinecount \$linecount unclassified reads 
+echo \$fastqlinecount unclassified reads 
 """
 }
 
