@@ -222,7 +222,7 @@ workflow{
                 Collect_alignment_results.out.join(
                 Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]), 
                 Taxdump.collect(),
-                file("${baseDir}/bin/new_classify.py"),
+                file("${baseDir}/bin/classify_reads.py"),
                 file("${params.INDEX}/accession2taxid/")
                 )
             // write pavian report for each sample 

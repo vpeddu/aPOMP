@@ -65,5 +65,3 @@ quick run command:
     -with-report 
 ```
 
-## TODO: 
-    add in seq and mapq score filtering
