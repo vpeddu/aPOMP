@@ -1,10 +1,13 @@
 params.MINIMAPSPLICE = false
-
 //default phred score for nanofilt read quality filtering 
 params.NANOFILT_QUALITY = 10
+params.NANOFILT_MAXLENGTH = 5000
+params.NANOFILT_MINLENGTH = 200
+
 process NanoFilt { 
-//conda "${baseDir}/env/env.yml"
+
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
+// need to change this to the nanopore metagenomics container
 container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
 beforeScript 'chmod o+rw .'
 cpus 6
@@ -23,9 +26,10 @@ echo "ls of directory"
 ls -lah 
 echo "running Nanofilt on ${base}"
 
+# nanofilt doesn't have gzip support so we have to pipe in from gunzip
 gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
-        --maxlength 5000 \
-        --length 200 | gzip > ${base}.filtered.fastq.gz
+        --maxlength ${params.NANOFILT_MAXLENGTH} \
+        --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
 """
 }
@@ -48,6 +52,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+# run nanoplot 
 NanoPlot -t ${task.cpus} \
     -p ${base} \
     --fastq ${r1} \
@@ -72,6 +77,7 @@ output:
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), env(plasmid_count)
 
 script:
+// if CLEAN_RIBOSOME_TRNA FLAG
 if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
     """
     #!/bin/bash
@@ -118,49 +124,55 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
 
 """
     }
-else if ("${params.CLEAN_RIBOSOME_TRNA}" == false) {
+// If leaving tRNA in file
+else {
     """
     #!/bin/bash
     #logging
     echo "ls of directory" 
     ls -lah 
 
+    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+
     minimap2 \
         -ax map-ont \
         -t "\$((${task.cpus}-2))" \
         -2 \
         ${minimap2_host_index} \
-        ${r1} | samtools view -Sb -@ 2 - > ${base}.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.bam | pigz > ${base}.host_filtered.fastq.gz
-
-        mv ${base}.bam ${base}.host_mapped.bam
-
-        minimap2 \
+        ${r1} | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
+        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+    
+    minimap2 \
         -ax map-ont \
         -t ${task.cpus} \
         --sam-hit-only \
         ${minimap2_plasmid_db} \
         ${base}.host_filtered.fastq.gz | samtools view -Sb - > ${base}.plasmid_extraction.bam
 
-    plasmid_count=`samtools view -c ${base}.plasmid_extraction.bam
+
+    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+    plasmid_count=`cat ${base}.plasmid_read_ids.txt | wc -l`
     echo "\$plasmid_count sequences mapped to plasmid" 
 
-    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > plasmid_read_ids.txt
-
-    /usr/local/miniconda/bin/seqkit grep -f plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-    /usr/local/miniconda/bin/seqkit grep -v -f plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.host_filtered.plasmid_removed.fastq.gz 
-
+    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+    /usr/local/miniconda/bin/seqkit grep -v -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.host_filtered.plasmid_removed.fastq.gz 
 
     """
     }  
 
 }
 
+// idenitfy resistant plasmids
 process Identify_resistant_plasmids { 
 publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
+
+// Process will fail if no plasmids are assembled. 
+// Errorstrategy set to ignore so it doesn't cause the pipeline to exit
 errorStrategy 'ignore'
 input: 
     tuple val(base), file(plasmid_fastq), val(plasmidreadcount)
@@ -174,12 +186,16 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+# assemble plasmids with flye
+# meta and plasmid flags are used here to find plasmids from a metagenomics sample 
+# need error handling for if nothing is assembled
 /Flye/bin/flye --plasmids \
     --meta \
     -t ${task.cpus} \
     -o ${base}.plasmid.flye \
     --nano-hq ${plasmid_fastq}
 
+# run amrfinder on flye assembly
 /amrfinder/amrfinder \
     -n ${base}.plasmid.flye/assembly.fasta \
     --threads ${task.cpus} \
@@ -190,28 +206,6 @@ ls -lah
 """
 }
 
-//shouldn't need this anymore 
-process Host_depletion_extraction_nanopore { 
-publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "staphb/samtools"
-beforeScript 'chmod o+rw .'
-cpus 4
-input: 
-    tuple val(base), file(sam)
-output: 
-    tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-
-samtools fastq -@ 4 -n -f 4 ${sam} | gzip > ${base}.host_filtered.fastq.gz
-"""
-}
-
-//TODO flag for nano-corr or nano-hq
 process MetaFlye { 
 publishDir "${params.OUTPUT}/MetaFlye/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/flye:2.9--py27h6a42192_0"
@@ -249,8 +243,8 @@ gzip ${base}.flye.fasta
 """
 }
 
+// should update with user definable flags
 process Low_complexity_filtering_nanopore { 
-//conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/low_comnplexity_filter_nanopore/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/bbmap:38.76--h516909a_0"
 beforeScript 'chmod o+rw .'
@@ -267,6 +261,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+# run bbduk for low complexity filtering
 bbduk.sh \
     in1=${r1} \
     out1=${base}.lcf_filtered.fastq.gz \
@@ -278,8 +273,10 @@ bbduk.sh \
 """
 }
 
+// run kraken prefiltering 
 process Kraken_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Kraken_prefilter/${base}", mode: 'symlink', overwrite: true
+//#TODO need to fix container
 container "staphb/kraken2"
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -295,6 +292,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
+# run kraken2
 kraken2 --db ${kraken2_db} \
     --threads ${task.cpus} \
     --classified-out ${base}.kraken2.classified \
@@ -307,6 +305,7 @@ kraken2 --db ${kraken2_db} \
 """
 }
 
+// run minimap2 
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
@@ -314,7 +313,7 @@ container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
-maxRetries 3
+maxRetries 5
 input: 
     tuple val(base), file(species_fasta), file(r1)
 output: 
@@ -372,11 +371,12 @@ script:
 
     species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
+    # if this is the first attempt at running an alignment against this reference for this sample proceed
 
     if [ "${task.attempt}" -eq "1" ]
     then
         echo "running Minimap2 RNA on ${base}"
-        #TODO: FILL IN MINIMAP2 COMMAND 
+        # run minimap2 and pipe to bam output 
         minimap2 \
             -ax map-ont \
             -t "\$((${task.cpus}-4))" \
@@ -386,6 +386,7 @@ script:
             ${species_fasta} \
             ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
 
+        # extract mapped reads and sort 
         samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
         samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
 
@@ -393,14 +394,19 @@ script:
         samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
         # cleanup intermediate file
+        # TODO uncomment later
         #rm ${base}.bam
 
-        ##samtools fastq -@ 4 ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+        # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
         
+        # adding random identifier to species bams to avoid filename collisions while merging later
         mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+
+        #index merged bam 
         samtools index ${base}.sorted.filtered.*.bam
 
+        # stats for reads mapped and unmapped
         readsmapped=`samtools view -c ${base}.filtered.bam`
         readsunmapped=`samtools view -c  ${base}.unclassified.bam`
         echo "reads in filtered bam"
@@ -409,20 +415,21 @@ script:
         echo "reads in unclassified bam"
         echo \$readsunmapped
 
+        # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
+        # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
         if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
         then
             echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
             exit 1
         fi
     
-    
-    
+    # if process reattempts because it ran out of memory 
     else
 
-        #split_num=\$(( ${task.attempt} + 1))
+        # split the fasta into chunks smaller chunks depending on how many times the process has been attempted 
+
         echo "running Minimap2 RNA on ${base} attempt ${task.attempt}"
         #echo "fasta being split \$split_num times"
-        #cp ${species_fasta} genus_to_split.fasta.gz
         
         # faSplit has some weird splitting activity but it works
         /usr/local/miniconda/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
@@ -440,6 +447,7 @@ script:
                 ${r1} | samtools view -Sb -@ 4 - > ${base}.\$f.bam
             samtools sort -@ ${task.cpus} ${base}.\$f.bam -o ${base}.sorted.temp.bam
             bamcount=`samtools view -c ${base}.sorted.temp.bam`
+            # check if an individual split caused an out of memory error and exit the process 
             if [ "\$bamcount" -eq "0" ]
                 then
                 echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
@@ -448,8 +456,10 @@ script:
             mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
         done
 
+        # merge the fasta split alignments 
         samtools merge ${base}.merged.bam ${base}.sorted.*.bam
 
+        # extract mapped reads and sort the bam 
         samtools view -Sb -F 4 ${base}.merged.bam > ${base}.filtered.bam
         samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
 
@@ -472,7 +482,10 @@ script:
 
         echo "reads in unclassified bam"
         echo \$readsunmapped
-
+        
+        
+        # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
+        # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
         if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
         then
             echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
@@ -482,8 +495,9 @@ script:
     """
         }
 }
+
+// Collect minimap2 alignments from each sample and merge into one large bam
 process Collect_alignment_results{ 
-//conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
@@ -504,6 +518,7 @@ script:
     """
 }
 
+// Collect unaligned reads for each sample and extract the unique reads from the host filtered fastq
 process Collect_unassigned_results{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
@@ -527,6 +542,7 @@ script:
 }
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
+//legacy and not being used anymore. Could add back in later as an alternative to eggnog but it uses so much memory 
 process Diamond_translated_alignment_unclassified { 
 publishDir "${params.OUTPUT}/Diamond_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/diamond:2.0.13--hdcc8f71_0"
@@ -575,6 +591,8 @@ fi
 """
 }
 
+//Cluster unclassified reads using mmseqs cluster
+// could use linclust 
 process Cluster_unclassified_reads { 
 publishDir "${params.OUTPUT}/Mmsesq2_unclassified_translated/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/mmseqs2:13.45111--h95f258a_1"
@@ -604,6 +622,7 @@ mmseqs convert2fasta ${base}.mmseq.clu_rep ${base}.mmseq.clustered.fasta
 """
 }
 
+// Map orthologous groups using eggnog mapper 
 process Eggnog_mapper { 
 publishDir "${params.OUTPUT}/Eggnog/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/eggnog-mapper:2.1.6--pyhdfd78af_0"
@@ -644,7 +663,7 @@ fi
 #--excel 
 """
 }
-
+// legacy don't need this anymore
 process Extract_true_novel { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/novel_reads/${base}", mode: 'symlink'

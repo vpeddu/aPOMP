@@ -1,7 +1,7 @@
-params.FASTA_SPLIT_CHUNKS = 10
+// Ignore genuses with less than this many reads in prefiltering
 params.KRAKEN2_THRESHOLD = 10
-//TODO: rebuild database but with taxids or full names appended 
 
+//trim short reads with fastp
 process Trimming_FastP { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
@@ -30,6 +30,8 @@ fastp -w ${task.cpus} \
     -O ${base}.trimmed.R2.fastq.gz
 """
 }
+
+// run low complexity filtering on illumina samples
 process Low_complexity_filtering { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
@@ -57,7 +59,7 @@ bbduk.sh \
 """
 }
 
-//TODO: delete intermediate bam for space savings
+// run host depletion with star (just against host, no plasmid or tRNA)
 process Host_depletion { 
 publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
@@ -93,8 +95,7 @@ gzip ${base}.starUnmapped.out.mate2.fastq
 """
 }
 
-//BIG BUG: if kraken can't classify past the phylum level we aren't 
-// pulling any genuses so those reads are left unclassified
+// run kraken2 prefiltering
 process Kraken_prefilter { 
 publishDir "${params.OUTPUT}/Interleave_FASTQ/${base}", mode: 'symlink', overwrite: true
 container "staphb/kraken2"
@@ -125,8 +126,6 @@ kraken2 --db ${kraken2_db} \
 }
 
 process Extract_db { 
-//publishDir "${params.OUTPUT}//${base}", mode: 'symlink', overwrite: true
-//container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -246,9 +245,9 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 """
 }
 
-//TODO: ADD ACCESSION DNE OUTPUT BACK IN 
-//TODO: CHANGE TO LCA* 
-//TODO: do something about the stupid cp taxdump/*.dmp step
+//TODO: ADD ACCESSION DNE OUTPUT BACK IN- this accounts for taxa that don't exist in our taxdump file but exist in the nt database or vice versa
+
+// run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
 container 'vpeddu/nanopore_metagenomics:latest'
@@ -263,7 +262,6 @@ input:
 
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
-    //file "${base}.accession_DNE.txt"
 
 script:
 """
@@ -273,25 +271,27 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
+
+# for whatever reason if we don't copy the taxdump file, the original gets modified which breaks every other classification process
 cp taxdump/*.dmp .
+
+# run LCA script
 python3 ${classify_script} ${bam} ${base} 
 
 # counting unassigned reads to add back into final report
-#samtools sort -@ ${task.cpus}-o ${base}.unclassified.sorted.bam
-#samtools index ${base}.unclassified.sorted.bam
-#echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
+#echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
+linecount=\$(zcat ${unclassified_fastq} | wc -l)
+fastqlinecount=\$(awk -v lc=\$linecount 'BEGIN {  print (lc/4) }')
+echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
- echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
- linecount=\$(zcat ${unclassified_fastq} | wc -l)
- fastqlinecount=\$(echo \$linecount/4|bc)
- echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
-
+# add plasmid count back into results
 echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
 """
 }
 
+// run LCA for eggnog-mapper output 
 process Classify_orthologs { 
 publishDir "${params.OUTPUT}/Classify_orthologs/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
@@ -323,6 +323,7 @@ python3 ${classify_script} ${base}.emapper.annotations ${base}
 """
 }
 
+// write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
@@ -348,6 +349,7 @@ ${prekraken} > ${base}.final.report.tsv
 """
 }
 
+// write pavian style report for orthologs
 process Write_report_orthologs { 
 publishDir "${params.OUTPUT}/ortholog_reports/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"

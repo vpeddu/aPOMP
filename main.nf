@@ -2,18 +2,36 @@
 nextflow.enable.dsl=2
 
 def helpMessage() {
-// log.info "foo" prints to STDOUT and nextflow.log
     log.info"""
-    TE_Flow: Pipeline that combines standard RNA-seq quantification approaches with TE-aware
-    steps to generate a comprehensive accounting of transcriptomic activity.
-    Usage:
-    nextflow run rreggiar/TE_Flow \\
-        --INPUT_FOLDER test_fastq_paired_small/ 
-        --ADAPTER_CHOICE intra 
-        --PAIRED_END True 
-        --OUTPUT testout 
-        --SALMON_INDEX test/test_salmon_index 
-        -with-docker Ubuntu:18.04
+aPOMP: A portable, open-source metagenomics pipeline.
+
+Usage:
+    --NANOPORE/--ILLUMINA sequencing platform used
+    --INPUT_FOLDER folder containing input FASTQs (illumina must be paired)  
+    --INDEX path to aPOMP index folder
+    --OUTPUT output folder
+    --IDENTIFY_RESISTANCE_PLASMIDS assemble and identify resistant plasmids 
+    --CLEAN_RIBOSOME_TRNA filter out ribosomal and tRNA sequences before classification 
+    --EGGNOG identify orthologous groups in unclassified reads using  the Eggnog-mapper
+    --MINIMAPSPLICE run Minimap2 with preset -ax splice (default -ax map-ont)
+    --NANOFILT_QUALITY [int] minimum quality threshold for nanofilt (default 10) 
+    --KRAKEN2_THRESHOLD [int] discard Kraken2 results containing less than this many reads at or below the genus level (default 10)
+    --LOW_COMPLEXITY_FILTER_NANOPORE run low complexity filtering on nanopore samples
+quick run command: 
+  nextflow run vpeddu/ev-meta \
+		 --NANOPORE \
+		 --IDENTIFY_RESISTANCE_PLASMIDS \
+		 -profile standard \
+		 --EGGNOG \
+		 --INPUT_FOLDER <input_fastq_folder> \
+		 --OUTPUT Zymo-GridION-EVEN-BB-SN_out \
+		 --INDEX <index_path> \
+		 --CLEAN_RIBOSOME_TRNA \
+		 -with-docker 'ubuntu:18.04' \
+		 -with-tower \
+		 -with-report \
+		 -latest \
+		 -resume
     """.stripIndent()
 }
 
@@ -26,13 +44,14 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-//params.NANOPORE = true
+params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 //Eggnog off by default 
 params.EGGNOG = false
 //Flye assembly off be default
 params.METAFLYE = false
 
+// Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
 include { Host_depletion } from './illumina_modules.nf'
@@ -62,7 +81,7 @@ include { Classify_orthologs } from './illumina_modules.nf'
 include { Write_report_orthologs } from './illumina_modules.nf'
 
 
-
+// Define input channels 
 Star_index_Ch = Channel
             .fromPath("${params.INDEX}/star_host/")
 
@@ -83,34 +102,40 @@ Eggnog_db = Channel
 
 Amrfinder_db = Channel
             .fromPath("${params.INDEX}/plasmid_db/amrfinder/")
-// Accession_to_taxid = Channel
-//                     .fromPath("${params.INDEX}/accession2taxid/")
 
-// Minimap2_host_index = Channel
-                    // .fromPath("${params.INDEX}/minimap2_host/minimap2_hg38.mmi")
-
+// Workflow logic
 workflow{
+    // Nanopore workflow (default)
     if ( params.NANOPORE ){
+        // Create input tuple for each fastq in input folder
+        //tuple is val(base),file(fastq)
+        //basename is anything before ".fastq.gz"
         input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}*.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
+        //run nanofilt
         NanoFilt(
             input_read_Ch
         )
+        //run nanoplot on nanofilt output
         NanoPlot (
             NanoFilt.out[0]
         )
+        // if --LOW_COMPLEXITY_FILTER_NANOPORE, run low complexity filtering on nanofilt  output 
         if( params.LOW_COMPLEXITY_FILTER_NANOPORE){
             Low_complexity_filtering_nanopore(
                 NanoFilt.out[0]
             )
+            // run host depletion after low complexity filtering
             Host_depletion_nanopore(
                 Low_complexity_filtering_nanopore.out[0],
                 file("${params.INDEX}/minimap2_host/hg38.fa"),
                 file("${params.INDEX}/ribosome_trna/all_trna.fa")
             )
         }
+        // if --LOW_COMPLEXITY_FILTER_NANOPORE not specified, run host depletion on nanofilt output 
         else {
+            // tRNA depletion is evaluated within the process
             Host_depletion_nanopore( 
                 NanoFilt.out[0],
                 //Minimap2_host_index
@@ -119,12 +144,15 @@ workflow{
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
         )
         }
+        // Identify resistant plasmids if --IDENTIFY_RESISTANCE_PLASMIDS specified
         if ( params.IDENTIFY_RESISTANCE_PLASMIDS ){ 
             Identify_resistant_plasmids(
                 Host_depletion_nanopore.out[3],
                 Amrfinder_db.collect()
             )
         }
+        // Assemble reads before classification
+        // very resource intensive 
         if( params.METAFLYE ) {
             MetaFlye(
                 Host_depletion_nanopore.out[0]
@@ -134,30 +162,37 @@ workflow{
                 Kraken2_db.collect()
             )
         }
+        // Run kraken2 prefiltering 
         else{
             Kraken_prefilter_nanopore(
                 Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
         }
+            // extract databases from NT index 
             Extract_db(
                 Kraken_prefilter_nanopore.out,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py")
                 )
+            // run Minimap2 on each individual genus 
             Minimap2_nanopore( 
                     Extract_db.out.flatten().map{
                         it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
                 )
+            // Collection hold for each sample's Minimap2 aligned results
+            // BAMs are merged at this step for each sample 
             Collect_alignment_results(
                 Minimap2_nanopore.out[0].groupTuple()
             )
+            // Collection hold for each sample's Minimap2 unaligned results
+            // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
             Collect_unassigned_results(
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 )
             )
-
+            // if --EGGNOG run clustering, metaflye, and the eggnog OG search
             if (params.EGGNOG){
                 Cluster_unclassified_reads(
                     Collect_unassigned_results.out,
@@ -165,47 +200,36 @@ workflow{
                 MetaFlye(
                     Cluster_unclassified_reads.out
                 )
-                // need to fix this so it doesn't collide with pre-classification metaflye
                 Eggnog_mapper(
                     MetaFlye.out,
                     Eggnog_db.collect()
                 )
+                // Eggnog provides taxIDs with each OG. Here the taxids are extracted and run through LCA 
                 Classify_orthologs(
                     Eggnog_mapper.out, 
                     Taxdump.collect(),
                     file("${baseDir}/bin/orthologs_to_pavian.py"),
                     file("${params.INDEX}/accession2taxid/")
                 )
+                // write OG classification results to pavian file
                 Write_report_orthologs(
                     Classify_orthologs.out[0],
                     Krakenuniq_db.collect()
                 )
             }
-            // Diamond_translated_alignment_unclassified(
-            //     Minimap2_nanopore.out[1],
-            //     Diamond_protein_db
-            // )
-            // MetaFlye( 
-            //     Minimap2_nanopore.out[1]
-            // )
-            // Extract_true_novel(
-            //     MetaFlye.out
-            // )
-                //             Collect_alignment_results.out.join(
-                // Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]).view()
+            // run LCA for each sample 
             Classify ( 
-                // works but can clean up groupTuple later
                 Collect_alignment_results.out.join(
                 Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/new_classify.py"),
                 file("${params.INDEX}/accession2taxid/")
                 )
+            // write pavian report for each sample 
             Write_report(
                 Classify.out[0],
                 Krakenuniq_db.collect()
             )
-            //}
     }
     else if (params.ILLUMINA) {
         // Workflow assumes reads are paired 
