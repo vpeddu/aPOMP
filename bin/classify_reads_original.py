@@ -1,7 +1,6 @@
 import sys
 import math
 import pysam
-import numpy
 import taxopy
 import logging
 
@@ -16,8 +15,6 @@ class read():
         self.seq = ''
         self.taxid = []
         self.seen = False
-        self.alen = ''
-        self.qlen = ''
 
 
 #print('done building accession to taxid dict')
@@ -59,9 +56,6 @@ for record in bamfile:
         read_dict[record.query_name].taxid = [record_tid]
         # read has been seen (probably don't need this)
         read_dict[record.query_name].seen = True
-        # number of bases overlapping with reference
-        read_dict[record.query_name].alen = [record.query_alignment_length]
-        read_dict[record.query_name].qlen = record.query_length
     # if read aready exists in read dictionary 
     else: 
         #if not read_dict[record.query_name].seq: 
@@ -72,21 +66,7 @@ for record in bamfile:
         read_dict[record.query_name].mapq.append(record.query_qualities)
         # append this taxid to the read taxid list as taxopy object
         read_dict[record.query_name].taxid.append(record_tid)
-        # 
-        read_dict[record.query_name].alen.append(record.query_alignment_length)
 print('done creating read dictionary')
-
-for read in read_dict.keys():
-    if len(read_dict[read].alen) > 1:
-        indexed_overlap_sort = numpy.argsort(read_dict[read].alen)
-        read_dict[read].alen = numpy.array(read_dict[read].alen)
-        top_10 = indexed_overlap_sort[::-1][0:10]
-        taxid_list = numpy.array(read_dict[read].taxid)
-        #print(taxid_list[indexed_overlap_sort][::-1][0:10])
-        read_dict[read].taxid = taxid_list[top_10]
-        #print(read_dict[read].alen,read_dict[read].alen[numpy.array([indexed_overlap_sort])][::-1])
-
-
 
 assignments = {}
 not_in_accs_file.writelines('failed LCA: \n')
@@ -113,9 +93,6 @@ for read in read_dict.keys():
         lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb)   
         #print(lca_lineage)
         lca = lca_lineage.taxid
-        # if lca == 543:
-        #     print(taxopy_read_list)
-        #     print('\n')
         #print(lca)
         if lca not in assignments:
             assignments[lca] = 1

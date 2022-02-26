@@ -1,5 +1,7 @@
-//TODO: rebuild database but with taxids or full names appended 
+// Ignore genuses with less than this many reads in prefiltering
+params.KRAKEN2_THRESHOLD = 10
 
+//trim short reads with fastp
 process Trimming_FastP { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
@@ -28,6 +30,8 @@ fastp -w ${task.cpus} \
     -O ${base}.trimmed.R2.fastq.gz
 """
 }
+
+// run low complexity filtering on illumina samples
 process Low_complexity_filtering { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/fastp_PE/${base}", mode: 'symlink', overwrite: true
@@ -55,7 +59,7 @@ bbduk.sh \
 """
 }
 
-//TODO: delete intermediate bam for space savings
+// run host depletion with star (just against host, no plasmid or tRNA)
 process Host_depletion { 
 publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
@@ -91,6 +95,7 @@ gzip ${base}.starUnmapped.out.mate2.fastq
 """
 }
 
+// run kraken2 prefiltering
 process Kraken_prefilter { 
 publishDir "${params.OUTPUT}/Interleave_FASTQ/${base}", mode: 'symlink', overwrite: true
 container "staphb/kraken2"
@@ -121,8 +126,6 @@ kraken2 --db ${kraken2_db} \
 }
 
 process Extract_db { 
-//publishDir "${params.OUTPUT}//${base}", mode: 'symlink', overwrite: true
-//container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 cpus 8
@@ -131,7 +134,7 @@ input:
     file fastadb
     file extract_script
 output: 
-    tuple val("${base}"), file("${base}.species.fasta.gz")
+    file("${base}__*")
 
 
 script:
@@ -144,32 +147,43 @@ ls -lah
 # python3 ${extract_script} ${report} ${fastadb}
 
 #grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
-
-for i in `grep -P "\tG\t" ${report} | cut -f5`
+# could filter by kraken report column 2 for all above some parameter (if > 25)
+for i in `grep -P "\tG\t" ${report} | awk '\$2>${params.KRAKEN2_THRESHOLD}' | cut -f5`
 do
 echo adding \$i
 if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-    cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+    ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+    cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
 fi
 done
 
+# TODO need to optimize this 
+##mv species.fasta.gz ${base}.species.fasta.gz
 
-mv species.fasta.gz ${base}.species.fasta.gz
+##gunzip ${base}.species.fasta.gz
 
+##pyfasta split -n ${params.FASTA_SPLIT_CHUNKS} ${base}.species.fasta
+
+##pigz ${base}.species.fasta 
+
+
+##for f in *.fasta; do mv "\$f" "${base}__-\$f"; done
+
+##for i in *.fasta; do pigz \$i; done
 """
 }
 
-//TODO: create containre with Minimap2 and samtools so we can get rid of intermediate sam for space savings
-process Minimap2 { 
+process Minimap2_illumina { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "staphb/minimap2"
+container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1), file(r2), file(species_fasta)
 output: 
-    tuple val("${base}"), file("${base}.minimap2.sam")
+    tuple val("${base}"), file("${base}.sorted.filtered.bam"), file("${base}.sorted.filtered.bam.bai")
+    tuple val("${base}"), file("${base}.unclassified.bam"), file ("${base}.unclassified.fastq.gz")
 
 script:
 """
@@ -180,7 +194,6 @@ echo "ls of directory"
 ls -lah 
 
 echo "running Minimap2 on ${base}"
-#TODO: FILL IN MINIMAP2 COMMAND 
 minimap2 \
     -ax sr \
     -t ${task.cpus} \
@@ -188,8 +201,19 @@ minimap2 \
     --split-prefix \
     -2 \
     ${species_fasta} \
-    ${r1} ${r2} > \
-    ${base}.minimap2.sam
+    ${r1} ${r2} | samtools view -Sb -@ 4 - > ${base}.bam
+
+samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+samtools sort ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+samtools index ${base}.sorted.filtered.bam
+# output unclassified reads
+samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+# cleanup intermediate file
+rm ${base}.bam
+
+samtools fastq -@ ${task.cpus} ${base}.unclassified.bam | gzip > ${base}.unclassified.fastq.gz
+
 """
 }
 
@@ -221,21 +245,23 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 """
 }
 
-//TODO: ADD ACCESSION DNE OUTPUT BACK IN 
+//TODO: ADD ACCESSION DNE OUTPUT BACK IN- this accounts for taxa that don't exist in our taxdump file but exist in the nt database or vice versa
+
+// run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'quay.io/vpeddu/evmeta'
+container 'vpeddu/nanopore_metagenomics:latest'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
 input: 
-    tuple val(base), file(bam), file(bamindex), file(unclassified_bam), file(unclassified_fastq)
+    tuple val(base), file(bam), file(bamindex), file(unclassified_fastq), file(plasmid_fastq), val(plasmid_count)
     file taxdump
     file classify_script
     file accessiontotaxid
+
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
-    //file "${base}.accession_DNE.txt"
 
 script:
 """
@@ -245,23 +271,33 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
+
+# for whatever reason if we don't copy the taxdump file, the original gets modified which breaks every other classification process
 cp taxdump/*.dmp .
-python3 ${classify_script} ${bam} ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
 
-samtools sort ${unclassified_bam} -o ${base}.unclassified.sorted.bam
-samtools index ${base}.unclassified.sorted.bam
-echo -e "0\\t `samtools view -c ${base}.unclassified.sorted.bam`"  >> ${base}.prekraken.tsv
+# run LCA script
+python3 ${classify_script} ${bam} ${base} 
 
+# counting unassigned reads to add back into final report
+#echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
+linecount=\$(zcat ${unclassified_fastq} | wc -l)
+fastqlinecount=\$(awk -v lc=\$linecount 'BEGIN {  print (lc/4) }')
+echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
+# add plasmid count back into results
+echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
+
+echo \$fastqlinecount \$linecount unclassified reads 
 """
 }
 
+// run LCA for eggnog-mapper output 
 process Classify_orthologs { 
 publishDir "${params.OUTPUT}/Classify_orthologs/${base}", mode: 'symlink', overwrite: true
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
-cpus 8
+cpus 24
 input: 
     // need to fix input cardinality coming from eggnog
     // need to calculate number of still unassigned reads and output those too 
@@ -282,17 +318,18 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${base}.emapper.annotations ${base} ${accessiontotaxid}/nucl_gb.accession2taxid
+python3 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }
 
+// write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
-cpus 8
+cpus 1
 input: 
     tuple val(base), file(prekraken)
     file krakenuniqdb
@@ -312,12 +349,13 @@ ${prekraken} > ${base}.final.report.tsv
 """
 }
 
+// write pavian style report for orthologs
 process Write_report_orthologs { 
 publishDir "${params.OUTPUT}/ortholog_reports/", mode: 'symlink', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
-cpus 8
+cpus 1
 input: 
     tuple val(base), file(prekraken)
     file krakenuniqdb
