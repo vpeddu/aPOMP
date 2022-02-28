@@ -76,6 +76,7 @@ quick run command:
 * if `--MINIMAPSPLICE` is specified Minimap2 is run with -ax splice (default -ax map-ont) 
 5. Aligned file collection. Aligned output for each sample is collected and merged (samtools merge) into one bam file 
 6. Unaligned file collection. Unaligned output for each sample is collected. A unique list of Read IDs is used to extract the original reads from the host-filtered FASTQ 
+	
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/alignment.png)
 	
 ### Classification 
@@ -84,6 +85,7 @@ quick run command:
 * `find_majority_vote` from `Taxopy` is used to determine the LCA, taking into account the weights from the mapped read lengths. 
 2. Unassigned read counts from the alignment step (NCBI TAXID: 0) and plasmid read counts from the filtering step (NCBI TAXID: 36549) are added to clasisfication file. 
 3. Output from the LCA script is fed into `Krakenuniq-report` to create a pavian readable TSV file. 
+	
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/classification.png)
 
 ### Novel sequence annotation
@@ -93,6 +95,7 @@ quick run command:
 3. Assembled reads are run against eggNOG database (eggnog-mapper) 
 4. Eggnog output is parsed into a pavian formatted file 
   * A custom python script parses the taxIDs from the eggnog output file and the LCA algorithm as mentioned above is run without read length weighting. 
+	
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/unassigned_classification.png)
 
 
