@@ -55,14 +55,14 @@ quick run command:
 ### Read filtering 
 1. Low complexity filtering (bbDuk.sh) if `--LOW_COMPLEXITY_FILTER_NANOPORE` specified
 2. Read quality filtering (NanoFilt). 
-..*Quality threshold adjustable with `--NANOFILT_QUALITY [int]` (default: 10) 
-..*Min readlength adjustable with `--NANOFILT_MINLENGTH [int]` (default: 200)
-..*Max readlength adjustable with `--NANOFILT_MAXLENGTH [int]` (default: 5000)
+  *Quality threshold adjustable with `--NANOFILT_QUALITY [int]` (default: 10) 
+  *Min readlength adjustable with `--NANOFILT_MINLENGTH [int]` (default: 200)
+  *Max readlength adjustable with `--NANOFILT_MAXLENGTH [int]` (default: 5000)
 3. tRNA filtering (Minimap2) if `--CLEAN_RIBOSOME_TRNA` specified 
-..* Reference tRNA database downloaded from http://gtrnadb.ucsc.edu/cgi-bin/GtRNAdb2-search.cgi
+  *Reference tRNA database downloaded from http://gtrnadb.ucsc.edu/cgi-bin/GtRNAdb2-search.cgi
 4. Host filtering (Minimap2, HG38 default). To specify a different host, replace the fasta in the index folder (/path_to_index/minimap2_host/new_host.fa) 
 5. Plasmid extraction (Minimap2) done with alignment against plsDB v.2021_06_23_v2
-..* if --IDENTIFY_RESISTANCE_PLASMIDS specified, plasmid reads are first assembled (`Flye --plasmid`), and then run against NCBI AMRfinder 
+  *if --IDENTIFY_RESISTANCE_PLASMIDS specified, plasmid reads are first assembled (`Flye --plasmid`), and then run against NCBI AMRfinder 
 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/read_filtering.png)
 
