@@ -86,6 +86,19 @@ quick run command:
 3. Output from the LCA script is fed into `Krakenuniq-report` to create a pavian readable TSV file. 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/classification.png)
 
+### Novel sequence annotation
+#### only done if `--EGGNOG` specified
+1. Unassigned reads are clustered (mmSeqs cluster)
+2. Clustered reads are assembled (Metaflye) 
+3. Assembled reads are run against eggNOG database (eggnog-mapper) 
+4. Eggnog output is parsed into a pavian formatted file 
+  * A custom python script parses the taxIDs from the eggnog output file and the LCA algorithm as mentioned above is run without read length weighting. 
+![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/unassigned_classification.png)
+
+
+	
+
+	
 ## Illumina workflow (need to update)
 quick run command:  
 ```
