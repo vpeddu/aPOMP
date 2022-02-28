@@ -79,6 +79,11 @@ quick run command:
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/alignment.png)
 	
 ### Classification 
+1. Merged aligned files are classified using a custom LCA algorithm (custom Python script) 
+* For each read the top 10 longest alignments are used for classification. Shorter alignments are weighted lower than longer alignments. 
+* `find_majority_vote` from `Taxopy` is used to determine the LCA, taking into account the weights from the mapped read lengths. 
+2. Unassigned read counts from the alignment step (NCBI TAXID: 0) and plasmid read counts from the filtering step (NCBI TAXID: 36549) are added to clasisfication file. 
+3. Output from the LCA script is fed into `Krakenuniq-report` to create a pavian readable TSV file. 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/classification.png)
 
 ## Illumina workflow (need to update)
