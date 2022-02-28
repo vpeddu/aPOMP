@@ -6,13 +6,13 @@ APOMP is a portable metagenomics pipeline designed for use with Oxford Nanopore 
 ## Workflow 
 aPOMP options 
 
-***required flags are bolded*** 
+# *required flags
 flag| description
 -----|-----
-***--NANOPORE/--ILLUMINA***|sequencing platform used
-***--INPUT\_FOLDER***|folder containing input FASTQs (illumina must be paired)  
-***--INDEX***|path to aPOMP index folder
-***--OUTPUT***|output folder
+*--NANOPORE/--ILLUMINA|sequencing platform used
+*--INPUT\_FOLDER|folder containing input FASTQs (illumina must be paired)  
+*--INDEX|path to aPOMP index folder
+*--OUTPUT|output folder
 --IDENTIFY\_RESISTANCE\_PLASMIDS|assemble and identify resistant plasmids 
 --CLEAN\_RIBOSOME\_TRNA|filter out ribosomal and tRNA sequences before classification 
 --EGGNOG|identify orthologous groups in unclassified reads using  the Eggnog-mapper
