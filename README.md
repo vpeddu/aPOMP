@@ -1,7 +1,7 @@
 # aPOMP: a Pore Metagenomic Pipeline
 
 ## Introduction
-APOMP is a portable metagenomics pipeline designed for use with Oxford Nanopore long read sequencing data. 
+aPOMP is a portable metagenomics pipeline designed for use with Oxford Nanopore long read sequencing data. 
 
 ## Workflow 
 aPOMP options 
