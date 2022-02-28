@@ -51,6 +51,15 @@ quick run command:
 		 -latest \
 		 -resume
 ```
+## Workflow 
+### Read filtering 
+![alt text](http://url/to/img.png)
+
+### Alignment to NT 
+![alt text](http://url/to/img.png)
+### Classification 
+![alt text](http://url/to/img.png)
+
 ## Illumina workflow (need to update)
 quick run command:  
 ```
