@@ -53,12 +53,12 @@ quick run command:
 ```
 ## Workflow 
 ### Read filtering 
-![alt text](http://url/to/img.png)
+![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/read_filtering.png)
 
 ### Alignment to NT 
-![alt text](http://url/to/img.png)
+![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/alignment.png)
 ### Classification 
-![alt text](http://url/to/img.png)
+![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/classification.png)
 
 ## Illumina workflow (need to update)
 quick run command:  
