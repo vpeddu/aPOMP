@@ -62,12 +62,22 @@ quick run command:
   * Reference tRNA database downloaded from http://gtrnadb.ucsc.edu/cgi-bin/GtRNAdb2-search.cgi
 4. Host filtering (Minimap2, HG38 default). To specify a different host, replace the fasta in the index folder (/path_to_index/minimap2_host/new_host.fa) 
 5. Plasmid extraction (Minimap2) done with alignment against plsDB v.2021_06_23_v2
-  * if --IDENTIFY_RESISTANCE_PLASMIDS specified, plasmid reads are first assembled (`Flye --plasmid`), and then run against NCBI AMRfinder 
+  * if `--IDENTIFY_RESISTANCE_PLASMIDS` specified, plasmid reads are first assembled (`Flye --plasmid`), and then run against NCBI AMRfinder 
 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/read_filtering.png)
 
 ### Alignment to NT 
+1. Genus level estimation (Kraken2). 
+  * Default database is plusPFP-16 from https://benlangmead.github.io/aws-indexes/k2
+  * To use a different database replace the Kraken2 files in the index folder (/path_to_index/kraken2_db/<all_kraken_files>) 
+2. Genus extraction (Grep/awk). By default all genera with 10 reads assigned to the genus or below are kept. Adjustable with `--KRAKEN2\_THRESHOLD [int]` (default 10)
+3. NT database extraction. The index file contains all of NT organized into fasta files named by genus. This step extracts those for subsequent alignment against the filtered sample file. 
+4. Genus level alignment. Each sample is aligned against each genus in a separate process (Minimap2).
+* if `--MINIMAPSPLICE` is specified Minimap2 is run with -ax splice (default -ax map-ont) 
+5. Aligned file collection. Aligned output for each sample is collected and merged (samtools merge) into one bam file 
+6. Unaligned file collection. Unaligned output for each sample is collected. A unique list of Read IDs is used to extract the original reads from the host-filtered FASTQ 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/alignment.png)
+	
 ### Classification 
 ![alt text](https://github.com/vpeddu/ev-meta/blob/main/img/classification.png)
 
