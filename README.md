@@ -51,7 +51,7 @@ quick run command:
 		 -latest \
 		 -resume
 ```
-## Workflow 
+
 ### Read filtering 
 1. Low complexity filtering (bbDuk.sh) if `--LOW_COMPLEXITY_FILTER_NANOPORE` specified
 2. Read quality filtering (NanoFilt). 
