@@ -310,7 +310,7 @@ kraken2 --db ${kraken2_db} \
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "quay.io/vpeddu/evmeta:latest"
+container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
