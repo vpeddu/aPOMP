@@ -3,6 +3,7 @@ params.MINIMAPSPLICE = false
 params.NANOFILT_QUALITY = 10
 params.NANOFILT_MAXLENGTH = 5000
 params.NANOFILT_MINLENGTH = 200
+params.MINIMAP2_RETRIES = 10 
 
 process NanoFilt { 
 
@@ -281,7 +282,7 @@ container "staphb/kraken2"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
-    tuple val(base), file(flye_assembly)
+    tuple val(base), file(fastq)
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
@@ -300,7 +301,7 @@ kraken2 --db ${kraken2_db} \
     --report ${base}.kraken2.report \
     --gzip-compressed \
     --unclassified-out ${base}.kraken2.unclassified \
-    ${flye_assembly} 
+    ${fastq} 
 
 """
 }
@@ -313,7 +314,7 @@ container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
-maxRetries 5
+maxRetries params.MINIMAP2_RETRIES
 input: 
     tuple val(base), file(species_fasta), file(r1)
 output: 
