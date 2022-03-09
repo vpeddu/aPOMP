@@ -111,7 +111,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         -t ${task.cpus} \
         --sam-hit-only \
         ${minimap2_plasmid_db} \
-        ${base}.host_filtered.fastq.gz | samtools view -Sb - > ${base}.plasmid_extraction.bam
+        ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
 
 
     samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
@@ -149,7 +149,7 @@ else {
         -t ${task.cpus} \
         --sam-hit-only \
         ${minimap2_plasmid_db} \
-        ${base}.host_filtered.fastq.gz | samtools view -Sb - > ${base}.plasmid_extraction.bam
+        ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
 
 
     samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
