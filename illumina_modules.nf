@@ -288,6 +288,7 @@ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
+
 """
 }
 
