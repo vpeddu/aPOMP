@@ -188,7 +188,8 @@ workflow{
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
             Collect_unassigned_results(
                 Minimap2_nanopore.out[1].groupTuple().join(
-                Host_depletion_nanopore.out[0]
+                Host_depletion_nanopore.out[0],
+                file("${baseDir}/bin/filter_unassigned_reads.py")
                 )
             )
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search

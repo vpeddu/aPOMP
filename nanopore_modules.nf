@@ -528,6 +528,7 @@ beforeScript 'chmod o+rw .'
 cpus 4
 input: 
     tuple val(base), file(unclassified_fastq), file(depleted_fastq)
+    file filter_unassigned_reads
     
 output: 
     tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz")
@@ -536,8 +537,9 @@ script:
     """
     #!/bin/bash
 
-    cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
-    seqtk subseq ${depleted_fastq} unique_unclassified_read_ids.txt | gzip > ${base}.merged.unclassified.fastq.gz
+    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
+    python3 ${filter_unassigned_reads}
+    seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 
     """
 }

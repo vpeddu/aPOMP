@@ -16,5 +16,11 @@ for f in unassigned_read_files:
 
 true_unassigned = []
 for i in read_id_dict.keys():
-    if len(read_id_dict[i]) == (len(unassigned_read_files)-1):
+    if len(read_id_dict[i]) == len(unassigned_read_files):
         true_unassigned.append(i)
+
+true_unassigned_file = open("true_unassigned_reads.txt", "w")
+print('number of true unassigned reads is ', str(len(true_unassigned)))
+for read in true_unassigned:
+    true_unassigned_file.write(read + "\n")
+true_unassigned_file.close()
