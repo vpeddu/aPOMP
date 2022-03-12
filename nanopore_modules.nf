@@ -539,7 +539,7 @@ script:
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
     python3 ${filter_unassigned_reads}
-    /usr/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
     
     """
 }
