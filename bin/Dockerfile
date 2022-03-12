@@ -49,7 +49,7 @@ RUN cd /usr/local/ && \
     ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
     conda init bash && \
     /bin/bash -c "source /root/.bashrc" && \
-    conda install -c bioconda ucsc-fasplit seqkit blast hmmer libcurl
+    conda install -c bioconda ucsc-fasplit seqkit blast hmmer libcurl seqtk
 
 RUN git clone https://github.com/fenderglass/Flye && \
     cd Flye && \

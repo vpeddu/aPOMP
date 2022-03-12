@@ -465,7 +465,7 @@ script:
         samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
 
         # output unclassified reads
-        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.merged.bam > ${base}.unclassified.bam
 
         # cleanup intermediate file
         #rm ${base}.bam
@@ -523,7 +523,7 @@ script:
 process Collect_unassigned_results{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "staphb/seqtk:1.3"
+container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
@@ -539,8 +539,8 @@ script:
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
     python3 ${filter_unassigned_reads}
-    seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
-
+    /usr/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+    
     """
 }
 

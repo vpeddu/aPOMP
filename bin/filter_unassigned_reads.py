@@ -24,3 +24,5 @@ print('number of true unassigned reads is ', str(len(true_unassigned)))
 for read in true_unassigned:
     true_unassigned_file.write(read + "\n")
 true_unassigned_file.close()
+
+#from IPython import embed; embed()
