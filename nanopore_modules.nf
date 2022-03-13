@@ -1,7 +1,7 @@
 params.MINIMAPSPLICE = false
 //default phred score for nanofilt read quality filtering 
 params.NANOFILT_QUALITY = 10
-params.NANOFILT_MAXLENGTH = 5000
+params.NANOFILT_MAXLENGTH = 10000
 params.NANOFILT_MINLENGTH = 200
 params.MINIMAP2_RETRIES = 10 
 
