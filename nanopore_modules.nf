@@ -1,7 +1,7 @@
 params.MINIMAPSPLICE = false
 //default phred score for nanofilt read quality filtering 
 params.NANOFILT_QUALITY = 10
-params.NANOFILT_MAXLENGTH = 5000
+params.NANOFILT_MAXLENGTH = 10000
 params.NANOFILT_MINLENGTH = 200
 params.MINIMAP2_RETRIES = 10 
 
@@ -539,7 +539,7 @@ script:
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
     python3 ${filter_unassigned_reads}
-    /usr/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
     
     """
 }
