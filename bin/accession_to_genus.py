@@ -12,7 +12,7 @@ import multiprocessing
 from taxonomy_ranks import TaxonomyRanks
 from pathos.multiprocessing import ProcessingPool  
 
-'''
+''' 
 Creates a dictionary for the genus of each accession number in nucl_gb.accession2taxid from ftp://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid
 
 Arg 1 is nucl_gb.accession2taxid file 
