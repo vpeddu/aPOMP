@@ -396,7 +396,7 @@ script:
 
         # cleanup intermediate file
         # TODO uncomment later
-        #rm ${base}.bam
+        rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
@@ -467,8 +467,8 @@ script:
         # output unclassified reads
         samtools view -Sb -@  ${task.cpus} -f 4 ${base}.merged.bam > ${base}.unclassified.bam
 
-        # cleanup intermediate file
-        #rm ${base}.bam
+        # cleanup intermediate file to save space
+        rm ${base}.merged.bam
 
         ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
