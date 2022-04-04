@@ -416,6 +416,9 @@ script:
         echo "reads in unclassified bam"
         echo \$readsunmapped
 
+        # removing unclassified bam to save space
+        rm ${base}.unclassified.bam
+        
         # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
         # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
         if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
@@ -484,6 +487,8 @@ script:
         echo "reads in unclassified bam"
         echo \$readsunmapped
         
+        # removing unclassified bam to save space
+        rm ${base}.unclassified.bam
         
         # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
         # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
