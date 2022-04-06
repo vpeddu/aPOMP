@@ -32,11 +32,21 @@ zymo_guppy_fast_apomp = readpavian(all_taxids,'/media/vikas/thiccy1/data/miten_m
 zymo_guppy_hac_apomp = readpavian(all_taxids,'/media/vikas/thiccy1/data/miten_metagenomics/results_from_mustard/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_hac.final.report.tsv')
 zymo_guppy_sup_apomp = readpavian(all_taxids,'/media/vikas/thiccy1/data/miten_metagenomics/results_from_mustard/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.final.report.tsv')
 
-def recall(dict_list):
+def precision(dict_list):
 	classified_reads = [int(ccount['classified_count']) for ccount in dict_list]
 	unclassified_reads = [int(ucount['unclassified_count']) for ucount in dict_list]
 	recall_df = pd.DataFrame(data = {'classified_count':classified_reads,'unclassified_count':unclassified_reads})
 	recall_df['recall'] = recall_df['classified_count'] / (recall_df['classified_count'] + recall_df['unclassified_count'])
 	display(recall_df)
 
-recall([zymo_guppy_hac_apomp,zymo_guppy_fast_apomp, zymo_guppy_sup_apomp]) 
+def recall(dict_list):
+	# recall is tp/(tp+fn)
+	classified_reads = [int(ccount['classified_count']) for ccount in dict_list]
+	unclassified_reads = [int(ucount['unclassified_count']) for ucount in dict_list]
+	recall_df = pd.DataFrame(data = {'classified_count':classified_reads,'unclassified_count':unclassified_reads})
+	recall_df['recall'] = recall_df['classified_count'] / (recall_df['classified_count'] + recall_df['unclassified_count'])
+	display(recall_df)
+	
+
+
+precision([zymo_guppy_hac_apomp,zymo_guppy_fast_apomp, zymo_guppy_sup_apomp]) 
