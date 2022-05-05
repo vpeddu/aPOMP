@@ -531,7 +531,7 @@ input:
 
     
 output: 
-    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz"), file("${base}.plasmid_unclassified_intersection.fastq.gz", env(plasmid_count)
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz"), file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
 
 script:
     """
