@@ -326,7 +326,7 @@ python3 ${classify_script} ${base}.emapper.annotations ${base}
 
 // write pavian style report
 process Write_report { 
-publishDir "${params.OUTPUT}/", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
@@ -352,7 +352,7 @@ ${prekraken} > ${base}.final.report.tsv
 
 // write pavian style report for orthologs
 process Write_report_orthologs { 
-publishDir "${params.OUTPUT}/ortholog_reports/", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/ortholog_reports/", mode: 'copy', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
