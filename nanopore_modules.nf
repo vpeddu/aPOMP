@@ -72,10 +72,10 @@ input:
     file ribosome_trna
     file minimap2_plasmid_db
 output: 
-    tuple val("${base}"), file("${base}.host_filtered.plasmid_removed.fastq.gz")
+    tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
     file "${base}.trna.mapped.bam"
-    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), env(plasmid_count)
+    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt")
 
 script:
 // if CLEAN_RIBOSOME_TRNA FLAG
@@ -105,7 +105,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         ${minimap2_host_index} \
         ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
         samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
-    
+
     minimap2 \
         -ax map-ont \
         -t ${task.cpus} \
@@ -113,14 +113,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         ${minimap2_plasmid_db} \
         ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
 
-
     samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
-
-    plasmid_count=`cat ${base}.plasmid_read_ids.txt | wc -l`
-    echo "\$plasmid_count sequences mapped to plasmid" 
-
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-    /usr/local/miniconda/bin/seqkit grep -v -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.host_filtered.plasmid_removed.fastq.gz 
 
 
 """
@@ -176,7 +169,7 @@ cpus 8
 // Errorstrategy set to ignore so it doesn't cause the pipeline to exit
 errorStrategy 'ignore'
 input: 
-    tuple val(base), file(plasmid_fastq), val(plasmidreadcount)
+    tuple val(base), file (unassigned_fastq ),file(plasmid_fastq), val(plasmidreadcount)
     file amrdb
 output: 
     tuple val("${base}"), file("${base}.amrfinder.out.txt"), file("${base}.plasmid.flye/assembly.fasta")
@@ -534,9 +527,11 @@ cpus 4
 input: 
     tuple val(base), file(unclassified_fastq), file(depleted_fastq)
     file filter_unassigned_reads
+    tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
+
     
 output: 
-    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz")
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz"), file("${base}.plasmid_unclassified_intersection.fastq.gz", env(plasmid_count))
 
 script:
     """
@@ -544,7 +539,22 @@ script:
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
     python3 ${filter_unassigned_reads}
-    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.unclassified.plasmid_unfiltered.fastq.gz
+
+    # reads that are both unassigned and hit a plasmid db could derive from plasmid
+    # reads that hit nt and plasmid db will be given to the nt hit 
+
+    comm -12 <( sort ${plasmid_read_ids} ) <( sort true_unassigned_reads.txt ) > ${base}.possible_plasmid_read_ids.txt
+
+    plasmid_count=`cat ${base}.possible_plasmid_read_ids.txt | wc -l`
+    echo "\$plasmid_count sequences mapped to plasmid" 
+
+    # extracting plasmid only reads
+    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${plasmid_fastq} | pigz > ${base}.plasmid_unclassified_intersection.fastq.gz 
+    
+    # removing plasmid reads from unassigned file
+    /usr/local/miniconda/bin/seqkit grep -v -f ${base}.plasmid_read_ids.txt ${base}.unclassified.plasmid_unfiltered.fastq.gz | pigz > ${base}.merged.unclassified.fastq.gz
+
     
     """
 }

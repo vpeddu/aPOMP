@@ -146,7 +146,7 @@ workflow{
         // Identify resistant plasmids if --IDENTIFY_RESISTANCE_PLASMIDS specified
         if ( params.IDENTIFY_RESISTANCE_PLASMIDS ){ 
             Identify_resistant_plasmids(
-                Host_depletion_nanopore.out[3],
+                Collect_unassigned_results.out,
                 Amrfinder_db.collect()
             )
         }
@@ -190,7 +190,8 @@ workflow{
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 ),
-                file("${baseDir}/bin/filter_unassigned_reads.py")
+                file("${baseDir}/bin/filter_unassigned_reads.py"),
+                Host_depletion_nanopore.out[3]
 
             )
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search
@@ -221,7 +222,7 @@ workflow{
             // run LCA for each sample 
             Classify ( 
                 Collect_alignment_results.out.join(
-                Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]), 
+                Collect_unassigned_results.out).groupTuple(), 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
                 file("${params.INDEX}/accession2taxid/")
