@@ -115,6 +115,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
 
     samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
 
+    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
 
 """
     }
