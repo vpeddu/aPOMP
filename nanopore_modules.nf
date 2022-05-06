@@ -499,7 +499,7 @@ script:
 // Collect minimap2 alignments from each sample and merge into one large bam
 process Collect_alignment_results{ 
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "quay.io/vpeddu/evmeta:latest"
+container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
