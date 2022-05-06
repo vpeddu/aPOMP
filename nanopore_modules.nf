@@ -501,7 +501,7 @@ process Collect_alignment_results{
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
-cpus 4
+cpus 16
 input: 
     tuple val(base), file(filtered_bam), file(bam_index)
 output: 
@@ -511,9 +511,18 @@ script:
     """
     #!/bin/bash
 
-    samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    #samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    #samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    #samtools index ${base}.merged.sorted.bam 
+
+    # speeding up samtools merge using gnu parallel  
+    find .-name '*.sorted.filtered.*.bam' |
+        parallel -j${task.cpus} -N4 -m --files samtools merge -u - |
+        parallel --xargs samtools merge -@2 ${base}.merged.filtered.bam {}";" rm {}
+
     samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
     samtools index ${base}.merged.sorted.bam 
+
 
     """
 }

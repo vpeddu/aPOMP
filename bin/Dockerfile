@@ -65,3 +65,7 @@ curl -sOL "$URL" && \
 # untar AMRFinderPlus
 filename=`basename $URL` && \
 tar xvfz $filename
+
+# installing GNU parallel
+RUN apt-get install -y parallel
+RUN yes 'will cite' | parallel --citation
