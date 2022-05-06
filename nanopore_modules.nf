@@ -513,7 +513,7 @@ script:
 
     # merging plasmid bam in here so it goes into LCA algorithm
     samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
-    samtools index ${base}.sorted.filtered.bam
+    samtools index ${base}.sorted.filtered.plasmid.bam
 
 
     #samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
