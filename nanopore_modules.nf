@@ -521,7 +521,7 @@ script:
     #samtools index ${base}.merged.sorted.bam 
 
     # speeding up samtools merge using gnu parallel  
-    find .-name '*.sorted.filtered.*.bam' |
+    find . -name '*.sorted.filtered.*.bam' |
         parallel -j${task.cpus} -N4 -m --files samtools merge -u - |
         parallel --xargs samtools merge -@2 ${base}.merged.filtered.bam {}";" rm {}
 
