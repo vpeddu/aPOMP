@@ -192,9 +192,7 @@ workflow{
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 ),
-                file("${baseDir}/bin/filter_unassigned_reads.py"),
-                Host_depletion_nanopore.out[3]
-
+                file("${baseDir}/bin/filter_unassigned_reads.py")
             )
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search
             if (params.EGGNOG){
