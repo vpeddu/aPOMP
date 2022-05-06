@@ -182,7 +182,9 @@ workflow{
             // Collection hold for each sample's Minimap2 aligned results
             // BAMs are merged at this step for each sample 
             Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple()
+                Minimap2_nanopore.out[0].groupTuple().join(
+                Host_depletion_nanopore.out[3]
+                )
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification

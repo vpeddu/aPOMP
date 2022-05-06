@@ -255,7 +255,7 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
 input: 
-    tuple val(base), file(bam), file(bamindex), file(unclassified_fastq), file(plasmid_fastq), val(plasmid_count)
+    tuple val(base), file(bam), file(bamindex), file(unclassified_fastq) //,  file(plasmid_fastq), val(plasmid_count)
     file taxdump
     file classify_script
     file accessiontotaxid
@@ -285,7 +285,6 @@ fastqlinecount=\$(awk -v lc=\$linecount 'BEGIN {  print (lc/4) }')
 echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
 # add plasmid count back into results
-echo -e "36549\\t${plasmid_count}" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
 

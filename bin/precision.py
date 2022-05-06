@@ -86,14 +86,15 @@ class read_input():
 #zymo_guppy_hac_apomp = readpavian(all_taxids,'/media/vikas/thiccy1/data/miten_metagenomics/results_from_mustard/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_hac.final.report.tsv')
 
 #local 
-zymo_guppy_sup_apomp = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.final.report.tsv','apomp')
+zymo_guppy_sup_apomp_previous = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.final.report.tsv','apomp_previous')
+zymo_guppy_sup_apomp_plasmid_refactor = read_input.readPavian(all_taxids,'/Users/vikas/Documents/UCSC/lab/ugh/plasmid_refactor/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.final.report.tsv','apomp_plasmid_refactor')
 zymo_guppy_sup_kraken2 = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.fastq.gz.kraken2.report','kraken2')
 zymo_guppy_sup_megan = read_input.readMegan(all_taxids,'/Users/vikas/Downloads/zymo_sup-ex.txt','diamond_meganlr')
 
 print(zymo_guppy_sup_megan.f1)
 
 fields = ['name','precision','recall','f1']
-pipelines = [zymo_guppy_sup_apomp, zymo_guppy_sup_kraken2, zymo_guppy_sup_megan]
+pipelines = [zymo_guppy_sup_apomp_previous,zymo_guppy_sup_apomp_plasmid_refactor , zymo_guppy_sup_kraken2, zymo_guppy_sup_megan]
 #rows = [[n.name for n in pipelines],[p.precision for p in pipelines],[r.recall for r in pipelines],[f.f1 for f in pipelines]]
 rows = [[p.name, p.precision, p.recall, p.f1] for p in pipelines]
 print(rows)

@@ -75,7 +75,7 @@ output:
     tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
     file "${base}.trna.mapped.bam"
-    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt")
+    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
 
 script:
 // if CLEAN_RIBOSOME_TRNA FLAG
@@ -503,13 +503,18 @@ container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(filtered_bam), file(bam_index)
+    tuple val(base), file(filtered_bam), file(bam_index), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
 output: 
     tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
 
 script:
     """
     #!/bin/bash
+
+    # merging plasmid bam in here so it goes into LCA algorithm
+    samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
+    samtools index ${base}.sorted.filtered.bam
+
 
     #samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
     #samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
@@ -537,11 +542,11 @@ cpus 4
 input: 
     tuple val(base), file(unclassified_fastq), file(depleted_fastq)
     file filter_unassigned_reads
-    tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
+    //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 
     
 output: 
-    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz"), file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz") //, file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
 
 script:
     """
@@ -549,23 +554,9 @@ script:
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
     python3 ${filter_unassigned_reads}
-    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.unclassified.plasmid_unfiltered.fastq.gz
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 
-    # reads that are both unassigned and hit a plasmid db could derive from plasmid
-    # reads that hit nt and plasmid db will be given to the nt hit 
 
-    comm -12 <( sort ${plasmid_read_ids} ) <( sort true_unassigned_reads.txt ) > ${base}.possible_plasmid_read_ids.txt
-
-    plasmid_count=`cat ${base}.possible_plasmid_read_ids.txt | wc -l`
-    echo "\$plasmid_count sequences mapped to plasmid" 
-
-    # extracting plasmid only reads
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${plasmid_fastq} | pigz > ${base}.plasmid_unclassified_intersection.fastq.gz 
-    
-    # removing plasmid reads from unassigned file
-    /usr/local/miniconda/bin/seqkit grep -v -f ${base}.plasmid_read_ids.txt ${base}.unclassified.plasmid_unfiltered.fastq.gz | pigz > ${base}.merged.unclassified.fastq.gz
-
-    
     """
 }
 
