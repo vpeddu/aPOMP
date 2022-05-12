@@ -19,9 +19,9 @@ readstarttime = time.time()
 lookup_dict_pickle = open(sys.argv[1], "rb")
 lookup = pickle.load(lookup_dict_pickle)
 print('read in lookup dictionary in ', (time.time() - readstarttime), ' seconds')
-subprocess.call('mkdir genus_organized',shell=True)
-
 tarballs = os.listdir(sys.argv[2])
+
+subprocess.call('mkdir genus_organized',shell=True)
 # loop through each tarball in the folder of nt tars
 for file in tarballs: 
     print('processing file ', file)

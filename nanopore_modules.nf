@@ -107,7 +107,7 @@ if ( "${params.CLEAN_RIBOSOME_TRNA}" == true) {
         samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
 
     minimap2 \
-        -ax map-ont \
+        -ax asm10 \
         -t ${task.cpus} \
         --sam-hit-only \
         ${minimap2_plasmid_db} \
