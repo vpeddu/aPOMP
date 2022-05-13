@@ -373,7 +373,7 @@ script:
         echo "running Minimap2 RNA on ${base}"
         # run minimap2 and pipe to bam output 
         minimap2 \
-            -ax asm5 \
+            -ax asm20 \
             -t "\$((${task.cpus}-4))" \
             -2 \
             -K 25M \
@@ -437,7 +437,7 @@ script:
         for f in `ls genus_split*`
         do
             minimap2 \
-                -ax asm5 \
+                -ax asm20 \
                 -t "\$((${task.cpus}-4))" \
                 -2 \
                 --split-prefix ${base}.split \

@@ -88,7 +88,7 @@ class read_input():
 
 #local 
 zymo_guppy_sup_apomp_previous = read_input.readPavian(all_taxids,'/Users/vikas/Documents/UCSC/lab/ugh/original_zymo_sup_apomp.tsv','apomp_previous')
-zymo_guppy_sup_apomp_plasmid_refactor = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.rdna_filtered.final.report.tsv','apomp_plasmid_refactor')
+zymo_guppy_sup_apomp_plasmid_refactor = read_input.readPavian(all_taxids,'/Users/vikas/Documents/UCSC/lab/ugh/ughhh/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.rdna_filtered_asm5.final.report.tsv','apomp_plasmid_refactor')
 zymo_guppy_sup_kraken2 = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.fastq.gz.kraken2.report','kraken2')
 zymo_guppy_sup_megan = read_input.readMegan(all_taxids,'/Users/vikas/Downloads/zymo_sup-ex.txt','diamond_meganlr')
 
