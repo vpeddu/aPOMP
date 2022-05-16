@@ -146,7 +146,7 @@ workflow{
         // Identify resistant plasmids if --IDENTIFY_RESISTANCE_PLASMIDS specified
         if ( params.IDENTIFY_RESISTANCE_PLASMIDS ){ 
             Identify_resistant_plasmids(
-                Collect_unassigned_results.out,
+                Host_depletion_nanopore.out[3],
                 Amrfinder_db.collect()
             )
         }

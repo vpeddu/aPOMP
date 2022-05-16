@@ -170,7 +170,7 @@ cpus 8
 // Errorstrategy set to ignore so it doesn't cause the pipeline to exit
 errorStrategy 'ignore'
 input: 
-    tuple val(base), file (unassigned_fastq ),file(plasmid_fastq), val(plasmidreadcount)
+    tuple val(base), file(plasmid_fastq), val(plasmid_read_ids), file(plasmid_bam)
     file amrdb
 output: 
     tuple val("${base}"), file("${base}.amrfinder.out.txt"), file("${base}.plasmid.flye/assembly.fasta")
