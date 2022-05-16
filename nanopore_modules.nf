@@ -190,14 +190,23 @@ ls -lah
     -o ${base}.plasmid.flye \
     --nano-hq ${plasmid_fastq}
 
-# run amrfinder on flye assembly
-/amrfinder/amrfinder \
-    -n ${base}.plasmid.flye/assembly.fasta \
-    --threads ${task.cpus} \
-    -d ${amrdb}/2021-12-21.1/ \
-    -o ${base}.amrfinder.out.txt
+if [[ -f "${base}.plasmid.flye/assembly.fasta" ]]; then 
+        # run amrfinder on flye assembly
+        /amrfinder/amrfinder \
+            -n ${base}.plasmid.flye/assembly.fasta \
+            --threads ${task.cpus} \
+            -d ${amrdb}/2021-12-21.1/ \
+            -o ${base}.amrfinder.out.txt
 
-
+    else 
+        echo "flye assembly failed. Running amrfinder on plasmid fastq converted to fasta"
+        seqtk seq -a ${plasmid_fastq} > ${base}.plasmid.flye/assembly.fasta
+        /amrfinder/amrfinder \
+                -n ${base}.plasmid.flye/assembly.fasta \
+                --threads ${task.cpus} \
+                -d ${amrdb}/2021-12-21.1/ \
+                -o ${base}.amrfinder.out.txt
+fi
 """
 }
 

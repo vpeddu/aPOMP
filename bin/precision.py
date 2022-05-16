@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from IPython.display import display
 
-all_taxids = [1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280, 36549]
+all_taxids = [1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280]
 
 class sample(): 
 	def __init__(self, name, unclassified, correctly_classified, total_classified_count):
@@ -88,17 +88,17 @@ class read_input():
 
 #local 
 zymo_guppy_sup_apomp_previous = read_input.readPavian(all_taxids,'/Users/vikas/Documents/UCSC/lab/ugh/original_zymo_sup_apomp.tsv','apomp_previous')
-zymo_guppy_sup_apomp_plasmid_refactor = read_input.readPavian(all_taxids,'/Users/vikas/Documents/UCSC/lab/ugh/ughhh/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.rdna_filtered_asm5.final.report.tsv','apomp_plasmid_refactor')
+zymo_guppy_sup_apomp_plasmid_refactor = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.final_ntasm20_full.report.tsv','apomp_plasmid_refactor')
 zymo_guppy_sup_kraken2 = read_input.readPavian(all_taxids,'/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.fastq.gz.kraken2.report','kraken2')
 zymo_guppy_sup_megan = read_input.readMegan(all_taxids,'/Users/vikas/Downloads/zymo_sup-ex.txt','diamond_meganlr')
 
-print(zymo_guppy_sup_megan.f1)
+print(zymo_guppy_sup_apomp_previous.total_classified_count)
+print(zymo_guppy_sup_apomp_plasmid_refactor.total_classified_count)
 
 fields = ['name','precision','recall','f1']
 pipelines = [zymo_guppy_sup_apomp_previous,zymo_guppy_sup_apomp_plasmid_refactor , zymo_guppy_sup_kraken2, zymo_guppy_sup_megan]
 #rows = [[n.name for n in pipelines],[p.precision for p in pipelines],[r.recall for r in pipelines],[f.f1 for f in pipelines]]
 rows = [[p.name, p.precision, p.recall, p.f1] for p in pipelines]
-print(rows)
 filename = "zymo_reporting_stats.csv"
 with open(filename, 'w') as csvfile: 
     csvwriter = csv.writer(csvfile) 
