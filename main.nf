@@ -268,7 +268,7 @@ workflow{
             )
         Minimap2_illumina( 
             Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[2], by:0)
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion.out[0], by:0)
             )
         Classify ( 
             // works but can clean up groupTuple later
