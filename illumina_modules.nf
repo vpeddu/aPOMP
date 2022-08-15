@@ -93,7 +93,7 @@ mv ${base}.starUnmapped.out.mate2 ${base}.starUnmapped.out.mate2.fastq
 gzip ${base}.starUnmapped.out.mate1.fastq
 gzip ${base}.starUnmapped.out.mate2.fastq
 
-rm -rf *.start_STARtmp
+rm -rf *.star_STARtmp
 
 """
 }
