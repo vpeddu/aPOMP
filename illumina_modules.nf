@@ -98,7 +98,7 @@ rm -rf *.star_STARtmp
 """
 }
 
-process Host_depletion { 
+process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'

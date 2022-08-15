@@ -54,7 +54,7 @@ params.METAFLYE = false
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
-include { Host_depletion } from './illumina_modules.nf'
+include { Host_depletion_illumina } from './illumina_modules.nf'
 include { Kraken_prefilter } from './illumina_modules.nf'
 include { Extract_db } from './illumina_modules.nf'
 include { Minimap2_illumina } from './illumina_modules.nf'
@@ -253,14 +253,14 @@ workflow{
                 Trimming_FastP.out[0],
                 )
         }
-        Host_depletion(
+        Host_depletion_illumina(
             Low_complexity_filtering.out[0],
             file("${params.INDEX}/minimap2_host/hg38.fa"),
             file("${params.INDEX}/ribosome_trna/all_trna.fa"),
             file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         Kraken_prefilter(
-            Host_depletion.out[0],
+            Host_depletion_illumina.out[0],
             Kraken2_db.collect()
             )
         Extract_db(
@@ -270,16 +270,16 @@ workflow{
             )
         Minimap2_illumina( 
             Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.combine(Host_depletion.out[0], by:0)
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
             )
         Collect_alignment_results(
             Minimap2_illumina.out[0].groupTuple().join(
-            Host_depletion.out[3]
+            Host_depletion_illumina.out[3]
                 )
             )
         Collect_unassigned_results(
                 Minimap2_nanopore.out[1].groupTuple().join(
-                Host_depletion_nanopore.out[0]
+                Host_depletion_illumina.out[0]
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )
