@@ -267,8 +267,8 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2_illumina( 
-            Host_depletion.out[2].groupTuple(size:1).join(
-                Extract_db.out) 
+            Extract_db.out.flatten().map{
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[2], by:0)
             )
         Classify ( 
             // works but can clean up groupTuple later
