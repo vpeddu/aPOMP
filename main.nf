@@ -275,6 +275,7 @@ workflow{
         Collect_alignment_results(
             Minimap2_illumina.out[0].groupTuple().join(
             Host_depletion.out[3]
+                )
             )
         Collect_unassigned_results(
                 Minimap2_nanopore.out[1].groupTuple().join(
