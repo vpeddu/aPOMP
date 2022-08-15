@@ -250,7 +250,7 @@ workflow{
                 input_read_Ch
             )
             Low_complexity_filtering(
-                Trimming_FastP.out[0],
+                Trimming_FastP.out[0]
                 )
         }
         Host_depletion_illumina(
