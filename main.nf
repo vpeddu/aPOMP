@@ -255,10 +255,12 @@ workflow{
         }
         Host_depletion(
             Low_complexity_filtering.out[0],
-            Star_index_Ch.collect()
+            file("${params.INDEX}/minimap2_host/hg38.fa"),
+            file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+            file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         Kraken_prefilter(
-            Host_depletion.out[2],
+            Host_depletion.out[0],
             Kraken2_db.collect()
             )
         Extract_db(
@@ -268,16 +270,26 @@ workflow{
             )
         Minimap2_illumina( 
             Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.combine(Host_depletion.out[2], by:0)
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion.out[0], by:0)
+            )
+        Collect_alignment_results(
+            Minimap2_illumina.out[0].groupTuple().join(
+            Host_depletion.out[3]
+            )
+        Collect_unassigned_results(
+                Minimap2_nanopore.out[1].groupTuple().join(
+                Host_depletion_nanopore.out[0]
+                ),
+                file("${baseDir}/bin/filter_unassigned_reads.py")
             )
         Classify ( 
-            // works but can clean up groupTuple later
-            Minimap2_illumina.out[0].groupTuple(size:1).join(
-            Minimap2_illumina.out[1]), 
+            Collect_alignment_results.out.join(
+            Collect_unassigned_results.out).groupTuple(), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             file("${params.INDEX}/accession2taxid/")
             )
+        // write pavian report for each sample 
         Write_report(
             Classify.out[0],
             Krakenuniq_db.collect()
