@@ -1,8 +1,9 @@
 import os
 import sys
 import csv
-import pandas as pd
+import biom.table
 import numpy as np
+import pandas as pd
 from IPython.display import display
 
 all_taxids = [1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280]

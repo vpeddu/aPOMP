@@ -44,7 +44,7 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-params.NANOPORE = true
+//params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 //Eggnog off by default 
 params.EGGNOG = false
@@ -110,7 +110,7 @@ workflow{
         //tuple is val(base),file(fastq)
         //basename is anything before ".fastq.gz"
         input_read_Ch = Channel
-            .fromPath("${params.INPUT_FOLDER}*.fastq.gz")
+            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         //run nanofilt
         NanoFilt(

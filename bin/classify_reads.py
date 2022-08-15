@@ -89,6 +89,7 @@ for read in read_dict.keys():
 def most_frequent(List):
     return max(set(List), key = List.count)
     
+# look into collections.defaultdict
 assignments = {}
 not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():

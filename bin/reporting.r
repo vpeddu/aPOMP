@@ -45,4 +45,10 @@ for (i in 1:nrow(rarefaction_file)){
 
 
 
+library(biomformat)
+
+ass = rich_sparse_file = system.file("extdata", "/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.biom'", 
+                                     package = "biomformat")
+
+x = read_biom('/Users/vikas/Downloads/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_sup.biom')
 

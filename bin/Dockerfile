@@ -69,3 +69,6 @@ tar xvfz $filename
 # installing GNU parallel
 RUN apt-get install -y parallel
 RUN yes 'will cite' | parallel --citation
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install

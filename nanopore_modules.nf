@@ -9,6 +9,7 @@ process NanoFilt {
 
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
+//TODO: change container to metagenomics container
 container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
 beforeScript 'chmod o+rw .'
 cpus 6
@@ -235,7 +236,7 @@ flye --nano-corr ${unassigned_fastq} \
 if [[ -f ${base}.flye/assembly.fasta ]]
 then
     echo "flye assembled reads"
-    mv ${base}.fly e/assembly.fasta ${base}.flye.fasta
+    mv ${base}.flye/assembly.fasta ${base}.flye.fasta
 else
     echo "flye did not assemble reads" 
     mv ${unassigned_fastq} ${base}.flye.fasta
@@ -379,7 +380,7 @@ script:
 
     if [ "${task.attempt}" -eq "1" ]
     then
-        echo "running Minimap2 RNA on ${base}"
+        echo "running Minimap2 on ${base}"
         # run minimap2 and pipe to bam output 
         minimap2 \
             -ax asm20 \
