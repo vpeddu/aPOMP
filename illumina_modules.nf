@@ -59,44 +59,6 @@ bbduk.sh \
 """
 }
 
-// run host depletion with star (just against host, no plasmid or tRNA)
-process Host_depletion_old { 
-publishDir "${params.OUTPUT}/Star_PE/${base}", mode: 'symlink', overwrite: true
-container "quay.io/biocontainers/star:2.7.9a--h9ee0642_0"
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(r1), file(r2)
-    file starindex
-output: 
-    file "${base}.star*"
-    file "${base}.starAligned.out.bam"
-    tuple val("${base}"), file("${base}.starUnmapped.out.mate1.fastq.gz"), file("${base}.starUnmapped.out.mate2.fastq.gz")
-script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-STAR   \
-    --runThreadN ${task.cpus}  \
-    --genomeDir ${starindex}   \
-    --readFilesIn ${r1} ${r2} \
-    --readFilesCommand zcat      \
-    --outSAMtype BAM Unsorted \
-    --outReadsUnmapped Fastx \
-    --outFileNamePrefix ${base}.star  
-
-mv ${base}.starUnmapped.out.mate1 ${base}.starUnmapped.out.mate1.fastq
-mv ${base}.starUnmapped.out.mate2 ${base}.starUnmapped.out.mate2.fastq
-
-gzip ${base}.starUnmapped.out.mate1.fastq
-gzip ${base}.starUnmapped.out.mate2.fastq
-
-rm -rf *.star_STARtmp
-
-"""
-}
 
 process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
