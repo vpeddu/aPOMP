@@ -119,64 +119,6 @@ script:
 """
 }
 
-process Host_depletion_illumina { 
-publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
-beforeScript 'chmod o+rw .'
-cpus 8
-input: 
-    tuple val(base), file(r1), file(r2)
-    file minimap2_host_index
-    file ribosome_trna
-    file minimap2_plasmid_db
-output: 
-    tuple val("${base}"), file("${base}.host_filtered_R1.fastq.gz") file("${base}.host_filtered_R2.fastq.gz")
-    file "${base}.host_mapped.bam"
-    file "${base}.trna.mapped.bam"
-    tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
-
-script:
-    """
-    #!/bin/bash
-    #logging
-    echo "ls of directory" 
-    ls -lah 
-
-    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
-
-    minimap2 \
-        -ax sr \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${ribosome_trna} \
-        ${r1} ${r2}| samtools view -Sb -@ 2 - > ${base}.trna.bam
-
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
-        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
-
-    minimap2 \
-        -ax sr \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${minimap2_host_index} \
-        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 -1 ${base}.host_filtered_R1.fastq  -2 ${base}.host_filtered_R2.fastq ${base}.host_mapped.bam 
-        pigz ${base}.host_filtered_R1.fastq 
-        pigz ${base}.host_filtered_R2.fastq 
-
-    minimap2 \
-        -ax sr \
-        -t ${task.cpus} \
-        --sam-hit-only \
-        ${minimap2_plasmid_db} \
-        ${base}.host_filtered_R1.fastq ${base}.host_filtered_R2.fastq  | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
-
-    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
-
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-
-"""
-}
 
 // run kraken2 prefiltering
 process Kraken_prefilter { 
