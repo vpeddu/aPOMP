@@ -60,7 +60,7 @@ bbduk.sh \
 }
 
 // run host depletion with star (just against host, no plasmid or tRNA)
-process Host_depletion_old { 
+process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
