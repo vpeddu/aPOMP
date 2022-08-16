@@ -44,7 +44,7 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-params.NANOPORE = true
+//params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 //Eggnog off by default 
 params.EGGNOG = false
@@ -253,12 +253,12 @@ workflow{
                 Trimming_FastP.out[0],
                 )
         }
-        Host_depletion(
+        Host_depletion_illumina(
             Low_complexity_filtering.out[0],
             Star_index_Ch.collect()
             )
         Kraken_prefilter(
-            Host_depletion.out[2],
+            Host_depletion_illumina.out[2],
             Kraken2_db.collect()
             )
         Extract_db(
@@ -267,8 +267,8 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2_illumina( 
-            Host_depletion.out[2].groupTuple(size:1).join(
-                Extract_db.out) 
+            Extract_db.out.flatten().map{
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
             )
         Classify ( 
             // works but can clean up groupTuple later
