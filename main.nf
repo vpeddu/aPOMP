@@ -55,6 +55,7 @@ params.METAFLYE = false
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
 include { Host_depletion_illumina } from './illumina_modules.nf'
+include { Host_depletion_old } from './illumina_modules.nf'
 include { Kraken_prefilter } from './illumina_modules.nf'
 include { Extract_db } from './illumina_modules.nf'
 include { Minimap2_illumina } from './illumina_modules.nf'
