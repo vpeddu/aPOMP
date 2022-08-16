@@ -157,7 +157,6 @@ else {
 
     """
     }  
-
 }
 
 // idenitfy resistant plasmids

@@ -115,7 +115,6 @@ output:
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
 
 script:
-// if CLEAN_RIBOSOME_TRNA FLAG
     """
     #!/bin/bash
     #logging
