@@ -71,7 +71,7 @@ input:
     file ribosome_trna
     file minimap2_plasmid_db
 output: 
-    tuple val("${base}"), file("${base}.host_filtered_R1.fastq.gz") file("${base}.host_filtered_R2.fastq.gz")
+    tuple val("${base}"), file("${base}.host_filtered_R1.fastq.gz"), file("${base}.host_filtered_R2.fastq.gz")
     file "${base}.host_mapped.bam"
     file "${base}.trna.mapped.bam"
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
