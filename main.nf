@@ -253,7 +253,7 @@ workflow{
                 Trimming_FastP.out[0],
                 )
         }
-        Host_depletion_old(
+        Host_depletion_illumina(
             Low_complexity_filtering.out[0],
             file("${params.INDEX}/minimap2_host/hg38.fa"),
             file("${params.INDEX}/ribosome_trna/all_trna.fa"),
