@@ -253,12 +253,12 @@ workflow{
                 Trimming_FastP.out[0],
                 )
         }
-        Host_depletion_illumina(
+        Host_depletion_old(
             Low_complexity_filtering.out[0],
             Star_index_Ch.collect()
             )
         Kraken_prefilter(
-            Host_depletion_illumina.out[2],
+            Host_depletion_old.out[2],
             Kraken2_db.collect()
             )
         Extract_db(
@@ -268,7 +268,7 @@ workflow{
             )
         Minimap2_illumina( 
             Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_old.out[0], by:0)
             )
         Classify ( 
             // works but can clean up groupTuple later
