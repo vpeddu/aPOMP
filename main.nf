@@ -272,10 +272,23 @@ workflow{
             Extract_db.out.flatten().map{
                 it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
             )
+        Collect_alignment_results(
+            Minimap2_illumina.out[0].groupTuple().join(
+            Host_depletion_illumina.out[3]
+            )
+        )
+            // Collection hold for each sample's Minimap2 unaligned results
+            // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
+        Collect_unassigned_results(
+            Minimap2_nanopore.out[1].groupTuple().join(
+            Host_depletion_nanopore.out[0]
+            ),
+            file("${baseDir}/bin/filter_unassigned_reads.py")
+            )
+            // run LCA for each sample 
         Classify ( 
-            // works but can clean up groupTuple later
-            Minimap2_illumina.out[0].groupTuple(size:1).join(
-            Minimap2_illumina.out[1]), 
+            Collect_alignment_results.out.join(
+            Collect_unassigned_results.out).groupTuple(), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             file("${params.INDEX}/accession2taxid/")
