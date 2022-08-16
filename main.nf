@@ -44,7 +44,7 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-//params.NANOPORE = true
+params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 //Eggnog off by default 
 params.EGGNOG = false
@@ -54,7 +54,7 @@ params.METAFLYE = false
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
-include { Host_depletion_illumina } from './illumina_modules.nf'
+include { Host_depletion } from './illumina_modules.nf'
 include { Kraken_prefilter } from './illumina_modules.nf'
 include { Extract_db } from './illumina_modules.nf'
 include { Minimap2_illumina } from './illumina_modules.nf'
@@ -250,17 +250,15 @@ workflow{
                 input_read_Ch
             )
             Low_complexity_filtering(
-                Trimming_FastP.out[0]
+                Trimming_FastP.out[0],
                 )
         }
-        Host_depletion_illumina(
+        Host_depletion(
             Low_complexity_filtering.out[0],
-            file("${params.INDEX}/minimap2_host/hg38.fa"),
-            file("${params.INDEX}/ribosome_trna/all_trna.fa"),
-            file("${params.INDEX}/plasmid_db/plsdb.mmi")
+            Star_index_Ch.collect()
             )
         Kraken_prefilter(
-            Host_depletion_illumina.out[0],
+            Host_depletion.out[2],
             Kraken2_db.collect()
             )
         Extract_db(
@@ -269,28 +267,17 @@ workflow{
             file("${baseDir}/bin/extract_seqs.py")
             )
         Minimap2_illumina( 
-            Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
-            )
-        Collect_alignment_results(
-            Minimap2_illumina.out[0].groupTuple().join(
-            Host_depletion_illumina.out[3]
-                )
-            )
-        Collect_unassigned_results(
-                Minimap2_nanopore.out[1].groupTuple().join(
-                Host_depletion_illumina.out[0]
-                ),
-                file("${baseDir}/bin/filter_unassigned_reads.py")
+            Host_depletion.out[2].groupTuple(size:1).join(
+                Extract_db.out) 
             )
         Classify ( 
-            Collect_alignment_results.out.join(
-            Collect_unassigned_results.out).groupTuple(), 
+            // works but can clean up groupTuple later
+            Minimap2_illumina.out[0].groupTuple(size:1).join(
+            Minimap2_illumina.out[1]), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             file("${params.INDEX}/accession2taxid/")
             )
-        // write pavian report for each sample 
         Write_report(
             Classify.out[0],
             Krakenuniq_db.collect()
