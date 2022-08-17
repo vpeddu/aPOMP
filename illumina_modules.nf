@@ -94,12 +94,18 @@ script:
         samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
         samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
 
+    /usr/local/bin/reformat.sh in=${base}.trna_filtered.fastq.gz \
+        out1=${base}.trna_filtered_R1.fastq \
+        out2=${base}.trna_filtered_R2.fastq
+
+    pigz ${base}.trna_filtered_R1.fastq 
+    pigz ${base}.trna_filtered_R2.fastq
 
     ls -lah 
     STAR   \
         --runThreadN ${task.cpus}  \
         --genomeDir ${star_host_index}   \
-        --readFilesIn ${base}.trna_filtered.fastq.gz \
+        --readFilesIn $${base}.trna_filtered_R1.fastq.gz ${base}.trna_filtered_R2.fastq.gz \
         --readFilesCommand zcat      \
         --outSAMtype BAM Unsorted \
         --outReadsUnmapped Fastx \
