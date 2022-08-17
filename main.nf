@@ -255,7 +255,7 @@ workflow{
         }
         Host_depletion_illumina(
             Low_complexity_filtering.out[0],
-            file("${params.INDEX}/minimap2_host/hg38.fa"),
+            file("${params.STAR_Host_INDEX}"),
             file("${params.INDEX}/ribosome_trna/all_trna.fa"),
             file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )

@@ -67,7 +67,7 @@ beforeScript 'chmod o+rw .'
 cpus 8
 input: 
     tuple val(base), file(r1), file(r2)
-    file minimap2_host_index
+    file star_host_index
     file ribosome_trna
     file minimap2_plasmid_db
 output: 
@@ -83,7 +83,6 @@ script:
     echo "ls of directory" 
     ls -lah 
 
-    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
 
     minimap2 \
         -ax sr \
@@ -95,15 +94,22 @@ script:
         samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
         samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
 
-    minimap2 \
-        -ax sr \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${minimap2_host_index} \
-        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 -1 ${base}.host_filtered_R1.fastq  -2 ${base}.host_filtered_R2.fastq ${base}.host_mapped.bam 
-        pigz ${base}.host_filtered_R1.fastq 
-        pigz ${base}.host_filtered_R2.fastq 
+
+    ls -lah 
+    STAR   \
+        --runThreadN ${task.cpus}  \
+        --genomeDir ${star_host_index}   \
+        --readFilesIn ${base}.trna_filtered.fastq.gz \
+        --readFilesCommand zcat      \
+        --outSAMtype BAM Unsorted \
+        --outReadsUnmapped Fastx \
+        --outFileNamePrefix ${base}.star  
+
+    mv ${base}.star*.bam ${base}.host_mapped.bam
+    mv ${base}.starUnmapped.out.mate1 ${base}.host_filtered_R1.fastq 
+    mv ${base}.starUnmapped.out.mate2 ${base}.host_filtered_R2.fastq 
+    pigz ${base}.host_filtered_R1.fastq 
+    pigz ${base}.host_filtered_R2.fastq 
 
     minimap2 \
         -ax sr \
