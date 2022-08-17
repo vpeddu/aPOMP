@@ -203,7 +203,7 @@ process Minimap2_illumina {
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "quay.io/vpeddu/evmeta:latest"
 beforeScript 'chmod o+rw .'
-cpus 8
+cpus 10
 input: 
     tuple val(base), file(r1), file(r2), file(species_fasta)
 output: 
@@ -227,12 +227,12 @@ script:
         # run minimap2 and pipe to bam output 
         minimap2 \
             -ax sr \
-            -t "\$((${task.cpus}-4))" \
+            -t "\$((${task.cpus}-2))" \
             -2 \
             -K 25M \
             --split-prefix ${base}.split \
             ${species_fasta} \
-            ${r1} ${r2} | samtools view -Sb -@ 4 - > ${base}.bam
+            ${r1} ${r2} | samtools view -Sb -@ 2 - > ${base}.bam
 
         # extract mapped reads and sort 
         samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
