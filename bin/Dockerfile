@@ -72,3 +72,9 @@ RUN yes 'will cite' | parallel --citation
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install
+
+ENV star_version 2.7.9a
+WORKDIR /docker_main
+ADD https://github.com/alexdobin/STAR/archive/${star_version}.tar.gz /usr/bin/
+RUN tar -xzf /usr/bin/${star_version}.tar.gz -C /usr/bin/
+RUN cp /usr/bin/STAR-${star_version}/bin/Linux_x86_64/* /usr/local/bin
