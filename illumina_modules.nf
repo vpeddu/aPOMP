@@ -105,7 +105,7 @@ script:
     STAR   \
         --runThreadN ${task.cpus}  \
         --genomeDir ${star_host_index}   \
-        --readFilesIn $${base}.trna_filtered_R1.fastq.gz ${base}.trna_filtered_R2.fastq.gz \
+        --readFilesIn ${base}.trna_filtered_R1.fastq.gz ${base}.trna_filtered_R2.fastq.gz \
         --readFilesCommand zcat      \
         --outSAMtype BAM Unsorted \
         --outReadsUnmapped Fastx \
