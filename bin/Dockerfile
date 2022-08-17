@@ -78,3 +78,8 @@ WORKDIR /docker_main
 ADD https://github.com/alexdobin/STAR/archive/${star_version}.tar.gz /usr/bin/
 RUN tar -xzf /usr/bin/${star_version}.tar.gz -C /usr/bin/
 RUN cp /usr/bin/STAR-${star_version}/bin/Linux_x86_64/* /usr/local/bin
+
+RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_38.95.tar.gz && \
+    tar -xzf BBMap_38.95.tar.gz && \
+    rm BBMap_38.95.tar.gz
+RUN cp bbmap/* /usr/local/bin
