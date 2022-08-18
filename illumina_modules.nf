@@ -94,7 +94,7 @@ script:
         samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
         samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
 
-    /usr/local/bin/reformat.sh in=${base}.trna_filtered.fastq.gz \
+    /usr/local/miniconda/bin/reformat.sh in=${base}.trna_filtered.fastq.gz \
         out1=${base}.trna_filtered_R1.fastq \
         out2=${base}.trna_filtered_R2.fastq
 
