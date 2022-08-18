@@ -91,12 +91,15 @@ script:
         ${ribosome_trna} \
         ${r1} ${r2}| samtools view -Sb -@ 2 - > ${base}.trna.bam
 
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
-        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
+    samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
+    samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
 
-    /usr/local/miniconda/bin/reformat.sh in=${base}.trna_filtered.fastq.gz \
-        out1=${base}.trna_filtered_R1.fastq \
-        out2=${base}.trna_filtered_R2.fastq
+    samtools fastq -@ 4 -f 4 \
+    -1 ${base}.trna_filtered_R1.fastq \
+    -2 ${base}.trna_filtered_R2.fastq \
+    -0 /dev/null \
+    -s /dev/null \
+    -n ${base}.trna.bam
 
     pigz ${base}.trna_filtered_R1.fastq 
     pigz ${base}.trna_filtered_R2.fastq
