@@ -12,7 +12,7 @@ RUN apt update && \
                    python3-pysam \
                    wget \
                    curl \
-		           bedtools \
+		   bedtools \
                    samtools \
                    pigz \
                    git \
@@ -49,7 +49,7 @@ RUN cd /usr/local/ && \
     ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
     conda init bash && \
     /bin/bash -c "source /root/.bashrc" && \
-    conda install -c bioconda ucsc-fasplit seqkit blast hmmer libcurl seqtk
+    conda install -c bioconda ucsc-fasplit seqkit blast hmmer  seqtk 
 
 RUN git clone https://github.com/fenderglass/Flye && \
     cd Flye && \
@@ -82,4 +82,10 @@ RUN cp /usr/bin/STAR-${star_version}/bin/Linux_x86_64/* /usr/local/bin
 RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_38.95.tar.gz && \
     tar -xzf BBMap_38.95.tar.gz && \
     rm BBMap_38.95.tar.gz
-RUN cp bbmap/* /usr/local/bin
+RUN cp -r bbmap/* /usr/local/bin
+
+RUN wget -q -O bowtie2.zip http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.3.4.1/bowtie2-2.3.4.1-linux-x86_64.zip/download; \ 
+	unzip bowtie2.zip -d /opt/; \ 
+	ln -s /opt/bowtie2-2.3.4.1-linux-x86_64/ /opt/bowtie2; \ 
+	rm bowtie2.zip 
+ENV PATH $PATH:/opt/bowtie2 

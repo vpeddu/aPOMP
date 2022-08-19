@@ -119,7 +119,7 @@ script:
         -x ${star_host_index}/genome \
         -p "\$((${task.cpus}-2))" \
         --very-sensitive-local \
-        -1 $${base}.trna_filtered_R1.fastq.gz \
+        -1 ${base}.trna_filtered_R1.fastq.gz \
         -2 ${base}.trna_filtered_R1.fastq.gz | samtools view -@ 2 - > ${base}.host_mapped.bam
     
     samtools fastq -@ 2 -f 4 \
