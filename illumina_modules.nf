@@ -120,7 +120,7 @@ script:
         -p "\$((${task.cpus}-2))" \
         --very-sensitive-local \
         -1 ${base}.trna_filtered_R1.fastq.gz \
-        -2 ${base}.trna_filtered_R1.fastq.gz | samtools view -@ 2 - > ${base}.host_mapped.bam
+        -2 ${base}.trna_filtered_R2.fastq.gz | samtools view -@ 2 - > ${base}.host_mapped.bam
     
     samtools fastq -@ 2 -f 4 \
         -1 ${base}.host_filtered_R1.fastq \
