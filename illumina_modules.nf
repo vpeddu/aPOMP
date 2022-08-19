@@ -105,18 +105,31 @@ script:
     pigz ${base}.trna_filtered_R2.fastq
 
     ls -lah 
-    STAR   \
-        --runThreadN ${task.cpus}  \
-        --genomeDir ${star_host_index}   \
-        --readFilesIn ${base}.trna_filtered_R1.fastq.gz ${base}.trna_filtered_R2.fastq.gz \
-        --readFilesCommand zcat      \
-        --outSAMtype BAM Unsorted \
-        --outReadsUnmapped Fastx \
-        --outFileNamePrefix ${base}.star  
+    #STAR   \
+    #    --runThreadN ${task.cpus}  \
+    #    --genomeDir ${star_host_index}   \
+    #    --readFilesIn ${base}.trna_filtered_R1.fastq.gz ${base}.trna_filtered_R2.fastq.gz \
+    #    --readFilesCommand zcat      \
+    #    --outSAMtype BAM Unsorted \
+    #    --outReadsUnmapped Fastx \
+    #    --outFileNamePrefix ${base}.star  
+
+
+    bowtie2 \
+        -x ${star_host_index}/genome \
+        -p "\$((${task.cpus}-2))" \
+        --very-sensitive-local \
+        -1 $${base}.trna_filtered_R1.fastq.gz \
+        -2 ${base}.trna_filtered_R1.fastq.gz | samtools view -@ 2 - > ${base}.host_mapped.bam
+    
+    samtools fastq -@ 2 -f 4 \
+        -1 ${base}.host_filtered_R1.fastq \
+        -2 ${base}.host_filtered_R2.fastq \
+        -0 /dev/null \
+        -s /dev/null \
+        -n ${base}.host_mapped.bam
 
     mv ${base}.star*.bam ${base}.host_mapped.bam
-    mv ${base}.starUnmapped.out.mate1 ${base}.host_filtered_R1.fastq 
-    mv ${base}.starUnmapped.out.mate2 ${base}.host_filtered_R2.fastq 
     pigz ${base}.host_filtered_R1.fastq 
     pigz ${base}.host_filtered_R2.fastq 
 

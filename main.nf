@@ -82,7 +82,7 @@ include { Write_report_orthologs } from './illumina_modules.nf'
 
 // Define input channels 
 Star_index_Ch = Channel
-            .fromPath("${params.INDEX}/star_host/")
+            .fromPath("${params.INDEX}/star_host/bowtie2_index/")
 
 Kraken2_db = Channel
             .fromPath("${params.INDEX}/kraken2_db/")
