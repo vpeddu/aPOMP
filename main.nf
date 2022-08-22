@@ -189,7 +189,7 @@ workflow{
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
-            Collect_unassigned_results_illumina(
+            Collect_unassigned_results(
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 ),
@@ -280,7 +280,7 @@ workflow{
         )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
-        Collect_unassigned_results(
+        Collect_unassigned_results_illumina(
             Minimap2_illumina.out[1].groupTuple().join(
             Host_depletion_illumina.out[0]
             ),
