@@ -10,6 +10,12 @@ process NanoFilt {
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
 //TODO: change container to metagenomics container
+
+//process will exit 1 if filtered file is empty
+//can happen with runs that were basecalled with lower accuracy 
+//execution of the other samples will continue
+errorStrategy 'ignore'
+
 container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
 beforeScript 'chmod o+rw .'
 cpus 6
@@ -32,6 +38,15 @@ echo "running Nanofilt on ${base}"
 gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
         --maxlength ${params.NANOFILT_MAXLENGTH} \
         --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+
+if [ -s ${base}.filtered.fastq.gz ]; then
+        # The file is not-empty.
+        echo "${base}.filtered.fastq.gz is not empty"
+else
+        # The file is empty.
+        echo "${base}.filtered.fastq.gz is empty. Exiting"
+        exit 1
+fi
 
 """
 }
