@@ -70,6 +70,7 @@ include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { Identify_resistant_plasmids } from './nanopore_modules.nf'
 include { Collect_alignment_results } from './nanopore_modules.nf'
 include { Collect_unassigned_results } from './nanopore_modules.nf'
+include { Collect_unassigned_results_illumina } from './illumina_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
@@ -188,7 +189,7 @@ workflow{
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
-            Collect_unassigned_results(
+            Collect_unassigned_results_illumina(
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 ),

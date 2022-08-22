@@ -533,3 +533,32 @@ krakenuniq-report --db ${krakenuniqdb} \
 ${prekraken} > ${base}.orthologs.final.report.tsv
 """
 }
+
+
+process Collect_unassigned_results_illumina{ 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(unclassified_fastq), file(depleted_fastq_r1), file(depleted_fastq_r2)
+    file filter_unassigned_reads
+    //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
+
+    
+output: 
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz") //, file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
+
+script:
+    """
+    #!/bin/bash
+
+    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
+    python3 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/seqtk mergepe ${depleted_fastq_r1} ${depleted_fastq_r2} | pigz > host_depleted_merged.fastq.gz
+    /usr/local/miniconda/bin/seqtk subseq host_depleted_merged.fastq.gz true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+
+
+    """
+}
