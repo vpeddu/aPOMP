@@ -289,7 +289,7 @@ workflow{
             // run LCA for each sample 
         Classify ( 
             Collect_alignment_results.out.join(
-            Collect_unassigned_results.out).groupTuple(), 
+            Collect_unassigned_results_illumina.out).groupTuple(), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             file("${params.INDEX}/accession2taxid/")
