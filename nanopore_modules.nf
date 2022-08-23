@@ -39,7 +39,7 @@ gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
         --maxlength ${params.NANOFILT_MAXLENGTH} \
         --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
-if [[ $(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
+if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
     then
         echo "${base}.filtered.fastq.gz is empty"
         exit 1
