@@ -29,9 +29,19 @@ with open(sys.argv[1]) as krakenreport:
 	lines = krakenreport.readlines()
 
 genus_list = []
+
+genus_count  = 0
+
 for i in lines: 
 	if i.split()[3] == 'G':
 		genus_list.append(i.split()[4])
+		genus_count = genus_count + 1
+
+if genus_count > 0: 
+    print('found ' + str(genus_count) +' genera')
+else: 
+    print('no genera found. exiting')
+    sys.exit(1)
 
 print('genus list:')
 print(genus_list)

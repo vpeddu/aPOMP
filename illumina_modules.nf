@@ -182,6 +182,9 @@ process Extract_db {
 container 'quay.io/vpeddu/evmeta'
 beforeScript 'chmod o+rw .'
 cpus 8
+//Sometimes Kraken doesn't find anything. 
+//If this happens the extraction script will exit
+errorStrategy 'ignore'
 input: 
     tuple val(base), file(report)
     file fastadb
@@ -546,7 +549,7 @@ input:
     file filter_unassigned_reads
     //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 
-    
+
 output: 
     tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz") //, file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
 
