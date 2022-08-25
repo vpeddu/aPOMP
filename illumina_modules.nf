@@ -427,7 +427,7 @@ output:
 
 script:
 """
-#!/bin/bash
+#!/bin/bash 
 #logging
 echo "ls of directory" 
 ls -lah 
