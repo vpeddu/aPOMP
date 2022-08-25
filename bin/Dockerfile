@@ -46,11 +46,13 @@ RUN cd /usr/local/ && \
 RUN /usr/bin/python3.7 -m pip install cython
 RUN  /usr/bin/python3.7 -m  pip install biopython \
          ete3 \
-	 pysam \
+         pysam \
          typing \
          pickle5 \
          taxopy \
          pyfasta
+
+RUN /usr/bin/python3.7 -m  pip install pysam --user --upgrade
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \
