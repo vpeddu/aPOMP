@@ -438,7 +438,7 @@ ls -lah
 cp taxdump/*.dmp .
 
 # run LCA script
-python3 ${classify_script} ${bam} ${base} 
+python3.7 ${classify_script} ${bam} ${base} 
 
 # counting unassigned reads to add back into final report
 #echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
@@ -480,7 +480,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3 ${classify_script} ${base}.emapper.annotations ${base} 
+python3.7 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }
@@ -558,7 +558,7 @@ script:
     #!/bin/bash
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
-    python3 ${filter_unassigned_reads}
+    python3.7 ${filter_unassigned_reads}
     /usr/local/miniconda/bin/seqtk mergepe ${depleted_fastq_r1} ${depleted_fastq_r2} | pigz > host_depleted_merged.fastq.gz
     /usr/local/miniconda/bin/seqtk subseq host_depleted_merged.fastq.gz true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 
