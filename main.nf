@@ -52,7 +52,7 @@ params.EGGNOG = false
 params.METAFLYE = false
 
 params.ALIGN_ALL_FUNGI = false
-params.LEAVE_TRNA_IN = true
+params.LEAVE_TRNA_IN = false
 
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
