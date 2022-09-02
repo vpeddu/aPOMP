@@ -189,11 +189,53 @@ input:
     tuple val(base), file(report)
     file fastadb
     file extract_script
+    file fungi_genera_list
 output: 
     file("${base}__*")
 
 
 script:
+
+if (params.ALIGN_ALL_FUNGI == true) { 
+
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+# python3 ${extract_script} ${report} ${fastadb}
+
+#grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
+# could filter by kraken report column 2 for all above some parameter (default: if > 25)
+
+awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${fungi_genera_list}  > fungi_modified_list.txt
+
+for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+do
+echo adding \$i
+if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+    ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+    cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+fi
+done
+
+# TODO need to optimize this 
+##mv species.fasta.gz ${base}.species.fasta.gz
+
+##gunzip ${base}.species.fasta.gz
+
+##pyfasta split -n ${params.FASTA_SPLIT_CHUNKS} ${base}.species.fasta
+
+##pigz ${base}.species.fasta 
+
+
+##for f in *.fasta; do mv "\$f" "${base}__-\$f"; done
+
+##for i in *.fasta; do pigz \$i; done
+"""
+    }
+else { 
 """
 #!/bin/bash
 #logging
@@ -227,6 +269,7 @@ done
 
 ##for i in *.fasta; do pigz \$i; done
 """
+    }
 }
 
 process Minimap2_illumina { 

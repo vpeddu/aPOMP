@@ -51,6 +51,9 @@ params.EGGNOG = false
 //Flye assembly off be default
 params.METAFLYE = false
 
+params.ALIGN_ALL_FUNGI = false
+params.LEAVE_TRNA_IN = true
+
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -173,7 +176,8 @@ workflow{
             Extract_db(
                 Kraken_prefilter_nanopore.out,
                 NT_db.collect(),
-                file("${baseDir}/bin/extract_seqs.py")
+                file("${baseDir}/bin/extract_seqs.py"),
+                file("${baseDir}/bin/fungi_genera_list.txt")
                 )
             // run Minimap2 on each individual genus 
             Minimap2_nanopore( 
@@ -267,7 +271,8 @@ workflow{
         Extract_db(
             Kraken_prefilter.out,
             NT_db.collect(),
-            file("${baseDir}/bin/extract_seqs.py")
+            file("${baseDir}/bin/extract_seqs.py"),
+            file("${baseDir}/bin/fungi_genera_list.txt")
             )
         Minimap2_illumina( 
             Extract_db.out.flatten().map{
