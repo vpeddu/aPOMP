@@ -202,7 +202,7 @@ workflow{
                 //     Minimap2_nanopore.out[0].mix(Align_fungi.out[0])
                 // ) 
                 Collect_alignment_results(
-                Minimap2_nanopore.out[0].mix(Align_fungi.out[0].groupTuple().join(
+                Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).groupTuple().join(
                 Host_depletion_nanopore.out[3]
                 )
             )
