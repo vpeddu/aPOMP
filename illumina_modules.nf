@@ -211,7 +211,9 @@ ls -lah
 
 awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${fungi_genera_list}  > fungi_modified_list.txt
 
-for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
+
+for i in `grep -P "\tG\t" fungi_added_kraken_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
 do
 echo adding \$i
 if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
