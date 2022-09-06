@@ -181,13 +181,26 @@ workflow{
                 )
             // run Minimap2 on each individual genus 
             Minimap2_nanopore( 
-                    Extract_db.out.flatten().map{
-                        it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
+                Extract_db.out.flatten().map{
+                    it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
                 )
             // Collection hold for each sample's Minimap2 aligned results
             // BAMs are merged at this step for each sample 
-            Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple().join(
+
+            if ( params.ALIGN_ALL_FUNGI ) { 
+                Extract_fungi(
+                    file("${baseDir}/bin/fungi_genera_list.txt"),
+                    NT_db.collect()
+                )
+                Align_fungi( 
+                    Host_depletion_nanopore.out[0],
+                    Extract_fungi.out[0]
+                )
+                fungiCh = Channel( 
+                    minimap2.nanopore.out[0].mix(Align_fungi.out[0])
+                ) 
+                Collect_alignment_results(
+                fungiCh.groupTuple().join(
                 Host_depletion_nanopore.out[3]
                 )
             )
@@ -199,6 +212,22 @@ workflow{
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )
+            }
+            else{
+                Collect_alignment_results(
+                Minimap2_nanopore.out[0].groupTuple().join(
+                Host_depletion_nanopore.out[3]
+                )
+            )
+            // Collection hold for each sample's Minimap2 unaligned results
+            // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
+            Collect_unassigned_results(
+                Minimap2_nanopore.out[1].groupTuple().join(
+                Host_depletion_nanopore.out[0]
+                ),
+                file("${baseDir}/bin/filter_unassigned_reads.py")
+            )}
+
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search
             if (params.EGGNOG){
                 Cluster_unclassified_reads(

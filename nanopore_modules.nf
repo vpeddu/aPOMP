@@ -518,6 +518,191 @@ script:
         }
 }
 
+process Extract_fungi { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics"
+beforeScript 'chmod o+rw .'
+cpus 28
+errorStrategy 'retry'
+maxRetries params.MINIMAP2_RETRIES
+input: 
+    file fungi_list
+    file fastadb
+output: 
+    file "all_fungi.fasta.gz"
+
+script:
+    """
+    #!/bin/bash
+
+for i in `cat ${fungi_list}`
+    do
+    echo adding \$i
+    if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+        ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+        cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+    fi
+done
+
+    cat *.genus.fasta.gz > all_fungi.fasta.gz
+
+    """
+}
+
+process Align_fungi { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics"
+beforeScript 'chmod o+rw .'
+cpus 28
+errorStrategy 'retry'
+maxRetries params.MINIMAP2_RETRIES
+input: 
+    tuple val(base),file(r1)
+    file fungi_db
+output: 
+    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
+    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
+
+script:
+    """
+    #!/bin/bash
+
+    #logging
+    echo "ls of directory" 
+    ls -lah 
+
+    # if this is the first attempt at running an alignment against this reference for this sample proceed
+
+    if [ "${task.attempt}" -eq "1" ]
+    then
+        echo "running Minimap2 on ${base}"
+        # run minimap2 and pipe to bam output 
+        minimap2 \
+            -ax asm20 \
+            -t "\$((${task.cpus}-4))" \
+            -2 \
+            -K 25M \
+            --split-prefix ${base}.split \
+            ${fungi_db} \
+            ${r1} | samtools view -Sb -@ 4 - > ${base}.bam
+
+        # extract mapped reads and sort 
+        samtools view -Sb -F 4 ${base}.bam > ${base}.filtered.bam
+        samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+
+        # output unclassified reads
+        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
+
+        # cleanup intermediate file
+        # TODO uncomment later
+        rm ${base}.bam
+
+        # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        
+        # adding random identifier to species bams to avoid filename collisions while merging later
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+
+        #index merged bam 
+        samtools index ${base}.sorted.filtered.*.bam
+
+        # stats for reads mapped and unmapped
+        readsmapped=`samtools view -c ${base}.filtered.bam`
+        readsunmapped=`samtools view -c  ${base}.unclassified.bam`
+        echo "reads in filtered bam"
+        echo \$readsmapped
+
+        echo "reads in unclassified bam"
+        echo \$readsunmapped
+
+        # removing unclassified bam to save space
+        rm ${base}.unclassified.bam
+        
+        # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
+        # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
+        if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
+        then
+            echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+            exit 1
+        fi
+    
+    # if process reattempts because it ran out of memory 
+    else
+
+        # split the fasta into chunks smaller chunks depending on how many times the process has been attempted 
+
+        echo "running Minimap2 RNA on ${base} attempt ${task.attempt}"
+        #echo "fasta being split \$split_num times"
+        
+        # faSplit has some weird splitting activity but it works
+        /usr/local/miniconda/bin/faSplit sequence ${fungi_db} ${task.attempt} genus_split
+        
+        #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
+        # something like if bam empty, exit 1
+        for f in `ls genus_split*`
+        do
+            minimap2 \
+                -ax asm20 \
+                -t "\$((${task.cpus}-4))" \
+                -2 \
+                --split-prefix ${base}.split \
+                \$f \
+                ${r1} | samtools view -Sb -@ 4 - > ${base}.\$f.bam
+            samtools sort -@ ${task.cpus} ${base}.\$f.bam -o ${base}.sorted.temp.bam
+            bamcount=`samtools view -c ${base}.sorted.temp.bam`
+            # check if an individual split caused an out of memory error and exit the process 
+            if [ "\$bamcount" -eq "0" ]
+                then
+                echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+                exit 1
+            fi
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
+        done
+
+        # merge the fasta split alignments 
+        samtools merge ${base}.merged.bam ${base}.sorted.*.bam
+
+        # extract mapped reads and sort the bam 
+        samtools view -Sb -F 4 ${base}.merged.bam > ${base}.filtered.bam
+        samtools sort -@ ${task.cpus} ${base}.filtered.bam -o ${base}.sorted.filtered.bam 
+
+        # output unclassified reads
+        samtools view -Sb -@  ${task.cpus} -f 4 ${base}.merged.bam > ${base}.unclassified.bam
+
+        # cleanup intermediate file to save space
+        rm ${base}.merged.bam
+
+        ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        samtools index ${base}.sorted.filtered.*.bam
+
+        readsmapped=`samtools view -c ${base}.filtered.bam`
+        readsunmapped=`samtools view -c  ${base}.unclassified.bam`
+        echo "reads in filtered bam"
+        echo \$readsmapped
+
+        echo "reads in unclassified bam"
+        echo \$readsunmapped
+        
+        # removing unclassified bam to save space
+        rm ${base}.unclassified.bam
+        
+        # for some reason if Minimap2 fails because it ran out of memory it doesn't exit the process
+        # To check for failed Minimap2, mapped and unmapped reads will both be 0, in which case the process crashes and reattempts
+        if [ "\$readsmapped" -eq "0" -a "\$readsunmapped" -eq "0" ]
+        then
+            echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
+            exit 1
+        fi
+    fi
+    """
+} 
+
+
 // Collect minimap2 alignments from each sample and merge into one large bam
 process Collect_alignment_results{ 
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
