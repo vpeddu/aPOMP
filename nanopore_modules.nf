@@ -541,11 +541,11 @@ for i in `cat ${fungi_list}`
     echo adding \$i
     if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
         ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-        cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+        cp ${fastadb}/\$i.genus.fasta.gz \$i.fungi.genus.fasta.gz
     fi
 done
 
-    cat *.genus.fasta.gz > all_fungi.fasta.gz
+    cat *.fungi.genus.fasta.gz > all_fungi.fasta.gz
 
     """
 }
