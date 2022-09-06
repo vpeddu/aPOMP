@@ -199,7 +199,7 @@ workflow{
                     Extract_fungi.out[0]
                 )
                 fungiCh = Channel( 
-                    minimap2.nanopore.out[0].mix(Align_fungi.out[0])
+                    Minimap2_nanopore.out[0].mix(Align_fungi.out[0])
                 ) 
                 Collect_alignment_results(
                 fungiCh.groupTuple().join(
