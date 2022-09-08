@@ -575,6 +575,8 @@ script:
 
     # if this is the first attempt at running an alignment against this reference for this sample proceed
 
+    species_basename='fungi'
+
     if [ "${task.attempt}" -eq "1" ]
     then
         echo "running Minimap2 on ${base}"
