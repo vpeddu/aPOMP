@@ -119,13 +119,15 @@ workflow{
 
         if ( params.REALTIME ) {
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
-            
+            NanoFilt(
+                input_read_Ch
+                )
         } else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
             NanoFilt(
             input_read_Ch
-            )
+                )
         }
         //run nanofilt
 
