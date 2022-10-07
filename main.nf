@@ -116,15 +116,20 @@ workflow{
         // Create input tuple for each fastq in input folder
         //tuple is val(base),file(fastq)
         //basename is anything before ".fastq.gz"
-        if { params.REALTIME } {
-            //input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
-            input_read_Ch = Channel
+
+input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
-        } else { input_read_Ch = Channel
-            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
-            .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
-        }
+
+        // if { params.REALTIME } {
+        //     //input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
+        //     input_read_Ch = Channel
+        //     .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
+        //     .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
+        // } else { input_read_Ch = Channel
+        //     .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
+        //     .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
+        // }
         //run nanofilt
         NanoFilt(
             input_read_Ch
