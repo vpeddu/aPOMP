@@ -1019,7 +1019,7 @@ ls -lah
 cat *.prekraken.txt > combined.prekraken.tmp
 awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 
-timestamp=$( date +%T )
+timestamp=\$( date +%T )
 
 krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
