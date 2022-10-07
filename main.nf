@@ -66,7 +66,7 @@ include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
 
 include { NanoFilt } from './nanopore_modules.nf'
-include { Nanofilt_RT } from './nanopore_modules.nf'
+include { NanoFilt_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
@@ -117,23 +117,18 @@ workflow{
         //tuple is val(base),file(fastq)
         //basename is anything before ".fastq.gz"
 
-input_read_Ch = Channel
+        if ( params.REALTIME ) {
+            input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
+            
+        } else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
-
-        // if { params.REALTIME } {
-        //     //input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
-        //     input_read_Ch = Channel
-        //     .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
-        //     .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
-        // } else { input_read_Ch = Channel
-        //     .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
-        //     .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
-        // }
-        //run nanofilt
-        NanoFilt(
+            NanoFilt(
             input_read_Ch
-        )
+            )
+        }
+        //run nanofilt
+
         //run nanoplot on nanofilt output
         NanoPlot (
             NanoFilt.out[0]

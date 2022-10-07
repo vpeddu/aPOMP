@@ -27,25 +27,51 @@ output:
 
 
 script:
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-echo "running Nanofilt on ${base}"
+if ( params.REALTIME ){
+    """
+    #!/bin/bash
+    #logging
+    echo "ls of directory" 
+    ls -lah 
+    echo "running Nanofilt on ${base}"
 
-# nanofilt doesn't have gzip support so we have to pipe in from gunzip
-gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
-        --maxlength ${params.NANOFILT_MAXLENGTH} \
-        --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
-if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
-    then
-        echo "${base}.filtered.fastq.gz is empty"
-        exit 1
-    fi
+    cat *.fastq >  tmp.merged.fastq
 
-"""
+    # nanofilt doesn't have gzip support so we have to pipe in from gunzip
+    cat tmp.merged.fastq | NanoFilt -q ${params.NANOFILT_QUALITY} \
+            --maxlength ${params.NANOFILT_MAXLENGTH} \
+            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+
+    if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
+        then
+            echo "${base}.filtered.fastq.gz is empty"
+            exit 1
+        fi
+
+    """
+}
+else {
+    """
+    #!/bin/bash
+    #logging
+    echo "ls of directory" 
+    ls -lah 
+    echo "running Nanofilt on ${base}"
+
+    # nanofilt doesn't have gzip support so we have to pipe in from gunzip
+    gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
+            --maxlength ${params.NANOFILT_MAXLENGTH} \
+            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+
+    if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
+        then
+            echo "${base}.filtered.fastq.gz is empty"
+            exit 1
+        fi
+
+    """
+}
 }
 
 
