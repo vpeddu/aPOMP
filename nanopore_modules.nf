@@ -48,6 +48,54 @@ if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]]
 """
 }
 
+
+process NanoFilt_RT { 
+
+publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
+// need to change this to the nanopore metagenomics container
+//TODO: change container to metagenomics container
+
+//process will exit 1 if filtered file is empty
+//can happen with runs that were basecalled with lower accuracy 
+//execution of the other samples will continue
+errorStrategy 'ignore'
+
+container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
+beforeScript 'chmod o+rw .'
+cpus 6
+input: 
+    tuple val(base), file(r1)
+output: 
+    tuple val(base), file("${base}.filtered.fastq.gz")
+    file "*"
+
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+echo "running Nanofilt on ${base}"
+
+
+cat *.fastq >  tmp.merged.fastq
+
+# nanofilt doesn't have gzip support so we have to pipe in from gunzip
+cat tmp.merged.fastq | NanoFilt -q ${params.NANOFILT_QUALITY} \
+        --maxlength ${params.NANOFILT_MAXLENGTH} \
+        --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+
+if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
+    then
+        echo "${base}.filtered.fastq.gz is empty"
+        exit 1
+    fi
+
+"""
+}
+
+
 process NanoPlot { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/NanoPlot/${base}", mode: 'symlink', overwrite: true
@@ -924,5 +972,57 @@ minimap2 \
 
 samtools fastq -@ 4 ${base}.unassembled.unclassified.bam | gzip > ${base}.unassembled.unclassified.fastq.gz
 
+"""
+}
+
+process Merge_classifiy_RT { 
+publishDir "${params.OUTPUT}/merge_classify_tmp/${base}", mode: 'symlink'
+input: 
+    file prekraken
+output: 
+    file outprekraken
+
+container "vpeddu/nanopore_metagenomics"
+beforeScript 'chmod o+rw .'
+script: 
+"""
+#!/bin/bash
+
+cat *.prekraken > combined_prekraken.txt
+
+awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.txt
+
+"""
+}
+
+
+// write pavian style report
+process Write_report_RT { 
+publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
+container "evolbioinfo/krakenuniq:v0.5.8"
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 1
+input: 
+    tuple val(base), file(prekraken)
+    file krakenuniqdb
+output: 
+    file "${base}.final.report.tsv"
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+cat *.prekraken.txt > combined.prekraken.tmp
+awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
+
+timestamp=$( date +%T )
+
+krakenuniq-report --db ${krakenuniqdb} \
+--taxon-counts \
+temp_prekraken > ${base}.\$timestamp.report.tsv
 """
 }

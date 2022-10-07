@@ -66,6 +66,7 @@ include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
 
 include { NanoFilt } from './nanopore_modules.nf'
+include { Nanofilt_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
@@ -115,9 +116,15 @@ workflow{
         // Create input tuple for each fastq in input folder
         //tuple is val(base),file(fastq)
         //basename is anything before ".fastq.gz"
-        input_read_Ch = Channel
+        if { params.REALTIME } {
+            input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}/**.fastq").buffer( size: 4, remainder: true)
+
+        }
+
+        else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
+        }
         //run nanofilt
         NanoFilt(
             input_read_Ch
@@ -264,10 +271,18 @@ workflow{
                 file("${params.INDEX}/accession2taxid/")
                 )
             // write pavian report for each sample 
+            if ( params.REATIME) { 
+                Write_report_RT( 
+                    Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
+                    Krakenuniq_db.collect()
+                )
+            }
+            else { 
             Write_report(
                 Classify.out[0],
                 Krakenuniq_db.collect()
             )
+            }
     }
     else if (params.ILLUMINA) {
         // Workflow assumes reads are paired 
