@@ -65,7 +65,7 @@ include { Sam_conversion } from './illumina_modules.nf'
 include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
 
-include { Combine_fq } from './illumina_modules.nf'
+include { Combine_fq } from './nanopore_modules.nf'
 include { NanoFilt } from './nanopore_modules.nf'
 include { NanoFilt_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
