@@ -118,7 +118,7 @@ workflow{
         //basename is anything before ".fastq.gz"
 
         if ( params.REALTIME ) {
-            input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}**.fastq") // .buffer( size: 4, remainder: true)
+            input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq") // .buffer( size: 4, remainder: true)
             NanoFilt(
                 input_read_Ch
                 )
