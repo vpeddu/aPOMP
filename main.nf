@@ -65,6 +65,7 @@ include { Sam_conversion } from './illumina_modules.nf'
 include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
 
+include { Combine_fq } from './illumina_modules.nf'
 include { NanoFilt } from './nanopore_modules.nf'
 include { NanoFilt_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
@@ -121,8 +122,12 @@ workflow{
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> [it.name.replace(".fastq", ""), file(it)]}
             .buffer( size: 4, remainder: true)
+            
+            Combine_fq(
+                input_read_Ch.collect()
+            )
             NanoFilt(
-                input_read_Ch
+                Combine_fq.out[0]
                 )
         } else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")

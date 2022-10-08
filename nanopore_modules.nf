@@ -6,7 +6,6 @@ params.NANOFILT_MINLENGTH = 200
 params.MINIMAP2_RETRIES = 10 
 
 process NanoFilt { 
-
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
 //TODO: change container to metagenomics container
@@ -1050,5 +1049,27 @@ timestamp=\$( date +%T )
 krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
 temp_prekraken > ${base}.\$timestamp.report.tsv
+"""
+}
+
+process Combine_fq { 
+//publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
+container "vpeddu/nanopore_metagenomics:latest"
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 1
+input: 
+    tuple val(base), file(fq)
+output: 
+    tuple val(base), file("*.combined_fq.fastq")
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+cat *.fastq > \$RANDOM.combined_fq.fastq
 """
 }
