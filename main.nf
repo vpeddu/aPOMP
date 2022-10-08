@@ -119,6 +119,7 @@ workflow{
 
         if ( params.REALTIME ) {
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq") // .buffer( size: 4, remainder: true)
+            inptu_read_Ch.view()
             NanoFilt(
                 input_read_Ch
                 )
