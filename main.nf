@@ -124,7 +124,7 @@ workflow{
             .buffer( size: 4, remainder: true)
             input_read_Ch.view()
             Combine_fq(
-                input_read_Ch.collect()
+                input_read_Ch
             )
             NanoFilt(
                 Combine_fq.out[0]
