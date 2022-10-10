@@ -1052,24 +1052,28 @@ temp_prekraken > ${base}.\$timestamp.report.tsv
 """
 }
 
-process Combine_fq { 
+process Combine_fq {
 //publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
-input: 
-    tuple val(base), file(fq)
-output: 
-    tuple val(base), file("*.combined_fq.fastq")
+input:
+//    tuple val(base), val(fq)
+      path 'fq'
+output:
+    tuple env(basename), file("*.combined_fq.fastq")
 
 script:
 """
 #!/bin/bash
 #logging
-echo "ls of directory" 
-ls -lah 
+echo "ls of directory"
+ls -lah
 
-cat *.fastq > \$RANDOM.combined_fq.fastq
+basename="\$RANDOM"
+
+echo "new filename is \$basename.combined_fq.fastq"
+cat fq* > \$basename.combined_fq.fastq
 """
 }

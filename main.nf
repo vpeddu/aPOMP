@@ -120,7 +120,8 @@ workflow{
 
         if ( params.REALTIME ) {
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
-            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
+            .map { it -> file(it) }
+//            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
             .buffer( size: 4, remainder: true)
             input_read_Ch.view()
             Combine_fq(
