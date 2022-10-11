@@ -122,7 +122,7 @@ workflow{
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> file(it) }
 //            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
-            .buffer( size: 4, remainder: true)
+            .buffer( size: 2, remainder: true)
             input_read_Ch.view()
             Combine_fq(
                 input_read_Ch
@@ -233,7 +233,7 @@ workflow{
             )
             }
             else{
-            TestCh = Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, bam.size()), bam, bai ) }
+            TestCh = Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }
             TestCh.view()
             
                 Collect_alignment_results(
