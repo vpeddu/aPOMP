@@ -64,6 +64,7 @@ include { Minimap2_illumina } from './illumina_modules.nf'
 include { Sam_conversion } from './illumina_modules.nf'
 include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
+include { Write_report_RT } from './nanopore_modules.nf'
 
 include { Combine_fq } from './nanopore_modules.nf'
 include { NanoFilt } from './nanopore_modules.nf'
@@ -289,7 +290,7 @@ workflow{
                 )
             // write pavian report for each sample 
             if ( params.REATIME ) { 
-                Write_report_RT.scan ( Classify.out[1], Krakenuniq_db.collect())
+            Write_report_RT.scan ( Classify.out[1], Krakenuniq_db.collect())
                 // Write_report_RT( 
                 //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
                 //     Krakenuniq_db.collect()
