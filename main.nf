@@ -282,7 +282,7 @@ workflow{
 
             Classify ( 
                 Collect_alignment_results.out.join(
-                Collect_unassigned_results.out)..map{ key, mergedbam, mergedbambai, mergedunclassifiedbam -> tuple( groupKey(key, key.size()), mergedbam, mergedbambai, mergedunclassifiedbam  ) }, 
+                Collect_unassigned_results.out).map{ key, mergedbam, mergedbambai, mergedunclassifiedbam -> tuple( groupKey(key, key.size()), mergedbam, mergedbambai, mergedunclassifiedbam  ) }, 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
                 file("${params.INDEX}/accession2taxid/")
