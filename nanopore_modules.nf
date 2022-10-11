@@ -1030,10 +1030,10 @@ errorStrategy 'ignore'
 cpus 1
 input: 
     file prekraken
-    file krakenuniqdb
+    //file krakenuniqdb
 output: 
     file "*.rt.report.tsv"
-    file krakenuniqdb
+    //file krakenuniqdb
 
 script:
 """
@@ -1046,10 +1046,10 @@ cat *.prekraken.txt > combined.prekraken.tmp
 awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 
 timestamp=\$( date +%T )
-
-krakenuniq-report --db ${krakenuniqdb} \
---taxon-counts \
-temp_prekraken > \$timestamp.rt.report.tsv
+echo \$timestamp
+#krakenuniq-report --db krakenuniqdb \
+#--taxon-counts \
+#temp_prekraken > \$timestamp.rt.report.tsv
 """
 }
 
