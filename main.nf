@@ -233,12 +233,15 @@ workflow{
             )
             }
             else{
-            TestCh = Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }
-            TestCh.view()
+            //TestCh = Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }
+            //TestCh.view()
             
                 Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple().join(
+                Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }.join(
                 Host_depletion_nanopore.out[3]
+
+                //Minimap2_nanopore.out[0].groupTuple().join(
+                //Host_depletion_nanopore.out[3]
                 )
             )
             // Collection hold for each sample's Minimap2 unaligned results
