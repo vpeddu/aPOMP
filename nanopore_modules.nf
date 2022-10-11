@@ -1042,7 +1042,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-cat *.prekraken.txt > combined.prekraken.tmp
+cat *.prekraken.tsv > combined.prekraken.tmp
 awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 
 timestamp=\$( date +%T )
@@ -1050,6 +1050,8 @@ echo \$timestamp
 #krakenuniq-report --db krakenuniqdb \
 #--taxon-counts \
 #temp_prekraken > \$timestamp.rt.report.tsv
+
+touch \$timestamp.rt.report.tsv
 """
 }
 
