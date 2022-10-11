@@ -232,7 +232,7 @@ workflow{
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )
             }
-            TestCh = Channel(Minimap2_nanopore.out[0].mix(Align_fungi.out[0]))
+            TestCh = Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).groupTuple()
             TestCh.view()
             
             else{
