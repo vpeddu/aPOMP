@@ -233,7 +233,7 @@ workflow{
             )
             }
             else{
-            TestCh = Minimap2_nanopore.out[0].groupTuple()
+            TestCh = Minimap2_nanopore.out[0].map{ key, files -> tuple( groupKey(key, files.size()), files ) }
             TestCh.view()
             
                 Collect_alignment_results(
