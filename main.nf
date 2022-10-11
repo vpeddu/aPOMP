@@ -236,8 +236,8 @@ workflow{
                 Minimap2_nanopore.out[1].groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 )))
-                .map { key, files -> tuple( groupKey(key, files.size()), files ) }
-                .set { ch_sample }
+                //.map { key, files -> tuple( groupKey(key, files.size()), files ) }
+                //.set { ch_sample }
             x.view()
             else{
                 Collect_alignment_results(
