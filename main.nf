@@ -291,7 +291,7 @@ workflow{
                 )
             // write pavian report for each sample 
             if ( params.REALTIME ) { 
-            Write_report_RT.scan ( Classify.out[1], Krakenuniq_db.collect())
+            Write_report_RT.scan ( Classify.out[1]) //, Krakenuniq_db.collect())
                 // Write_report_RT( 
                 //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
                 //     Krakenuniq_db.collect()
