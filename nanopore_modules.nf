@@ -785,7 +785,7 @@ container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(filtered_bam), file(bam_index) //, file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
+    tuple val(base), file(filtered_bam), file(bam_index), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
 output: 
     tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
 
