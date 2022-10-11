@@ -232,6 +232,13 @@ workflow{
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )
             }
+            x = Channel
+                .from(Collect_alignment_results(
+                Minimap2_nanopore.out[0].groupTuple().join(
+                Host_depletion_nanopore.out[3])
+                .map { key, files -> tuple( groupKey(key, files.size()), files ) }
+                .set { ch_sample }
+            x.view()
             else{
                 Collect_alignment_results(
                 Minimap2_nanopore.out[0].groupTuple().join(
