@@ -290,7 +290,7 @@ workflow{
                 file("${params.INDEX}/accession2taxid/")
                 )
             // write pavian report for each sample 
-            if ( params.REATIME ) { 
+            if ( params.REALTIME ) { 
             Write_report_RT.scan ( Classify.out[1], Krakenuniq_db.collect())
                 // Write_report_RT( 
                 //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
