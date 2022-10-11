@@ -234,8 +234,8 @@ workflow{
             }
             else{
                 Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple(size: 4).join(
-                Host_depletion_nanopore.out[3]
+                Minimap2_nanopore.out[0].groupTuple() //.join(
+                //Host_depletion_nanopore.out[3]
                 )
             )
             // Collection hold for each sample's Minimap2 unaligned results
