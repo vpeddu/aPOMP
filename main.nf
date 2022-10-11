@@ -294,8 +294,7 @@ workflow{
                 //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
                 //     Krakenuniq_db.collect()
                 // )
-            }
-            else { 
+            } else { 
             Write_report(
                 Classify.out[0],
                 Krakenuniq_db.collect()
