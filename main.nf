@@ -234,9 +234,9 @@ workflow{
             }
             else{
                 Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple().join(
-                Host_depletion_nanopore.out[3]
-                )
+                Minimap2_nanopore.out[0].groupTuple() //.join(
+                //Host_depletion_nanopore.out[3]
+                //)
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
