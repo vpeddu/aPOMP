@@ -233,7 +233,7 @@ workflow{
             )
             }
             else{
-            TestCh = Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).groupTuple()
+            TestCh = Collect_alignment_results(Minimap2_nanopore.out[0].groupTuple())
             TestCh.view()
             
                 Collect_alignment_results(
