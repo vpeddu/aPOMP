@@ -469,7 +469,7 @@ input:
 
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
-
+    file "${base}.prekraken.tsv"
 script:
 """
 #!/bin/bash 

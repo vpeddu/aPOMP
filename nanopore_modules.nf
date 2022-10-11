@@ -1023,16 +1023,16 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 
 // write pavian style report
 process Write_report_RT { 
-publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
+publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
 input: 
-    tuple val(base), file(prekraken)
+    file prekraken,
     file krakenuniqdb
 output: 
-    file "${base}.final.report.tsv"
+    file "*.rt.report.tsv"
 
 script:
 """
@@ -1048,7 +1048,7 @@ timestamp=\$( date +%T )
 
 krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
-temp_prekraken > ${base}.\$timestamp.report.tsv
+temp_prekraken > \$timestamp.rt.report.tsv
 """
 }
 

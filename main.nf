@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
-
+nextflow.preview.recursion=true
 def helpMessage() {
     log.info"""
 aPOMP: A portable, open-source metagenomics pipeline.
@@ -288,11 +288,12 @@ workflow{
                 file("${params.INDEX}/accession2taxid/")
                 )
             // write pavian report for each sample 
-            if ( params.REATIME) { 
-                Write_report_RT( 
-                    Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
-                    Krakenuniq_db.collect()
-                )
+            if ( params.REATIME ) { 
+                Write_report_RT.scan ( Classify.out[1], Krakenuniq_db.collect())
+                // Write_report_RT( 
+                //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
+                //     Krakenuniq_db.collect()
+                // )
             }
             else { 
             Write_report(
