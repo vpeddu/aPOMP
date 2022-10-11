@@ -1033,6 +1033,7 @@ input:
     file krakenuniqdb
 output: 
     file "*.rt.report.tsv"
+    file krakenuniqdb
 
 script:
 """
