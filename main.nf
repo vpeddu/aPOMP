@@ -233,9 +233,10 @@ workflow{
             )
             }
             x = Channel
-                .from(Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple().join(
-                Host_depletion_nanopore.out[3])))
+                .from(Collect_unassigned_results(
+                Minimap2_nanopore.out[1].groupTuple().join(
+                Host_depletion_nanopore.out[0]
+                ))
                 .map { key, files -> tuple( groupKey(key, files.size()), files ) }
                 .set { ch_sample }
             x.view()
