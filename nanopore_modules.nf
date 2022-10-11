@@ -1029,7 +1029,7 @@ beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
 input: 
-    file prekraken,
+    file prekraken
     file krakenuniqdb
 output: 
     file "*.rt.report.tsv"
