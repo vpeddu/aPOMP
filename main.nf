@@ -232,13 +232,9 @@ workflow{
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )
             }
-            x = Channel(Collect_unassigned_results(
-                Minimap2_nanopore.out[1].groupTuple().join(
-                Host_depletion_nanopore.out[0]
-                )))
-                //.map { key, files -> tuple( groupKey(key, files.size()), files ) }
-                //.set { ch_sample }
+            x = Channel(Minimap2_nanopore.out[0].mix(Align_fungi.out[0]))
             x.view()
+            
             else{
                 Collect_alignment_results(
                 Minimap2_nanopore.out[0].groupTuple().join(
