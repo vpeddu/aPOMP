@@ -291,8 +291,8 @@ workflow{
                 )
             // write pavian report for each sample 
             if ( params.REALTIME ) { 
-            Write_report_RT.scan ( Classify.out[1]) ,
-                Krakenuniq_db.collect() //,
+            Write_report_RT.scan ( Classify.out[1]) //,
+                //Krakenuniq_db.collect() //,
                 //file("${baseDir}/bin/merge_rt_reports.py")
                 
                 // Write_report_RT( 
