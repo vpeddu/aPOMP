@@ -1022,6 +1022,32 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 
 
 // write pavian style report
+process Accumulate_reports { 
+publishDir "${params.OUTPUT}/Accumulate/", mode: 'copy', overwrite: true
+container "evolbioinfo/krakenuniq:v0.5.8"
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 1
+input: 
+    file prekraken
+    //file krakenuniqdb
+    //file mergescript
+output: 
+    file "prekraken.accumulated.tsv"
+    //file krakenuniqdb
+    //file "*.rt.report.tsv"
+    //file mergescript
+
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+cat *.prekraken.tsv >> combined.prekraken.tmp
+"""
+}
+
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 container "evolbioinfo/krakenuniq:v0.5.8"
@@ -1044,8 +1070,7 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-cat *.prekraken.tsv > combined.prekraken.tmp
-awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
+
 timestamp=\$( date +%T )
 echo \$timestamp
 #krakenuniq-report --db krakenuniqdb \
@@ -1054,7 +1079,6 @@ echo \$timestamp
 touch \$timestamp.rt.report.tsv
 """
 }
-
 process Combine_fq {
 //publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
