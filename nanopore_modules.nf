@@ -1044,7 +1044,7 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-cat *.prekraken.tsv >> combined.prekraken.tmp
+cat *.prekraken.tsv >> prekraken.accumulated.tsv
 """
 }
 
