@@ -1052,7 +1052,7 @@ cat *.report.tsv > combined.prekraken.tmp
 timestamp=\$( date +%T )
 echo \$timestamp
 
-#krakenuniq-report --db ${krakenuniqdb} \
+#krakenuniq-report --db {krakenuniqdb} \
 #--taxon-counts \
 #combined.prekraken.tmp > \$timestamp.rt.report.tsv
 
