@@ -1033,7 +1033,7 @@ input:
     //file krakenuniqdb
     //file mergescript
 output: 
-    file 'combined.prekraken.tmp'
+    file "*.rt.report.tsv"
     //file krakenuniqdb
     //file "*.rt.report.tsv"
     //file mergescript
@@ -1044,19 +1044,14 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-
-cat *.prekraken.tsv >> combined.prekraken.tmp
-#python3 {mergescript} combined.prekraken.tmp
-#awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
-
+cat *.prekraken.tsv > combined.prekraken.tmp
+awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 timestamp=\$( date +%T )
 echo \$timestamp
-
-#krakenuniq-report --db {krakenuniqdb} \
+#krakenuniq-report --db krakenuniqdb \
 #--taxon-counts \
-#combined.prekraken.tmp > \$timestamp.rt.report.tsv
-
-#touch \$timestamp.rt.report.tsv
+#temp_prekraken > \$timestamp.rt.report.tsv
+touch \$timestamp.rt.report.tsv
 """
 }
 
