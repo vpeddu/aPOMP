@@ -1030,11 +1030,11 @@ errorStrategy 'ignore'
 cpus 1
 input: 
     file prekraken
-    file krakenuniqdb
+    //file krakenuniqdb
     //file mergescript
 output: 
     file 'combined.prekraken.tmp'
-    file krakenuniqdb
+    //file krakenuniqdb
     //file "*.rt.report.tsv"
     //file mergescript
 
