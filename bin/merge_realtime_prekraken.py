@@ -20,4 +20,4 @@ with open(outfilename, 'w') as csv_file:
         writer.writerow([key, value])
 
 #with open(outfilename, 'w') as x:
-#    x.write(product)
+#    x.write(product) 
