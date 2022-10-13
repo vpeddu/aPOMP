@@ -1030,10 +1030,13 @@ errorStrategy 'ignore'
 cpus 1
 input: 
     file prekraken
-    //file krakenuniqdb
+    file krakenuniqdb
+    //file mergescript
 output: 
-    file "*.rt.report.tsv"
-    //file krakenuniqdb
+    file 'combined.prekraken.tmp'
+    //file "*.rt.report.tsv"
+    file krakenuniqdb
+    //file mergescript
 
 script:
 """
@@ -1042,16 +1045,18 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-cat *.prekraken.tsv > combined.prekraken.tmp
-awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
+cat *.report.tsv > combined.prekraken.tmp
+#python3 {mergescript} combined.prekraken.tmp
+#awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 
 timestamp=\$( date +%T )
 echo \$timestamp
-#krakenuniq-report --db krakenuniqdb \
-#--taxon-counts \
-#temp_prekraken > \$timestamp.rt.report.tsv
 
-touch \$timestamp.rt.report.tsv
+#krakenuniq-report --db ${krakenuniqdb} \
+#--taxon-counts \
+#combined.prekraken.tmp > \$timestamp.rt.report.tsv
+
+#touch \$timestamp.rt.report.tsv
 """
 }
 
