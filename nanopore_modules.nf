@@ -1075,7 +1075,7 @@ ls -lah
 timestamp=\$( date +%T )
 echo \$timestamp
 
-# python3 ${mergescript} ${prekraken} \$timestamp
+python3 ${mergescript} ${prekraken} \$timestamp
 
 #krakenuniq-report --db krakenuniqdb \
 #--taxon-counts \
