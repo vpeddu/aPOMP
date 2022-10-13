@@ -298,7 +298,7 @@ workflow{
             Write_report_RT( 
                 Accumulate_reports.out,
                 Krakenuniq_db.collect(),
-                file("${baseDir}/bin/merge_rt_reports.py")
+                file("${baseDir}/bin/merge_realtime_prekraken.py")
                 )
                 //Krakenuniq_db.collect() //,
                 //file("${baseDir}/bin/merge_rt_reports.py")
