@@ -1057,12 +1057,12 @@ errorStrategy 'ignore'
 cpus 1
 input: 
     file prekraken
+    file krakenuniqdb
+    file mergescript
     //file krakenuniqdb
     //file mergescript
 output: 
     file "*.rt.report.tsv"
-    file krakenuniqdb
-    file mergescript
     //file "*.rt.report.tsv"
 
 script:
@@ -1075,12 +1075,12 @@ ls -lah
 timestamp=\$( date +%T )
 echo \$timestamp
 
-python3 ${mergescript}
+# python3 ${mergescript} ${prekraken} \$timestamp
 
 #krakenuniq-report --db krakenuniqdb \
 #--taxon-counts \
 #temp_prekraken > \$timestamp.rt.report.tsv
-touch \$timestamp.rt.report.tsv
+mv \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
 """
 }
 process Combine_fq {
