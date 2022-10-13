@@ -292,7 +292,14 @@ workflow{
                 )
             // write pavian report for each sample 
             if ( params.REALTIME ) { 
-            Accumulate_reports.scan ( Classify.out[1]) //,
+            Accumulate_reports.scan ( 
+                Classify.out[1] 
+                ) 
+            Write_report_RT( 
+                Accumulate_reports.out,
+                Krakenuniq_db.collect(),
+                file("${baseDir}/bin/merge_rt_reports.py")
+                )
                 //Krakenuniq_db.collect() //,
                 //file("${baseDir}/bin/merge_rt_reports.py")
                 
@@ -300,7 +307,6 @@ workflow{
                 //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
                 //     Krakenuniq_db.collect()
                 // )
-            Write_report_RT( Accumulate_reports.out )
             } else { 
             Write_report(
                 Classify.out[0],

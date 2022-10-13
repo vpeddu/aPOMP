@@ -1050,7 +1050,8 @@ cat *.prekraken.tsv >> prekraken.accumulated.tsv
 
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
+//container "evolbioinfo/krakenuniq:v0.5.8"
+container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1060,9 +1061,9 @@ input:
     //file mergescript
 output: 
     file "*.rt.report.tsv"
-    //file krakenuniqdb
+    file krakenuniqdb
+    file mergescript
     //file "*.rt.report.tsv"
-    //file mergescript
 
 script:
 """
@@ -1073,6 +1074,9 @@ ls -lah
 
 timestamp=\$( date +%T )
 echo \$timestamp
+
+python3 ${mergescript}
+
 #krakenuniq-report --db krakenuniqdb \
 #--taxon-counts \
 #temp_prekraken > \$timestamp.rt.report.tsv
