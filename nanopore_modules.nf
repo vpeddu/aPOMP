@@ -1034,8 +1034,8 @@ input:
     //file mergescript
 output: 
     file 'combined.prekraken.tmp'
-    //file "*.rt.report.tsv"
     file krakenuniqdb
+    //file "*.rt.report.tsv"
     //file mergescript
 
 script:
