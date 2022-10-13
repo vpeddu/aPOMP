@@ -1045,7 +1045,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-cat *.report.tsv >> combined.prekraken.tmp
+cat *.prekraken.tsv >> combined.prekraken.tmp
 #python3 {mergescript} combined.prekraken.tmp
 #awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined.prekraken.tmp > temp_prekraken
 
