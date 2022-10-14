@@ -1033,7 +1033,7 @@ input:
     //file krakenuniqdb
     //file mergescript
 output: 
-    file "prekraken.accumulated.tsv"
+    file "prekraken.*.accumulated.tsv"
     //file krakenuniqdb
     //file "*.rt.report.tsv"
     //file mergescript
@@ -1044,7 +1044,7 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-cat *.prekraken.tsv >> prekraken.accumulated.tsv
+cat *.prekraken.tsv >> prekraken.${task.index}.accumulated.tsv
 """
 }
 
