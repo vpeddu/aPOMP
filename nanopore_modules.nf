@@ -1082,9 +1082,9 @@ echo \$timestamp
 
 python3 ${mergescript} ${prekraken} \$timestamp
 
-#krakenuniq-report --db krakenuniqdb \
-#--taxon-counts \
-#temp_prekraken > \$timestamp.rt.report.tsv
+/usr/local/miniconda/bin/krakenuniq-report --db krakenuniqdb \
+--taxon-counts \
+temp_prekraken > \$timestamp.rt.report.tsv
 mv \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
 """
 }
