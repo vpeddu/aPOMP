@@ -1024,7 +1024,7 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 // write pavian style report
 process Accumulate_reports { 
 publishDir "${params.OUTPUT}/Accumulate/", mode: 'copy', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
+container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1044,14 +1044,16 @@ script:
 #logging
 echo "ls of directory" 
 ls -lah 
-cat *.prekraken.tsv >> accumulated.${task.index}.prekraken.tsv
+prev=\$((${task.index}-1))
+echo \$prev
+cat ${prekraken} accumulated.\$prev.prekraken.tsv >> accumulated.${task.index}.prekraken.tsv
 """
 }
 
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 //container "evolbioinfo/krakenuniq:v0.5.8"
-container "vpeddu/nanopore_metagenomics:latest"
+container "evolbioinfo/krakenuniq:v0.5.8"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
