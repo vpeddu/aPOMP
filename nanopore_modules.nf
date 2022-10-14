@@ -1033,7 +1033,7 @@ input:
     //file krakenuniqdb
     //file mergescript
 output: 
-    file "prekraken.*.accumulated.tsv"
+    file "accumulated.*.prekraken.tsv"
     //file krakenuniqdb
     //file "*.rt.report.tsv"
     //file mergescript
