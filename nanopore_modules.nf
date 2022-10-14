@@ -1085,7 +1085,7 @@ python3 ${mergescript} ${prekraken} \$timestamp
 /usr/local/miniconda/bin/krakenuniq-report --db krakenuniqdb \
 --taxon-counts \
 temp_prekraken > \$timestamp.rt.report.tsv
-mv \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
+#mv \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
 """
 }
 process Combine_fq {
