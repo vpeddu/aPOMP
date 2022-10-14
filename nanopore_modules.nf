@@ -1047,10 +1047,12 @@ ls -lah
 prev=\$((${task.index}-1))
 echo \$prev
 
-if [ "${task.index}" -eq "1" ]
+if [ "${task.index}" -eq "0" ]
 then
+    echo "iteration ${task.index}"
     cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 else
+    echo "iteration ${task.index}"
     cat ${prekraken} accumulated.\$prev.prekraken.tsv > accumulated.${task.index}.prekraken.tsv
 fi
 
@@ -1060,7 +1062,7 @@ fi
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 //container "evolbioinfo/krakenuniq:v0.5.8"
-container "evolbioinfo/krakenuniq:v0.5.8"
+container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
