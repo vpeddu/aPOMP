@@ -1046,7 +1046,14 @@ echo "ls of directory"
 ls -lah 
 prev=\$((${task.index}-1))
 echo \$prev
-cat ${prekraken} accumulated.\$prev.prekraken.tsv >> accumulated.${task.index}.prekraken.tsv
+
+if [ "${task.index}" -eq "1" ]
+then
+    cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
+else
+    cat ${prekraken} accumulated.\$prev.prekraken.tsv > accumulated.${task.index}.prekraken.tsv
+fi
+
 """
 }
 
