@@ -1047,13 +1047,13 @@ ls -lah
 prev=\$((${task.index}-1))
 echo \$prev
 
-if [ "${task.index}" -eq "0" ]
+if [ "${task.index}" -eq "1" ]
 then
     echo "iteration ${task.index}"
     cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 else
     echo "iteration ${task.index}"
-    cat ${prekraken} accumulated.\$prev.prekraken.tsv > accumulated.${task.index}.prekraken.tsv
+    cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 fi
 
 """
