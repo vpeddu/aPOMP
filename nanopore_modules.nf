@@ -593,7 +593,7 @@ script:
 
 process Extract_fungi { 
 //conda "${baseDir}/env/env.yml"
-publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+/publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
 container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 28
