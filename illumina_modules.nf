@@ -211,7 +211,7 @@ ls -lah
 
 awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${fungi_genera_list}  > fungi_modified_list.txt
 
-cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\t/' | sed 's/\$/\'\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
+cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
 
 #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
 for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
