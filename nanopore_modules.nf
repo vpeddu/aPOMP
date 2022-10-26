@@ -249,7 +249,7 @@ else
 process Identify_resistant_plasmids { 
 publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
 container "vpeddu/nanopore_metagenomics:latest"
-beforeScript 'chmod o+rw .'
+beforeScript 'chmod a+rw .'
 cpus 8
 
 // Process will fail if no plasmids are assembled. 
