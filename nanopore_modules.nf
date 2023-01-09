@@ -419,7 +419,7 @@ ls -lah
 
 /usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv
 
-cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^$/d' > ${base}.sourmash_lca_summ.genus.csv
+cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
 python3 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.genus.csv ${base}
 
