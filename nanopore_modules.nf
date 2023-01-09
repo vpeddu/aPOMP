@@ -395,6 +395,39 @@ kraken2 --db ${kraken2_db} \
 """
 }
 
+process Sourmash_prefilter_nanopore { 
+publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
+//#TODO need to fix container
+container "quay.io/biocontainers/sourmash:4.6.1--hdfd78af_0"
+beforeScript 'chmod o+rw .'
+cpus 8
+input: 
+    tuple val(base), file(fastq)
+    file sourmash_db
+    file taxdump
+    file taxonomy_parse_script
+output: 
+    tuple val("${base}"), file("${base}.sourmash_to_genus.txt")
+script:
+"""
+#!/bin/bash
+#logging
+echo "ls of directory" 
+ls -lah 
+
+/usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
+
+/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv
+
+cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^$/d' > ${base}.sourmash_lca_summ.genus.csv
+
+python3 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.genus.csv ${base}
+
+"""
+}
+
+
+
 // run minimap2 
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"

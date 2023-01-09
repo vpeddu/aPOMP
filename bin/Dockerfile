@@ -41,7 +41,7 @@ RUN cd /usr/local/ && \
     ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
     conda init bash && \
     /bin/bash -c "source /root/.bashrc" && \
-    conda install -c bioconda ucsc-fasplit seqkit blast hmmer  seqtk krakenuniq
+    conda install -c bioconda ucsc-fasplit seqkit blast hmmer  seqtk krakenuniq 
 
 RUN /usr/bin/python3.7 -m pip install cython
 RUN  /usr/bin/python3.7 -m  pip install biopython \
@@ -50,7 +50,10 @@ RUN  /usr/bin/python3.7 -m  pip install biopython \
          typing \
          pickle5 \
          taxopy \
-         pyfasta
+         pyfasta \
+         ncbi-taxonomist \
+         sourmash \
+         ete3
 
 RUN /usr/bin/python3.7 -m  pip install pysam --user --upgrade
 

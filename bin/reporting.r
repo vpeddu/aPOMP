@@ -1,12 +1,11 @@
 library(ggplot2)
 library(reshape2)
 library(viridis)
-library(wesanderson)
-library(ggvegan)
+library(tidyverse)
 
-setwd('/Users/vikas/Documents/UCSC/lab/kim_lab/evmeta/bin/')
+setwd('/Volumes/metagenomics_drive/apomp/publication/zymo_runs/calculations')
 
-reporting_stats = read.csv('/Users/vikas/Documents/UCSC/lab/kim_lab/evmeta/bin/zymo_reporting_stats.csv')
+reporting_stats = read.csv('/Volumes/metagenomics_drive/apomp/publication/zymo_runs/analysis/precision_recall_f1_stats.csv')
 #reporting_stats = reporting_stats[-c(2),]
 #reporting_stats$name = c('aPOMP','Kraken2','Megan-LR')
 colnames(reporting_stats) = c('Name','Precision','Recall','F1')
@@ -23,7 +22,45 @@ reporting_stats_plot = ggplot(reporting_stats_long, aes(fill=variable, y=value, 
   theme(legend.position="bottom")
 reporting_stats_plot
 
-ggsave(plot = reporting_stats_plot, file = 'reporting_stats_plot.pdf', height = 3, width = 3)
+ggsave(plot = reporting_stats_plot, file = '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/analysis/reporting_stats_plot.pdf', height = 3, width = 3)
+
+
+# reads per taxid
+rpt<- read_csv('/Volumes/metagenomics_drive/apomp/publication/zymo_runs/analysis/reads_per_taxid.csv')
+rpt$name = c('apomp','kraken2','meganlr')
+
+#taxid_to_name
+taxid_to_name <- data.frame(taxid = c(1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280), 
+                               name = c('Bacillus subtilis',
+                                        'Cryptococcus neoformans',
+                                        'Enterococcus faecalis',
+                                        'Escherichia coli',
+                                        'Limosilactobacillus fermentum',
+                                        'Listeria monocytogenes',
+                                        'Pseudomonas aeruginosa',
+                                        'Saccharomyces cerevisiae',
+                                        'Salmonella enterica',
+                                        'Staphylococcus aureus'))
+
+rpt %>% 
+  melt() %>% 
+  rename( taxid = variable, count = value) %>% 
+  transform(taxid = as.numeric(as.character(taxid))) %>% 
+  full_join(taxid_to_name, by = c("taxid" = "taxid")) %>% 
+  group_by(name.x) %>% 
+  mutate(percent = count / sum(count) * 100) %>% 
+  ggplot(aes(x = name.y, y = percent, group = name.x, fill = name.x)) + 
+    geom_bar(position="dodge", stat="identity") +
+    theme_classic() + 
+    geom_vline(xintercept = 15) +
+    scale_y_continuous(expand = c(NA, 1), limits = c(0,30)) +
+    coord_flip() + 
+    scale_fill_viridis(discrete = TRUE, option = 'viridis') + 
+    ylab('percent of total reads') + 
+    xlab('species') + 
+    theme(legend.title = element_blank()) 
+  
+  
 
 rarefaction_file = as.data.frame(t(read.csv('/Users/vikas/Documents/UCSC/lab/kim_lab/evmeta/bin/raraefaction_stats.csv')))
 rarefactions_long <- data.frame(matrix(ncol=3, dimnames=list(NULL, c('name','taxid','count'))))

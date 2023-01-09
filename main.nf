@@ -54,7 +54,8 @@ params.METAFLYE = false
 params.ALIGN_ALL_FUNGI = false
 params.LEAVE_TRNA_IN = false
 params.REALTIME = false
-
+// default value
+params.KRAKEN2_THRESHOLD = 50
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -67,6 +68,7 @@ include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
 include { Write_report_RT } from './nanopore_modules.nf'
 include { Accumulate_reports } from './nanopore_modules.nf'
+include { Sourmash_prefilter_nanopore } from './nanopore_modules.nf'
 
 include { Combine_fq } from './nanopore_modules.nf'
 include { NanoFilt } from './nanopore_modules.nf'
@@ -122,6 +124,7 @@ workflow{
         //basename is anything before ".fastq.gz"
 
         if ( params.REALTIME ) {
+            params.KRAKEN2_THRESHOLD = 10
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> file(it) }
 //            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
@@ -189,10 +192,20 @@ workflow{
         }
         // Run kraken2 prefiltering 
         else{
+            if ( params.KRAKEN_PREFILTER ) { 
             Kraken_prefilter_nanopore(
                 Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
+            } else { 
+            Sourmash_prefilter_nanopore( 
+                Host_depletion_nanopore.out[0],
+                file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json"),
+                file("${params.INDEX}/taxdump/taxa.sqlite"),
+                file("${baseDir}/bin/sourmash_to_taxonomy.py"),
+            )
+
+            }
         }
             // extract databases from NT index 
             Extract_db(
