@@ -208,12 +208,21 @@ workflow{
             }
         }
             // extract databases from NT index 
+            if ( params.KRAKEN_PREFILTER ) { 
             Extract_db(
                 Kraken_prefilter_nanopore.out,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
                 file("${baseDir}/bin/fungi_genera_list.txt")
-                )
+                ) 
+            } else { 
+            Extract_db(
+                Sourmash_prefilter_nanopore.out,
+                NT_db.collect(),
+                file("${baseDir}/bin/extract_seqs.py"),
+                file("${baseDir}/bin/fungi_genera_list.txt")
+                ) 
+            }
             // run Minimap2 on each individual genus 
             Minimap2_nanopore( 
                 Extract_db.out.flatten().map{
