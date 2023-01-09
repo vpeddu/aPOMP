@@ -398,7 +398,7 @@ kraken2 --db ${kraken2_db} \
 process Sourmash_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
 //#TODO need to fix container
-container "quay.io/biocontainers/sourmash:4.6.1--hdfd78af_0"
+container "nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -421,7 +421,7 @@ ls -lah
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
-python3 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.genus.csv ${base}
+python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.genus.csv ${base}
 
 """
 }
@@ -626,7 +626,6 @@ script:
 
 process Extract_fungi { 
 //conda "${baseDir}/env/env.yml"
-publishDir "${params.OUTPUT}/Fungal_alignment/${base}", mode: 'symlink'
 container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 28

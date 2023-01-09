@@ -53,7 +53,8 @@ RUN  /usr/bin/python3.7 -m  pip install biopython \
          pyfasta \
          ncbi-taxonomist \
          sourmash \
-         ete3
+         ete3 \
+         pandas
 
 RUN /usr/bin/python3.7 -m  pip install pysam --user --upgrade
 
