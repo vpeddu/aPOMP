@@ -198,53 +198,47 @@ script:
 if (params.ALIGN_ALL_FUNGI == true) { 
     
     if (params.KRAKEN_PREFILTER == true) {
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
+        """
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
 
 
-# could filter by kraken report column 2 for all above some parameter (default: if > 25)
+        # could filter by kraken report column 2 for all above some parameter (default: if > 25)
 
-awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${fungi_genera_list}  > fungi_modified_list.txt
+        awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${fungi_genera_list}  > fungi_modified_list.txt
 
-cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
+        cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
 
-#cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
-do
-echo adding \$i
-if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-    ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-    cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
-fi
-done
-"""
+        #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
+        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        do
+        echo adding \$i
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+        fi
+        done
+        """
         } else { 
             """
-            #!/bin/bash
-            #logging
-            echo "ls of directory" 
-            ls -lah 
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
 
-            # could filter by kraken report column 2 for all above some parameter (default: if > 25)
+        cat ${fungi_genera_list} | grep -v -f - ${report} > fungi_removed_report.txt
 
-            cat ${report} ${fungi_genera_list} | sort | uniq > report_fungi_combined_list.txt
-
-            awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' report_fungi_combined_list.txt  > fungi_modified_list.txt
-
-            #cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
-
-            #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-            for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
-            do
-            echo adding \$i
-            if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-                ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-                cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
-            fi
-            done
+        #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
+        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        do
+        echo adding \$i
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+        fi
+        done
             """
             
         }
