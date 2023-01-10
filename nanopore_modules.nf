@@ -421,7 +421,7 @@ ls -lah
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
-python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.genus.csv ${base}
+python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 
 """
 }
