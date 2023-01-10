@@ -398,7 +398,7 @@ kraken2 --db ${kraken2_db} \
 process Sourmash_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
 //#TODO need to fix container
-container "nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
