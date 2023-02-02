@@ -628,7 +628,7 @@ process Extract_fungi {
 //conda "${baseDir}/env/env.yml"
 container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
-cpus 28
+cpus 4
 errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 

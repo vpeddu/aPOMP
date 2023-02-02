@@ -91,7 +91,7 @@ class read_input():
 
 #local 
 messlier_guppy_sup_apomp = read_input.readPavian(all_taxids,
-                                                '/Volumes/metagenomics_drive/apomp/publication/messlier_runs/apomp/ERR9765782_MinION_sequencing_MOCK_003_Minion_R9.final.report.tsv','apomp')
+                                                '/Volumes/metagenomics_drive/apomp/publication/messlier_runs/apomp/sourmash_prefilter/ERR9765782_MinION_sequencing_MOCK_003_Minion_R9.final.report.tsv','apomp')
 # messlier_guppy_sup_apomp_kraken210 = read_input.readPavian(all_taxids,
 #                                                 '/Volumes/metagenomics_drive/apomp/publication/messlier_runs/apomp/kraken_10_threshold/ERR9765782_MinION_sequencing_MOCK_003_Minion_R9.final.report.tsv','apomp_kraken10')
 messlier_guppy_sup_kraken2 = read_input.readPavian(all_taxids,

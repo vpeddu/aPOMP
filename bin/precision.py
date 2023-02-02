@@ -74,7 +74,8 @@ class read_input():
 				elif current_taxon == 1: 
 					total_classified_count = taxon_count
 				elif current_taxon == -2: 
-					total_classified_count = total_classified_count - taxon_count
+					#total_classified_count = total_classified_count - taxon_count
+					continue
 				elif current_taxon in taxon_list: 
 					correctly_classified[taxon_list.index(current_taxon)] = taxon_count
 		return(sample(name, unclassified, correctly_classified, total_classified_count))
@@ -92,11 +93,12 @@ zymo_guppy_sup_apomp = read_input.readPavian(all_taxids,
 zymo_guppy_sup_kraken2 = read_input.readPavian(all_taxids,
                                             '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/kraken2/even_out.kraken','kraken2')
 zymo_guppy_sup_megan = read_input.readMegan(all_taxids,
-                                            '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/diamond/even-ex.txt','diamond_meganlr')
-
+                                            '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/diamond/daa2info_trimmed.txt','diamond_meganlr')
+zymo_guppy_sup_mmseq2 = read_input.readPavian(all_taxids,
+                                             '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/mmseq2/ERR3152364_GridION_sequencing_EVEN.mmseq.result_report', 'mmseq2')
 #write FPR statistics
 fields = ['name','precision','recall','f1']
-pipelines = [zymo_guppy_sup_apomp, zymo_guppy_sup_kraken2, zymo_guppy_sup_megan]
+pipelines = [zymo_guppy_sup_apomp, zymo_guppy_sup_kraken2, zymo_guppy_sup_megan,zymo_guppy_sup_mmseq2]
 #rows = [[n.name for n in pipelines],[p.precision for p in pipelines],[r.recall for r in pipelines],[f.f1 for f in pipelines]]
 rows = [[p.name, p.precision, p.recall, p.f1] for p in pipelines]
 filename = "/Volumes/metagenomics_drive/apomp/publication/zymo_runs/analysis/precision_recall_f1_stats.csv"
