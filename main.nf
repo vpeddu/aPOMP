@@ -118,11 +118,11 @@ Amrfinder_db = Channel
 
 
 // set defaults
-params.MINIMAPSPLICE = false 
-params.NANOFILT_MAXLENGTH = 20000
-params.NANOFILT_MINLENGTH = 100
-params.MINIMAP2_RETRIES = 10 
-params.NANOFILT_QUALITY = 15 
+MINIMAPSPLICE = false 
+NANOFILT_MAXLENGTH = 20000
+NANOFILT_MINLENGTH = 100
+MINIMAP2_RETRIES = 10 
+NANOFILT_QUALITY = 15 
 // Workflow logic
 workflow{
     // Nanopore workflow (default)
