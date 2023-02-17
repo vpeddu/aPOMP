@@ -1,3 +1,11 @@
+
+// set defaults
+params.MINIMAPSPLICE = false 
+params.NANOFILT_MAXLENGTH = 20000
+params.NANOFILT_MINLENGTH = 100
+params.MINIMAP2_RETRIES = 10 
+params.NANOFILT_QUALITY = 15
+
 process NanoFilt { 
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
