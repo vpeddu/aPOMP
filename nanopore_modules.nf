@@ -1,10 +1,3 @@
-params.MINIMAPSPLICE = false
-//default phred score for nanofilt read quality filtering 
-params.NANOFILT_QUALITY = 10
-params.NANOFILT_MAXLENGTH = 10000
-params.NANOFILT_MINLENGTH = 200
-params.MINIMAP2_RETRIES = 10 
-
 process NanoFilt { 
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from IPython.display import display
 
-all_taxids = [1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280]
+species_taxid = [1423,5207,1351, 562, 1613, 1639, 287, 4932, 28901, 1280]
 
 class sample(): 
 	def __init__(self, name, unclassified, correctly_classified, total_classified_count):
@@ -88,13 +88,13 @@ class read_input():
 #zymo_guppy_hac_apomp = readpavian(all_taxids,'/media/vikas/thiccy1/data/miten_metagenomics/results_from_mustard/Zymo-GridION-EVEN-BB-SN_Guppy_6.0.1_hac.final.report.tsv')
 
 #local 
-zymo_guppy_sup_apomp = read_input.readPavian(all_taxids,
+zymo_guppy_sup_apomp = read_input.readPavian(species_taxid,
                                             '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/apomp/ERR3152364_GridION_sequencing_EVEN.final.report.tsv','apomp')
-zymo_guppy_sup_kraken2 = read_input.readPavian(all_taxids,
+zymo_guppy_sup_kraken2 = read_input.readPavian(species_taxid,
                                             '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/kraken2/even_out.kraken','kraken2')
-zymo_guppy_sup_megan = read_input.readMegan(all_taxids,
+zymo_guppy_sup_megan = read_input.readMegan(species_taxid,
                                             '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/diamond/daa2info_trimmed.txt','diamond_meganlr')
-zymo_guppy_sup_mmseq2 = read_input.readPavian(all_taxids,
+zymo_guppy_sup_mmseq2 = read_input.readPavian(species_taxid,
                                              '/Volumes/metagenomics_drive/apomp/publication/zymo_runs/mmseq2/ERR3152364_GridION_sequencing_EVEN.mmseq.result_report', 'mmseq2')
 #write FPR statistics
 fields = ['name','precision','recall','f1']
@@ -106,7 +106,7 @@ with open(filename, 'w') as csvfile:
     csvwriter = csv.writer(csvfile) 
     csvwriter.writerow(fields) 
     csvwriter.writerows(rows)
-    
+
 # write per taxa read counts
 fields = [str(t) for t in all_taxids]
 rows = [p.correctly_classified for p in pipelines] 

@@ -229,7 +229,7 @@ if (params.ALIGN_ALL_FUNGI == true) {
         ls -lah 
 
         cat ${fungi_genera_list} | grep -v -f - ${report} > fungi_removed_report.txt
-        awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' fungi_removed_report.txt  > fungi_modified_list.txt
+        awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' fungi_removed_report.txt | sort | uniq > fungi_modified_list.txt
         #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
         for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
         do

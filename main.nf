@@ -55,7 +55,7 @@ params.ALIGN_ALL_FUNGI = false
 params.LEAVE_TRNA_IN = false
 params.REALTIME = false
 // default value
-params.KRAKEN2_THRESHOLD = 50
+params.KRAKEN2_THRESHOLD = 20
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -115,6 +115,14 @@ Eggnog_db = Channel
 Amrfinder_db = Channel
             .fromPath("${params.INDEX}/plasmid_db/amrfinder/")
 
+
+
+// set defaults
+params.MINIMAPSPLICE = false 
+params.NANOFILT_MAXLENGTH = 20000
+params.NANOFILT_MINLENGTH = 100
+params.MINIMAP2_RETRIES = 10 
+params.NANOFILT_QUALITY = 15 
 // Workflow logic
 workflow{
     // Nanopore workflow (default)
@@ -124,11 +132,12 @@ workflow{
         //basename is anything before ".fastq.gz"
 
         if ( params.REALTIME ) {
-            params.KRAKEN2_THRESHOLD = 10
+            params.KRAKEN2_THRESHOLD = 1
+            params.NANOFILT_QUALITY = 10
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> file(it) }
 //            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
-            .buffer( size: 2, remainder: true)
+            .buffer( size: 4, remainder: true)
             input_read_Ch.view()
             Combine_fq(
                 input_read_Ch
@@ -139,11 +148,11 @@ workflow{
         } else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
+        //run nanofilt
             NanoFilt(
             input_read_Ch
                 )
         }
-        //run nanofilt
 
         //run nanoplot on nanofilt output
         NanoPlot (
