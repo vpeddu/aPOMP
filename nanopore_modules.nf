@@ -855,7 +855,7 @@ container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
-    tuple val(base), file(unclassified_fastq), file(depleted_fastq), file(fungi_unclassified)
+    tuple val(base), file(unclassified_fastq), file(depleted_fastq) // , file(fungi_unclassified)
     file filter_unassigned_reads
     //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 
