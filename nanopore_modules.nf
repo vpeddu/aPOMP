@@ -788,7 +788,7 @@ script:
         mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
         samtools index ${base}.sorted.filtered.*.bam
 
-        readsmapped=`samtools view -c ${base}.filtered.bam`
+        readsmapped=`samtools view -c ${base}.filtered.bam`ssh
         readsunmapped=`samtools view -c  ${base}.unclassified.bam`
         echo "reads in filtered bam"
         echo \$readsmapped
@@ -855,7 +855,7 @@ container "vpeddu/nanopore_metagenomics"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
-    tuple val(base), file(unclassified_fastq), file(depleted_fastq)
+    tuple val(base), file(unclassified_fastq), file(depleted_fastq), file(fungi_unclassified)
     file filter_unassigned_reads
     //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 

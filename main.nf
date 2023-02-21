@@ -117,12 +117,6 @@ Amrfinder_db = Channel
 
 
 
-// set defaults
-MINIMAPSPLICE = false 
-NANOFILT_MAXLENGTH = 20000
-NANOFILT_MINLENGTH = 100
-MINIMAP2_RETRIES = 10 
-NANOFILT_QUALITY = 15 
 // Workflow logic
 workflow{
     // Nanopore workflow (default)
@@ -283,6 +277,8 @@ workflow{
             Collect_unassigned_results(
                 Minimap2_nanopore.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }.join(
                 Host_depletion_nanopore.out[0]
+                ).join( 
+                    Align_fungi.out[1]
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )}
