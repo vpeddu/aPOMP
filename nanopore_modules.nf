@@ -867,7 +867,7 @@ script:
     """
     #!/bin/bash
 
-    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
+    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt 
     python3 ${filter_unassigned_reads}
     /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 

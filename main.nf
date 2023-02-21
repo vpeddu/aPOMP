@@ -274,7 +274,8 @@ workflow{
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
-            Align_fungi.out[1].view()
+            Minimap2_nanopore.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }.join(
+                Host_depletion_nanopore.out[0]).view()
             Collect_unassigned_results(
                 Minimap2_nanopore.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }.join(
                 Host_depletion_nanopore.out[0]),
