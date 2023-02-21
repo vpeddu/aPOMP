@@ -277,8 +277,7 @@ workflow{
             Collect_unassigned_results(
                 Minimap2_nanopore.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }.join(
                 Host_depletion_nanopore.out[0]
-                ).groupTuple().join( 
-                    Align_fungi.out[1]
+                ).join( Align_fungi.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")
             )}
