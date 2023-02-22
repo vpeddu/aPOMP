@@ -56,7 +56,11 @@ for record in bamfile:
         # store sequence (probably don't need this)
         # store taxid in a list as taxopy object
         # this is necessary for LCA later on 
-        read_dict[record.query_name].taxid = [record_tid]
+        # if the record hits a plasmid, assign it the plasmid taxid 36549 not the species taxid
+        if acc_num.startswith('p_'):
+            read_dict[record.query_name].taxid = [36549]
+        else:
+            read_dict[record.query_name].taxid = [record_tid]
         # read has been seen (probably don't need this)
         read_dict[record.query_name].seen = True
         # number of bases overlapping with reference
@@ -69,7 +73,10 @@ for record in bamfile:
         # store mapq
         read_dict[record.query_name].mapq.append(record.query_qualities)
         # append this taxid to the read taxid list as taxopy object
-        read_dict[record.query_name].taxid.append(record_tid)
+        if acc_num.startswith('p_'):
+            read_dict[record.query_name].taxid.append(36549)
+        else:
+            read_dict[record.query_name].taxid.append(record_tid)
         # append length of alignment 
         read_dict[record.query_name].alen.append(record.query_alignment_length)
 print('done creating read dictionary')
