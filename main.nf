@@ -54,8 +54,7 @@ params.METAFLYE = false
 params.ALIGN_ALL_FUNGI = false
 params.LEAVE_TRNA_IN = false
 params.REALTIME = false
-// default value
-params.KRAKEN2_THRESHOLD = 20
+
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -161,7 +160,8 @@ workflow{
             Host_depletion_nanopore(
                 Low_complexity_filtering_nanopore.out[0],
                 file("${params.INDEX}/minimap2_host/hg38.fa"),
-                file("${params.INDEX}/ribosome_trna/all_trna.fa")
+                file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+                file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         }
         // if --LOW_COMPLEXITY_FILTER_NANOPORE not specified, run host depletion on nanofilt output 
