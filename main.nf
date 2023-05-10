@@ -207,7 +207,7 @@ workflow{
                 file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json"),
                 file("${params.INDEX}/taxdump/taxa.sqlite"),
                 file("${baseDir}/bin/sourmash_to_taxonomy.py"),
-                val("${params.PREFILTER_THRESHOLD}")
+                params.PREFILTER_THRESHOLD
             )
 
             }
@@ -219,7 +219,7 @@ workflow{
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
                 file("${baseDir}/bin/fungi_genera_list.txt"),
-                val("${params.PREFILTER_THRESHOLD}")
+                params.PREFILTER_THRESHOLD
                 ) 
             } else { 
             Extract_db(
