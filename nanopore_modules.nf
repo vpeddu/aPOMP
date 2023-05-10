@@ -223,6 +223,8 @@ else
 
             samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.host_filtered.fastq.gz
             samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+            
+            touch ${base}.host_mapped.bam
 
         minimap2 \
             -ax asm5 \
