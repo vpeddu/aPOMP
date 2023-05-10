@@ -177,7 +177,7 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 
 
     minimap2 \
-        -ax map-ont \
+        -ax asm5 \
         -t "\$((${task.cpus}-2))" \
         -2 \
         ${minimap2_host_index} \
@@ -205,45 +205,81 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 // if filtering out tRNA and other stuff (default)
 else 
     {
-    """
-    #!/bin/bash
-    #logging
-    echo "ls of directory" 
-    ls -lah 
-
-    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
-
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${ribosome_trna} \
-        ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
-
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
-        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
-
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${minimap2_host_index} \
-        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
-
-    minimap2 \
-        -ax asm5 \
-        -t ${task.cpus} \
-        --sam-hit-only \
-        ${minimap2_plasmid_db} \
-        ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
-
-    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
-
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-
+        if ("${params.SKIP_HOST_DEPLETION}" == true) { 
 """
-    }
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
+
+        #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+        minimap2 \
+            -ax map-ont \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${ribosome_trna} \
+            ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+
+            samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.host_filtered.fastq.gz
+            samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+
+        minimap2 \
+            -ax asm5 \
+            -t ${task.cpus} \
+            --sam-hit-only \
+            ${minimap2_plasmid_db} \
+            ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+
+        samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+        /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+
+    """
+            }
+        else{ 
+"""
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
+
+        #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+        minimap2 \
+            -ax map-ont \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${ribosome_trna} \
+            ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+
+            samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
+            samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+
+        # require 95 percent match to human to deplete
+        minimap2 \
+            -ax asm5 \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${minimap2_host_index} \
+            ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
+            samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+
+        minimap2 \
+            -ax asm5 \
+            -t ${task.cpus} \
+            --sam-hit-only \
+            ${minimap2_plasmid_db} \
+            ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+
+        samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+        /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+
+    """
+        }
+        
+        }
 }
 
 // idenitfy resistant plasmids
