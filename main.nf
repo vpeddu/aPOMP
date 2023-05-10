@@ -226,7 +226,8 @@ workflow{
                 Sourmash_prefilter_nanopore.out,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
-                file("${baseDir}/bin/fungi_genera_list.txt")
+                file("${baseDir}/bin/fungi_genera_list.txt"),
+                params.PREFILTER_THRESHOLD
                 ) 
             }
             // run Minimap2 on each individual genus 
