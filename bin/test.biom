@@ -1,0 +1,17 @@
+Num samples: 2
+Num observations: 2,094
+Total count: 95,080,749
+Table density (fraction of non-zero values): 1.000
+
+Counts/sample summary:
+ Min: -71,329.373
+ Max: 95,152,079.000
+ Median: 47,540,374.814
+ Mean: 47,540,374.814
+ Std. dev.: 47,611,704.186
+ Sample Metadata Categories: None provided
+ Observation Metadata Categories: taxonomy
+
+Counts/sample detail:
+e-value: -71,329.373
+abundance: 95,152,079.000

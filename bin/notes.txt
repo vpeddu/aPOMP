@@ -1,0 +1,5 @@
+change all gzip to pigz 
+
+make flye check for size of bases before trying assembly 
+
+look at bamtools for merging bams 

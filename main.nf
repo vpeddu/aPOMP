@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
-
+nextflow.preview.recursion=true
 def helpMessage() {
     log.info"""
 aPOMP: A portable, open-source metagenomics pipeline.
@@ -44,25 +44,34 @@ if (params.help){
 }
 
 //Nanopore mode on by default 
-params.NANOPORE = true
+//params.NANOPORE = true
 //Minimap2 -ax splice off by default 
 //Eggnog off by default 
 params.EGGNOG = false
 //Flye assembly off be default
 params.METAFLYE = false
 
+params.ALIGN_ALL_FUNGI = false
+params.LEAVE_TRNA_IN = false
+params.REALTIME = false
+
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
-include { Host_depletion } from './illumina_modules.nf'
+include { Host_depletion_illumina } from './illumina_modules.nf'
 include { Kraken_prefilter } from './illumina_modules.nf'
 include { Extract_db } from './illumina_modules.nf'
 include { Minimap2_illumina } from './illumina_modules.nf'
 include { Sam_conversion } from './illumina_modules.nf'
 include { Classify } from './illumina_modules.nf'
 include { Write_report } from './illumina_modules.nf'
+include { Write_report_RT } from './nanopore_modules.nf'
+include { Accumulate_reports } from './nanopore_modules.nf'
+include { Sourmash_prefilter_nanopore } from './nanopore_modules.nf'
 
+include { Combine_fq } from './nanopore_modules.nf'
 include { NanoFilt } from './nanopore_modules.nf'
+include { NanoFilt_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
@@ -70,7 +79,10 @@ include { Minimap2_nanopore } from './nanopore_modules.nf'
 include { Identify_resistant_plasmids } from './nanopore_modules.nf'
 include { Collect_alignment_results } from './nanopore_modules.nf'
 include { Collect_unassigned_results } from './nanopore_modules.nf'
+include { Collect_unassigned_results_illumina } from './illumina_modules.nf'
 include { MetaFlye } from './nanopore_modules.nf'
+include { Extract_fungi } from './nanopore_modules.nf'
+include { Align_fungi } from './nanopore_modules.nf'
 include { Kraken_prefilter_nanopore } from './nanopore_modules.nf'
 include { Diamond_translated_alignment_unclassified } from './nanopore_modules.nf'
 include { Cluster_unclassified_reads } from './nanopore_modules.nf'
@@ -82,7 +94,7 @@ include { Write_report_orthologs } from './illumina_modules.nf'
 
 // Define input channels 
 Star_index_Ch = Channel
-            .fromPath("${params.INDEX}/star_host/")
+            .fromPath("${params.INDEX}/star_host/bowtie2_index/")
 
 Kraken2_db = Channel
             .fromPath("${params.INDEX}/kraken2_db/")
@@ -102,6 +114,8 @@ Eggnog_db = Channel
 Amrfinder_db = Channel
             .fromPath("${params.INDEX}/plasmid_db/amrfinder/")
 
+
+
 // Workflow logic
 workflow{
     // Nanopore workflow (default)
@@ -109,13 +123,30 @@ workflow{
         // Create input tuple for each fastq in input folder
         //tuple is val(base),file(fastq)
         //basename is anything before ".fastq.gz"
-        input_read_Ch = Channel
-            .fromPath("${params.INPUT_FOLDER}*.fastq.gz")
+
+        if ( params.REALTIME ) {
+            params.KRAKEN2_THRESHOLD = 1
+            params.NANOFILT_QUALITY = 10
+            input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
+            .map { it -> file(it) }
+//            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
+            .buffer( size: 4, remainder: true)
+            input_read_Ch.view()
+            Combine_fq(
+                input_read_Ch
+            )
+            NanoFilt(
+                Combine_fq.out[0]
+                )
+        } else { input_read_Ch = Channel
+            .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         //run nanofilt
-        NanoFilt(
+            NanoFilt(
             input_read_Ch
-        )
+                )
+        }
+
         //run nanoplot on nanofilt output
         NanoPlot (
             NanoFilt.out[0]
@@ -129,7 +160,8 @@ workflow{
             Host_depletion_nanopore(
                 Low_complexity_filtering_nanopore.out[0],
                 file("${params.INDEX}/minimap2_host/hg38.fa"),
-                file("${params.INDEX}/ribosome_trna/all_trna.fa")
+                file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+                file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         }
         // if --LOW_COMPLEXITY_FILTER_NANOPORE not specified, run host depletion on nanofilt output 
@@ -163,36 +195,93 @@ workflow{
         }
         // Run kraken2 prefiltering 
         else{
+            if ( params.KRAKEN_PREFILTER ) { 
             Kraken_prefilter_nanopore(
                 Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
+            } else { 
+            Sourmash_prefilter_nanopore( 
+                Host_depletion_nanopore.out[0],
+                file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json"),
+                file("${params.INDEX}/taxdump/taxa.sqlite"),
+                file("${baseDir}/bin/sourmash_to_taxonomy.py"),
+            )
+
+            }
         }
             // extract databases from NT index 
+            if ( params.KRAKEN_PREFILTER ) { 
             Extract_db(
                 Kraken_prefilter_nanopore.out,
                 NT_db.collect(),
-                file("${baseDir}/bin/extract_seqs.py")
-                )
+                file("${baseDir}/bin/extract_seqs.py"),
+                file("${baseDir}/bin/fungi_genera_list.txt")
+                ) 
+            } else { 
+            Extract_db(
+                Sourmash_prefilter_nanopore.out,
+                NT_db.collect(),
+                file("${baseDir}/bin/extract_seqs.py"),
+                file("${baseDir}/bin/fungi_genera_list.txt")
+                ) 
+            }
             // run Minimap2 on each individual genus 
             Minimap2_nanopore( 
-                    Extract_db.out.flatten().map{
-                        it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
+                Extract_db.out.flatten().map{
+                    it -> [it.name.split("__")[0], it]}.combine(Host_depletion_nanopore.out[0], by:0)
                 )
             // Collection hold for each sample's Minimap2 aligned results
             // BAMs are merged at this step for each sample 
-            Collect_alignment_results(
-                Minimap2_nanopore.out[0].groupTuple()
+
+            if ( params.ALIGN_ALL_FUNGI ) { 
+                Extract_fungi(
+                    file("${baseDir}/bin/fungi_genera_list.txt"),
+                    NT_db.collect()
+                )
+                Align_fungi( 
+                    Host_depletion_nanopore.out[0],
+                    Extract_fungi.out[0]
+                )
+                // fungiCh = Channel( 
+                //     Minimap2_nanopore.out[0].mix(Align_fungi.out[0])
+                // ) 
+                Collect_alignment_results(
+                Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).groupTuple().join(
+                Host_depletion_nanopore.out[3]
+                )
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
             Collect_unassigned_results(
-                Minimap2_nanopore.out[1].groupTuple().join(
+                Minimap2_nanopore.out[1].mix(Align_fungi.out[1]).groupTuple().join(
                 Host_depletion_nanopore.out[0]
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")
-
             )
+            }
+            else{
+            //TestCh = Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }
+            //TestCh.view()
+            
+                Collect_alignment_results(
+                Minimap2_nanopore.out[0].map{ key, bam, bai -> tuple( groupKey(key, key.size()), bam, bai ) }.join(
+                Host_depletion_nanopore.out[3]
+
+                //Minimap2_nanopore.out[0].groupTuple().join(
+                //Host_depletion_nanopore.out[3]
+                )
+            )
+            // Collection hold for each sample's Minimap2 unaligned results
+            // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
+            Collect_unassigned_results(
+                Minimap2_nanopore.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }.join(
+                Host_depletion_nanopore.out[0]),
+                // ).join( Align_fungi.out[1].map{ key, unclassified -> tuple( groupKey(key, key.size()), unclassified ) }
+                // ),
+                file("${baseDir}/bin/filter_unassigned_reads.py")
+            )}
+
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search
             if (params.EGGNOG){
                 Cluster_unclassified_reads(
@@ -219,18 +308,37 @@ workflow{
                 )
             }
             // run LCA for each sample 
+
             Classify ( 
                 Collect_alignment_results.out.join(
-                Collect_unassigned_results.out).groupTuple().join(Host_depletion_nanopore.out[3]), 
+                Collect_unassigned_results.out).map{ key, mergedbam, mergedbambai, mergedunclassifiedbam -> tuple( groupKey(key, key.size()), mergedbam, mergedbambai, mergedunclassifiedbam  ) }, 
                 Taxdump.collect(),
                 file("${baseDir}/bin/classify_reads.py"),
                 file("${params.INDEX}/accession2taxid/")
                 )
             // write pavian report for each sample 
+            if ( params.REALTIME ) { 
+            Accumulate_reports.scan ( 
+                Classify.out[1] 
+                ) 
+            Write_report_RT( 
+                Accumulate_reports.out,
+                Krakenuniq_db.collect(),
+                file("${baseDir}/bin/merge_realtime_prekraken.py")
+                )
+                //Krakenuniq_db.collect() //,
+                //file("${baseDir}/bin/merge_rt_reports.py")
+                
+                // Write_report_RT( 
+                //     Channel.watchPath("${params.OUTPUT}/Classification/**.prekraken.tsv"),
+                //     Krakenuniq_db.collect()
+                // )
+            } else { 
             Write_report(
                 Classify.out[0],
                 Krakenuniq_db.collect()
             )
+            }
     }
     else if (params.ILLUMINA) {
         // Workflow assumes reads are paired 
@@ -252,27 +360,43 @@ workflow{
                 Trimming_FastP.out[0],
                 )
         }
-        Host_depletion(
+        Host_depletion_illumina(
             Low_complexity_filtering.out[0],
-            Star_index_Ch.collect()
+            Star_index_Ch.collect(),
+            file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+            file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         Kraken_prefilter(
-            Host_depletion.out[2],
+            Host_depletion_illumina.out[0],
             Kraken2_db.collect()
             )
         Extract_db(
             Kraken_prefilter.out,
             NT_db.collect(),
-            file("${baseDir}/bin/extract_seqs.py")
+            file("${baseDir}/bin/extract_seqs.py"),
+            file("${baseDir}/bin/fungi_genera_list.txt")
             )
         Minimap2_illumina( 
-            Host_depletion.out[2].groupTuple(size:1).join(
-                Extract_db.out) 
+            Extract_db.out.flatten().map{
+                it -> [it.name.split("__")[0], it]}.combine(Host_depletion_illumina.out[0], by:0)
             )
+        Collect_alignment_results(
+            Minimap2_illumina.out[0].groupTuple().join(
+            Host_depletion_illumina.out[3]
+            )
+        )
+            // Collection hold for each sample's Minimap2 unaligned results
+            // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
+        Collect_unassigned_results_illumina(
+            Minimap2_illumina.out[1].groupTuple().join(
+            Host_depletion_illumina.out[0]
+            ),
+            file("${baseDir}/bin/filter_unassigned_reads.py")
+            )
+            // run LCA for each sample 
         Classify ( 
-            // works but can clean up groupTuple later
-            Minimap2_illumina.out[0].groupTuple(size:1).join(
-            Minimap2_illumina.out[1]), 
+            Collect_alignment_results.out.join(
+            Collect_unassigned_results_illumina.out).groupTuple(), 
             Taxdump.collect(),
             file("${baseDir}/bin/classify_reads.py"),
             file("${params.INDEX}/accession2taxid/")
