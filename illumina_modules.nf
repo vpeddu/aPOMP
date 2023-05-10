@@ -188,7 +188,8 @@ input:
     tuple val(base), file(report)
     file fastadb
     file extract_script
-    file fungi_genera_list
+    file fungi_genera_list,
+    val prefilter_threshold
 output: 
     file("${base}__*")
 
@@ -212,7 +213,7 @@ if (params.ALIGN_ALL_FUNGI == true) {
         cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
 
         #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${prefilter_threshold}' | cut -f5`
         do
         echo adding \$i
         if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then

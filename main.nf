@@ -54,6 +54,7 @@ params.METAFLYE = false
 params.ALIGN_ALL_FUNGI = false
 params.LEAVE_TRNA_IN = false
 params.REALTIME = false
+params.PREFILTER_THRESHOLD = 10
 
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
@@ -125,7 +126,7 @@ workflow{
         //basename is anything before ".fastq.gz"
 
         if ( params.REALTIME ) {
-            params.KRAKEN2_THRESHOLD = 1
+            params.PREFILTER_THRESHOLD = 1
             params.NANOFILT_QUALITY = 10
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> file(it) }
@@ -206,6 +207,7 @@ workflow{
                 file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json"),
                 file("${params.INDEX}/taxdump/taxa.sqlite"),
                 file("${baseDir}/bin/sourmash_to_taxonomy.py"),
+                val("${params.PREFILTER_THRESHOLD}")
             )
 
             }
@@ -216,7 +218,8 @@ workflow{
                 Kraken_prefilter_nanopore.out,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
-                file("${baseDir}/bin/fungi_genera_list.txt")
+                file("${baseDir}/bin/fungi_genera_list.txt"),
+                val("${params.PREFILTER_THRESHOLD}")
                 ) 
             } else { 
             Extract_db(
