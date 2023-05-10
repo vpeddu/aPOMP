@@ -73,6 +73,7 @@ for record in bamfile:
         # store mapq
         read_dict[record.query_name].mapq.append(record.query_qualities)
         # append this taxid to the read taxid list as taxopy object
+        # this taxid is plasmid
         if acc_num.startswith('p_'):
             read_dict[record.query_name].taxid.append(36549)
         else:
@@ -98,6 +99,7 @@ def most_frequent(List):
     
 # look into collections.defaultdict
 assignments = {}
+taxid_to_read = {}
 not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():
     taxopy_read_list = []
@@ -111,6 +113,10 @@ for read in read_dict.keys():
             assignments[lca] = 1
         else: 
             assignments[lca] += 1
+        if lca not in taxid_to_read: 
+            taxid_to_read[lca] = [read_dict[read].id]
+        else: 
+            taxid_to_read[lca].append(read_dict[read].id)
     # if there are multiple hits for a read, run taxopy LCA weighted by alignment lengths
     else:
         lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())   
@@ -119,6 +125,10 @@ for read in read_dict.keys():
             assignments[lca] = 1
         else: 
             assignments[lca] += 1
+        if lca not in taxid_to_read: 
+            taxid_to_read[lca] = [read_dict[read].id]
+        else: 
+            taxid_to_read[lca].append(read_dict[read].id)
 
 # write the number of hits per taxa to this temp file for krakenuniq-report to turn into a pavian report later on 
 outfilename = sys.argv[2] + '.prekraken.tsv'
@@ -127,6 +137,12 @@ with open(outfilename, 'w') as prekraken:
     for taxa in assignments.keys():
         line = str(taxa) + '\t' + str(assignments[taxa])
         prekraken.write("%s\n" % line)
+
+with open('taxid_to_read.csv', 'w') as prekraken:
+    for taxa in taxid_to_read.keys():
+        line = str(taxa) + '\t' + str(taxid_to_read[taxa])
+        prekraken.write("%s\n" % line)
+
 
 # For testing
 #from IPython import embed; embed()
