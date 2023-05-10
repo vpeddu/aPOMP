@@ -161,7 +161,7 @@ input:
 output: 
     tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
-    file "${base}.trna.mapped.bam"
+    file "${base}.trna.mapped.fastq.gz"
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
 
 script:
