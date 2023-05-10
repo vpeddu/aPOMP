@@ -188,7 +188,7 @@ input:
     tuple val(base), file(report)
     file fastadb
     file extract_script
-    file fungi_genera_list,
+    file fungi_genera_list
     val prefilter_threshold
 output: 
     file("${base}__*")
