@@ -515,7 +515,7 @@ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
 
-ls *.reads | parallel -j 8 "samtools view -Sb -N {}/*read_ids.txt ${bam} > ${base}.{}.bam"
+find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
 """
 }
 
