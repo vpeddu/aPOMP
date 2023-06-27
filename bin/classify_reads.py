@@ -156,7 +156,7 @@ if sys.argv[3] == 'save':
             os.makedirs(str(taxa))
         tmp_singlebam_filename = str(taxa) + '/' + str(taxa) + '.read_ids.txt'
         with open(tmp_singlebam_filename, 'w') as read_id_write:
-            for line in taxid_to_read[str(taxa)]:
+            for line in taxid_to_read[taxa]:
                 read_id_write.write(f"{line}\n")
         
 #    print(assignments)
