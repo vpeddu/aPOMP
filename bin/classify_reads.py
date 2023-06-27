@@ -1,3 +1,4 @@
+import os
 import sys
 import math
 import pysam
@@ -151,7 +152,7 @@ if sys.argv[3] == 'save':
 	bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
 	for record in bamfile:
 		if record.query_name in read_id_to_taxid:
-			if not os.path.exists(str(read_id_to_taxid[record.query_name]))
+			if not os.path.exists(str(read_id_to_taxid[record.query_name])):
 				os.makedirs(str(read_id_to_taxid[record.query_name]))
 			tmp_singlebam_filename = str(read_id_to_taxid[record.query_name]) + '/' + str(read_id_to_taxid[record.query_name]) + '.' + str(record.query_name) + '.singlebam.bam'
 			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, template= bamfile, mode= 'wb')
