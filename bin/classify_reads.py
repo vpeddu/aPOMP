@@ -157,7 +157,8 @@ if sys.argv[3] == 'save':
 			tmp_singlebam_filename = str(read_id_to_taxid[record.query_name]) + '/' + str(read_id_to_taxid[record.query_name]) + '.' + str(record.query_name) + '.singlebam.bam'
 			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, template= bamfile, mode= 'wb')
 			tmp_sb_out.write(record)
-
+			tmp_sb_out.close()
+bamfile.close()
 #    print(assignments)
 #    print(taxid_to_read)
 
