@@ -151,19 +151,14 @@ with open('taxid_to_read.csv', 'w') as prekraken:
         prekraken.write("%s\n" % line)
 
 if sys.argv[3] == 'save':
-	bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
-	for record in bamfile:
-		if record.query_name in read_id_to_taxid:
-			if not os.path.exists(str(read_id_to_taxid[record.query_name])):
-				os.makedirs(str(read_id_to_taxid[record.query_name]))
-			lca = str(read_id_to_taxid[record.query_name])
-			tmp_singlebam_filename = lca + '/' + lca + '.' +  str(record.query_name) + '.' + str(''.join(random.choices(string.ascii_letters, k=10))) + '.singlebam.bam'
-			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, 
-                                    template = bamfile,
-                                    mode= 'wb')
-			tmp_sb_out.write(record)
-			tmp_sb_out.close()
-bamfile.close()
+    for taxa in taxid_to_read.keys()
+        if not os.path.exists(str(read_id_to_taxid[record.query_name])):
+            os.makedirs(str(read_id_to_taxid[record.query_name]))
+        tmp_singlebam_filename = taxa + '/' + taxa + '.read_ids.txt'
+        with open(tmp_singlebam_filename, 'w') as read_id_write:
+            for line in taxid_to_read[taxa]:
+                read_id_write.write(f"{line}\n")
+        
 #    print(assignments)
 #    print(taxid_to_read)
 
