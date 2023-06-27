@@ -152,13 +152,14 @@ with open('taxid_to_read.csv', 'w') as prekraken:
 
 if sys.argv[3] == 'save':
     for taxa in taxid_to_read.keys():
-        if not os.path.exists(str(taxa)):
-            os.makedirs(str(taxa))
-        tmp_singlebam_filename = str(taxa) + '/' + str(taxa) + '.read_ids.txt'
+        dirname = str(taxa) + '.reads'
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        tmp_singlebam_filename = dirname + '/' + str(taxa) + '.read_ids.txt'
         with open(tmp_singlebam_filename, 'w') as read_id_write:
             for line in taxid_to_read[taxa]:
                 read_id_write.write(f"{line}\n")
-        
+
 #    print(assignments)
 #    print(taxid_to_read)
 
