@@ -3,6 +3,8 @@ import sys
 import math
 import pysam
 import numpy
+import string
+import random
 import taxopy
 import logging
 
@@ -138,15 +140,15 @@ for read in read_dict.keys():
 # write the number of hits per taxa to this temp file for krakenuniq-report to turn into a pavian report later on
 outfilename = sys.argv[2] + '.prekraken.tsv'
 
-#with open(outfilename, 'w') as prekraken:
-#    for taxa in assignments.keys():
-#        line = str(taxa) + '\t' + str(assignments[taxa])
-#        prekraken.write("%s\n" % line)
+with open(outfilename, 'w') as prekraken:
+    for taxa in assignments.keys():
+        line = str(taxa) + '\t' + str(assignments[taxa])
+        prekraken.write("%s\n" % line)
 
-#with open('taxid_to_read.csv', 'w') as prekraken:
-#    for taxa in taxid_to_read.keys():
-#        line = str(taxa) + '\t' + str(taxid_to_read[taxa])
-#        prekraken.write("%s\n" % line)
+with open('taxid_to_read.csv', 'w') as prekraken:
+    for taxa in taxid_to_read.keys():
+        line = str(taxa) + '\t' + str(taxid_to_read[taxa])
+        prekraken.write("%s\n" % line)
 
 if sys.argv[3] == 'save':
 	bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
@@ -154,8 +156,11 @@ if sys.argv[3] == 'save':
 		if record.query_name in read_id_to_taxid:
 			if not os.path.exists(str(read_id_to_taxid[record.query_name])):
 				os.makedirs(str(read_id_to_taxid[record.query_name]))
-			tmp_singlebam_filename = str(read_id_to_taxid[record.query_name]) + '/' + str(read_id_to_taxid[record.query_name]) + '.' + str(record.query_name) + '.singlebam.bam'
-			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, mode= 'wb')
+			lca = str(read_id_to_taxid[record.query_name])
+			tmp_singlebam_filename = lca + '/' + lca + '.' +  +str(record.query_name) + '.singlebam.bam'
+			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename.join(random.choices(string.ascii_letters, k=10)), 
+                                    template = bamfile,
+                                    mode= 'wb')
 			tmp_sb_out.write(record)
 			tmp_sb_out.close()
 bamfile.close()
