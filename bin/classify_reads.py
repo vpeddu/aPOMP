@@ -157,7 +157,7 @@ if sys.argv[3] == 'save':
 			if not os.path.exists(str(read_id_to_taxid[record.query_name])):
 				os.makedirs(str(read_id_to_taxid[record.query_name]))
 			lca = str(read_id_to_taxid[record.query_name])
-			tmp_singlebam_filename = lca + '/' + lca + '.' +  str(record.query_name) + '.' + random.choices(string.ascii_letters, k=10) + '.singlebam.bam'
+			tmp_singlebam_filename = lca + '/' + lca + '.' +  str(record.query_name) + '.' + str(''.join(random.choices(string.ascii_letters, k=10))) + '.singlebam.bam'
 			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, 
                                     template = bamfile,
                                     mode= 'wb')
