@@ -151,7 +151,7 @@ with open('taxid_to_read.csv', 'w') as prekraken:
         prekraken.write("%s\n" % line)
 
 if sys.argv[3] == 'save':
-    for taxa in taxid_to_read.keys()
+    for taxa in taxid_to_read.keys():
         if not os.path.exists(str(read_id_to_taxid[record.query_name])):
             os.makedirs(str(read_id_to_taxid[record.query_name]))
         tmp_singlebam_filename = taxa + '/' + taxa + '.read_ids.txt'
