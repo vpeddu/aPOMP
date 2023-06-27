@@ -154,9 +154,9 @@ if sys.argv[3] == 'save':
     for taxa in taxid_to_read.keys():
         if not os.path.exists(str(read_id_to_taxid[record.query_name])):
             os.makedirs(str(read_id_to_taxid[record.query_name]))
-        tmp_singlebam_filename = taxa + '/' + taxa + '.read_ids.txt'
+        tmp_singlebam_filename = str(taxa) + '/' + str(taxa) + '.read_ids.txt'
         with open(tmp_singlebam_filename, 'w') as read_id_write:
-            for line in taxid_to_read[taxa]:
+            for line in taxid_to_read[str(taxa)]:
                 read_id_write.write(f"{line}\n")
         
 #    print(assignments)
