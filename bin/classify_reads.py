@@ -29,15 +29,15 @@ print('done reading in bamfile')
 # initialize dictionary to hold each read object
 read_dict = {}
 
-not_in_accs_filename = sys.argv[2] + '.accession_DNE.txt' 
-not_in_accs_file = open(not_in_accs_filename, 'w')
+not_in_accs_filename = sys.argv[2] + '.accession_DNE.txt'
+#not_in_accs_file = open(not_in_accs_filename, 'w')
 
 # load taxdb
 #taxdb = taxopy.TaxDb(nodes_dmp="nodes.dmp", names_dmp="names.dmp")
 taxdb = taxopy.TaxDb(nodes_dmp="nodes.dmp", names_dmp="names.dmp", merged_dmp="merged.dmp", keep_files=True)
 # Loop through reach record in the bam and store info from each read
 # Same read may appear multiple times in a bam since it can hit multiple references
-for record in bamfile: 
+for record in bamfile:
     # accession number is first split in the reference name
     acc_num = record.reference_name.split('|')[0]
     # Taxid is second split in reference name
@@ -55,7 +55,7 @@ for record in bamfile:
         read_dict[record.query_name].mapq = [record.query_qualities]
         # store sequence (probably don't need this)
         # store taxid in a list as taxopy object
-        # this is necessary for LCA later on 
+        # this is necessary for LCA later on
         # if the record hits a plasmid, assign it the plasmid taxid 36549 not the species taxid
         if acc_num.startswith('p_'):
             read_dict[record.query_name].taxid = [36549]
@@ -66,8 +66,8 @@ for record in bamfile:
         # number of bases overlapping with reference
         read_dict[record.query_name].alen = [record.query_alignment_length]
         read_dict[record.query_name].qlen = record.query_length
-    # if read aready exists in read dictionary 
-    else: 
+    # if read aready exists in read dictionary
+    else:
         # append alignment scores
         read_dict[record.query_name].ascore.append(record.get_tag("AS"))
         # store mapq
@@ -78,7 +78,7 @@ for record in bamfile:
             read_dict[record.query_name].taxid.append(36549)
         else:
             read_dict[record.query_name].taxid.append(record_tid)
-        # append length of alignment 
+        # append length of alignment
         read_dict[record.query_name].alen.append(record.query_alignment_length)
 print('done creating read dictionary')
 
@@ -96,14 +96,15 @@ for read in read_dict.keys():
 
 def most_frequent(List):
     return max(set(List), key = List.count)
-    
+
 # look into collections.defaultdict
 assignments = {}
 taxid_to_read = {}
-not_in_accs_file.writelines('failed LCA: \n')
+read_id_to_taxid = {}
+#not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():
     taxopy_read_list = []
-    for tid in read_dict[read].taxid: 
+    for tid in read_dict[read].taxid:
         taxopy_read_list.append(taxopy.Taxon(int(tid),taxdb))
     # if there is only one hit for a read
     if len(taxopy_read_list) <= 1:
@@ -111,38 +112,53 @@ for read in read_dict.keys():
         #print(lca)
         if lca not in assignments:
             assignments[lca] = 1
-        else: 
+        else:
             assignments[lca] += 1
-        if lca not in taxid_to_read: 
+        if lca not in taxid_to_read:
             taxid_to_read[lca] = [read_dict[read].id]
-        else: 
+        else:
             taxid_to_read[lca].append(read_dict[read].id)
+        if sys.argv[3] == 'save':
+            read_id_to_taxid[read_dict[read].id] = lca
     # if there are multiple hits for a read, run taxopy LCA weighted by alignment lengths
     else:
-        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())   
+        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
         lca = lca_lineage.taxid
         if lca not in assignments:
             assignments[lca] = 1
-        else: 
+        else:
             assignments[lca] += 1
-        if lca not in taxid_to_read: 
+        if lca not in taxid_to_read:
             taxid_to_read[lca] = [read_dict[read].id]
-        else: 
+        else:
             taxid_to_read[lca].append(read_dict[read].id)
-
-# write the number of hits per taxa to this temp file for krakenuniq-report to turn into a pavian report later on 
+        if sys.argv[3] == 'save':
+            read_id_to_taxid[read_dict[read].id] = lca
+# write the number of hits per taxa to this temp file for krakenuniq-report to turn into a pavian report later on
 outfilename = sys.argv[2] + '.prekraken.tsv'
 
-with open(outfilename, 'w') as prekraken:
-    for taxa in assignments.keys():
-        line = str(taxa) + '\t' + str(assignments[taxa])
-        prekraken.write("%s\n" % line)
+#with open(outfilename, 'w') as prekraken:
+#    for taxa in assignments.keys():
+#        line = str(taxa) + '\t' + str(assignments[taxa])
+#        prekraken.write("%s\n" % line)
 
-with open('taxid_to_read.csv', 'w') as prekraken:
-    for taxa in taxid_to_read.keys():
-        line = str(taxa) + '\t' + str(taxid_to_read[taxa])
-        prekraken.write("%s\n" % line)
+#with open('taxid_to_read.csv', 'w') as prekraken:
+#    for taxa in taxid_to_read.keys():
+#        line = str(taxa) + '\t' + str(taxid_to_read[taxa])
+#        prekraken.write("%s\n" % line)
 
+if sys.argv[3] == 'save':
+	bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
+	for record in bamfile:
+		if record.query_name in read_id_to_taxid:
+			if not os.path.exists(str(read_id_to_taxid[record.query_name]))
+				os.makedirs(str(read_id_to_taxid[record.query_name]))
+			tmp_singlebam_filename = str(read_id_to_taxid[record.query_name]) + '/' + str(read_id_to_taxid[record.query_name]) + '.' + str(record.query_name) + '.singlebam.bam'
+			tmp_sb_out = pysam.AlignmentFile(tmp_singlebam_filename, template= bamfile, mode= 'wb')
+			tmp_sb_out.write(record)
+
+#    print(assignments)
+#    print(taxid_to_read)
 
 # For testing
 #from IPython import embed; embed()
