@@ -553,7 +553,7 @@ python3.7 ${classify_script} ${base}.emapper.annotations ${base}
 // write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
+container 'vpeddu/nanopore_metagenomics:latest'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -570,7 +570,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-krakenuniq-report --db ${krakenuniqdb} \
+/usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
 ${prekraken} > ${base}.final.report.tsv
 """
