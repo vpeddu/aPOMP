@@ -477,7 +477,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 // run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'vpeddu/nanopore_metagenomics:latest'
+container 'vpeddu/nanopore_metagenomics:v01'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
