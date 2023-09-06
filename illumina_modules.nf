@@ -504,7 +504,7 @@ ls -lah
 cp taxdump/*.dmp .
 
 # run LCA script
-python3.7 ${classify_script} ${bam} ${base} 'save'
+python3.7 ${classify_script} ${bam} ${base} 'unsave'
 
 # counting unassigned reads to add back into final report
 #echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
