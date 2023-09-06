@@ -25,7 +25,15 @@ class read():
         self.weights = ''
         self.refname = ''
         self.reflen = ''
+        
 
+def ref_longer_than_read(al, ql ): 
+    proportion_read_used =  al / ql
+    return proportion_read_used
+        
+def read_longer_than_ref(al, rl):  
+    proportion_read_used = al / rl
+    return proportion_read_used
 
 # read in bamfile
 bamfile = pysam.AlignmentFile(sys.argv[1], "rb")
@@ -96,17 +104,32 @@ print('done creating read dictionary')
 # for each read, if there is more than one hit per read, weight the top 10 alignments by the length of their aligned sequence
 # used later on to weight the LCA to give spurious alignments lower priority
 for read in read_dict.keys():
-    if len(read_dict[read].alen) > 1:
-        indexed_overlap_sort = numpy.argsort(read_dict[read].alen) # get sort positions
-        read_dict[read].alen = numpy.array(read_dict[read].alen) # create numpy array of aligned lengths
-        top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards 
-        taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
-        read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
-        read_dict[read].weights = top_10 # assign taxids to the weights
+    if True: 
+        if len(read_dict[read].alen) > 1: 
+            for aln in range(len(read_dict[read].reflen)):
+                weights_list = []
+                if read_dict[read].qlen > read_dict[read].reflen[aln]: 
+                    weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
+                else: 
+                    weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
+                    
+            indexed_overlap_sort = numpy.argsort(weights_list) # get sort positions
+            indexed_overlap_sort = numpy.array(indexed_overlap_sort) # create numpy array of aligned lengths
+            top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards 
+            taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
+            read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
+            read_dict[read].weights = top_10 # assign taxids to the weights
 
 
-def most_frequent(List):
-    return max(set(List), key = List.count)
+    else: 
+        
+        if len(read_dict[read].alen) > 1:
+            indexed_overlap_sort = numpy.argsort(read_dict[read].alen) # get sort positions
+            read_dict[read].alen = numpy.array(read_dict[read].alen) # create numpy array of aligned lengths
+            top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards 
+            taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
+            read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
+            read_dict[read].weights = top_10 # assign taxids to the weights
 
 # look into collections.defaultdict
 assignments = {}
