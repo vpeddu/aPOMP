@@ -23,6 +23,8 @@ class read():
         self.alen = ''
         self.qlen = ''
         self.weights = ''
+        self.refname = ''
+        self.reflen = ''
 
 
 # read in bamfile
@@ -69,6 +71,8 @@ for record in bamfile:
         # number of bases overlapping with reference
         read_dict[record.query_name].alen = [record.query_alignment_length]
         read_dict[record.query_name].qlen = record.query_length
+        read_dict[record.query_name].refname = [record.reference_length]
+        read_dict[record.query_name].reflen = [record.reference_name]
     # if read aready exists in read dictionary
     else:
         # append alignment scores
@@ -83,18 +87,22 @@ for record in bamfile:
             read_dict[record.query_name].taxid.append(record_tid)
         # append length of alignment
         read_dict[record.query_name].alen.append(record.query_alignment_length)
+        
+        read_dict[record.query_name].refname.append(record.reference_length)
+        
+        read_dict[record.query_name].reflen.append(record.reference_name)
 print('done creating read dictionary')
 
 # for each read, if there is more than one hit per read, weight the top 10 alignments by the length of their aligned sequence
 # used later on to weight the LCA to give spurious alignments lower priority
 for read in read_dict.keys():
     if len(read_dict[read].alen) > 1:
-        indexed_overlap_sort = numpy.argsort(read_dict[read].alen)
-        read_dict[read].alen = numpy.array(read_dict[read].alen)
-        top_10 = indexed_overlap_sort[::-1][0:10]
-        taxid_list = numpy.array(read_dict[read].taxid)
-        read_dict[read].taxid = taxid_list[top_10]
-        read_dict[read].weights = top_10
+        indexed_overlap_sort = numpy.argsort(read_dict[read].alen) # get sort positions
+        read_dict[read].alen = numpy.array(read_dict[read].alen) # create numpy array of aligned lengths
+        top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards 
+        taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
+        read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
+        read_dict[read].weights = top_10 # assign taxids to the weights
 
 
 def most_frequent(List):
