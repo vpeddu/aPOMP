@@ -108,6 +108,9 @@ for read in read_dict.keys():
         if len(read_dict[read].alen) > 1: 
             for aln in range(len(read_dict[read].reflen)):
                 weights_list = []
+                print(read_dict[read].qlen)
+                print(read_dict[read].reflen[aln])
+                print(aln)
                 if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]): 
                     weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
                 else: 
@@ -122,7 +125,6 @@ for read in read_dict.keys():
 
 
     else: 
-        
         if len(read_dict[read].alen) > 1:
             indexed_overlap_sort = numpy.argsort(read_dict[read].alen) # get sort positions
             read_dict[read].alen = numpy.array(read_dict[read].alen) # create numpy array of aligned lengths
