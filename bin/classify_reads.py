@@ -108,7 +108,7 @@ for read in read_dict.keys():
         if len(read_dict[read].alen) > 1: 
             for aln in range(len(read_dict[read].reflen)):
                 weights_list = []
-                if read_dict[read].qlen > read_dict[read].reflen[aln]: 
+                if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]): 
                     weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
                 else: 
                     weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
