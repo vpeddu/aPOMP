@@ -79,8 +79,8 @@ for record in bamfile:
         # number of bases overlapping with reference
         read_dict[record.query_name].alen = [record.query_alignment_length]
         read_dict[record.query_name].qlen = record.query_length
-        read_dict[record.query_name].refname = [record.reference_length]
-        read_dict[record.query_name].reflen = [record.reference_name]
+        read_dict[record.query_name].refname = [record.reference_name]
+        read_dict[record.query_name].reflen = [record.reference_length]
     # if read aready exists in read dictionary
     else:
         # append alignment scores
