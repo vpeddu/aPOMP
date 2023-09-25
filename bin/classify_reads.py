@@ -96,9 +96,9 @@ for record in bamfile:
         # append length of alignment
         read_dict[record.query_name].alen.append(record.query_alignment_length)
         
-        read_dict[record.query_name].refname.append(record.reference_length)
+        read_dict[record.query_name].refname.append(record.reference_name)
         
-        read_dict[record.query_name].reflen.append(record.reference_name)
+        read_dict[record.query_name].reflen.append(record.reference_length)
 print('done creating read dictionary')
 
 # for each read, if there is more than one hit per read, weight the top 10 alignments by the length of their aligned sequence
