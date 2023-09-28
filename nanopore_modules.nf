@@ -560,7 +560,7 @@ script:
         echo "running Minimap2 on ${base}"
         # run minimap2 and pipe to bam output 
         minimap2 \
-            -ax asm20 \
+            -ax map-ont \
             -t "\$((${task.cpus}-4))" \
             -2 \
             -K 25M \
@@ -624,7 +624,7 @@ script:
         for f in `ls genus_split*`
         do
             minimap2 \
-                -ax asm20 \
+                -ax map-ont \
                 -t "\$((${task.cpus}-4))" \
                 -2 \
                 --split-prefix ${base}.split \
