@@ -104,21 +104,23 @@ print('done creating read dictionary')
 # for each read, if there is more than one hit per read, weight the top 10 alignments by the length of their aligned sequence
 # used later on to weight the LCA to give spurious alignments lower priority
 for read in read_dict.keys():
-    if True: 
-        if len(read_dict[read].alen) > 1: 
+    if True:
+        weights_list = []
+        if len(read_dict[read].alen) > 1 and '36549' not in read_dict[read].taxid:
             for aln in range(len(read_dict[read].reflen)):
-                weights_list = []
-                print(read_dict[read].qlen)
-                print(read_dict[read].reflen[aln])
-                print(aln)
-                if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]): 
+                #print(read_dict[read].qlen)
+                #print(read_dict[read].reflen[aln])
+                #print(aln)
+                if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]):
                     weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
-                else: 
+                else:
                     weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
-                    
+            print(weights_list)
+            print(read_dict[read].taxid)
+            print(read_dict[read].id)
             indexed_overlap_sort = numpy.argsort(weights_list) # get sort positions
-            read_dict[read].alen = numpy.array(indexed_overlap_sort) # create numpy array of aligned lengths
-            top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards 
+            indexed_overlap_sort = numpy.array(indexed_overlap_sort) # create numpy array of aligned lengths
+            top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards
             taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
             read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
             read_dict[read].weights = top_10 # assign taxids to the weights
