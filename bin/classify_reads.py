@@ -30,7 +30,7 @@ class read():
 def ref_longer_than_read(al, ql ): 
     proportion_read_used =  al / ql
     return proportion_read_used
-        
+
 def read_longer_than_ref(al, rl):  
     proportion_read_used = al / rl
     return proportion_read_used
@@ -78,7 +78,7 @@ for record in bamfile:
         read_dict[record.query_name].seen = True
         # number of bases overlapping with reference
         read_dict[record.query_name].alen = [record.query_alignment_length]
-        read_dict[record.query_name].qlen = record.query_length
+        read_dict[record.query_name].qlen = record.infer_query_length()
         read_dict[record.query_name].refname = [record.reference_name]
         read_dict[record.query_name].reflen = [record.reference_length]
     # if read aready exists in read dictionary
@@ -107,17 +107,20 @@ for read in read_dict.keys():
     if True:
         weights_list = []
         if len(read_dict[read].alen) > 1 and '36549' not in read_dict[read].taxid:
-            for aln in range(len(read_dict[read].reflen)):
+            for aln in range(len(read_dict[read].reflen)): # for each hit to a read
                 #print(read_dict[read].qlen)
                 #print(read_dict[read].reflen[aln])
                 #print(aln)
-                if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]):
-                    weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
-                else:
-                    weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
-            print(weights_list)
-            print(read_dict[read].taxid)
-            print(read_dict[read].id)
+                if int(read_dict[read].reflen[aln] / read_dict[read].qlen  > 0.1): # if the length of the reference is not 40% of the length of the read, assign the lowest weight
+                    if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]):
+                        weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
+                    else:
+                        weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
+                else: # if the length of the reference is not 40% of the length of the read, assign the lowest weight
+                    weights_list.append(0)
+            #print(weights_list)
+            #print(read_dict[read].taxid)
+            #print(read_dict[read].id)
             indexed_overlap_sort = numpy.argsort(weights_list) # get sort positions
             indexed_overlap_sort = numpy.array(indexed_overlap_sort) # create numpy array of aligned lengths
             top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards
