@@ -128,7 +128,7 @@ for read in read_dict.keys():
             top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards
             taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
             read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
-            read_dict[read].weights = [read_dict[read].ascore[weight] for weight in read_dict[read].weights]
+            read_dict[read].weights = [read_dict[read].ascore[pos] for pos in top_10]
             #old read_dict[read].weights = top_10 # assign taxids to the weights
 
 
