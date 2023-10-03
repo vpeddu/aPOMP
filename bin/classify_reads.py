@@ -65,7 +65,7 @@ for record in bamfile:
         # used to weight LCA below
         read_dict[record.query_name].ascore = [record.get_tag("AS")]
         # store mapq
-        read_dict[record.query_name].mapq = [record.query_qualities]
+        #read_dict[record.query_name].mapq = [record.query_qualities]
         # store sequence (probably don't need this)
         # store taxid in a list as taxopy object
         # this is necessary for LCA later on
@@ -86,7 +86,7 @@ for record in bamfile:
         # append alignment scores
         read_dict[record.query_name].ascore.append(record.get_tag("AS"))
         # store mapq
-        read_dict[record.query_name].mapq.append(record.query_qualities)
+        #read_dict[record.query_name].mapq.append(record.query_qualities)
         # append this taxid to the read taxid list as taxopy object
         # this taxid is plasmid
         if acc_num.startswith('p_'):
@@ -128,7 +128,8 @@ for read in read_dict.keys():
             top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards
             taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
             read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
-            read_dict[read].weights = top_10 # assign taxids to the weights
+            read_dict[read].weights = [read_dict[read].ascore[weight] for weight in read_dict[read].weights]
+            #old read_dict[read].weights = top_10 # assign taxids to the weights
 
 
     else: 
