@@ -106,7 +106,7 @@ print('done creating read dictionary')
 for read in read_dict.keys():
     if True:
         weights_list = []
-        if len(read_dict[read].alen) > 1 and '36549' not in read_dict[read].taxid:
+        if len(read_dict[read].alen) > 1: # and '36549' not in read_dict[read].taxid:
             for aln in range(len(read_dict[read].reflen)): # for each hit to a read
                 #print(read_dict[read].qlen)
                 #print(read_dict[read].reflen[aln])
