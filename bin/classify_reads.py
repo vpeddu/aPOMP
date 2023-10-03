@@ -166,7 +166,8 @@ for read in read_dict.keys():
             read_id_to_taxid[read_dict[read].id] = lca
     # if there are multiple hits for a read, run taxopy LCA weighted by alignment lengths
     else:
-        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
+        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights)
+        #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
         lca = lca_lineage.taxid
         if lca not in assignments:
             assignments[lca] = 1
