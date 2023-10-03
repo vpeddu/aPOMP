@@ -113,9 +113,11 @@ for read in read_dict.keys():
                 #print(aln)
                 if int(read_dict[read].reflen[aln] / read_dict[read].qlen  > 0.1): # if the length of the reference is not 40% of the length of the read, assign the lowest weight
                     if int(read_dict[read].qlen) > int(read_dict[read].reflen[aln]):
-                        weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
+                        #weights_list.append(read_longer_than_ref(read_dict[read].alen[aln], read_dict[read].qlen))
+                        weights_list.append(read_dict[read].ascore[aln])
                     else:
-                        weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
+                        #weights_list.append(ref_longer_than_read(read_dict[read].alen[aln], read_dict[read].reflen[aln]))
+                        weights_list.append(read_dict[read].ascore[aln])
                 else: # if the length of the reference is not 40% of the length of the read, assign the lowest weight
                     weights_list.append(0)
             #print(weights_list)
