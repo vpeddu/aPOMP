@@ -624,7 +624,7 @@ script:
         for f in `ls genus_split*`
         do
             minimap2 \
-                -ax map-ont \
+                -ax asm20 \
                 -t "\$((${task.cpus}-4))" \
                 -2 \
                 --split-prefix ${base}.split \
