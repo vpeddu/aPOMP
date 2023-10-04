@@ -141,6 +141,12 @@ for read in read_dict.keys():
             read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
             read_dict[read].weights = top_10 # assign taxids to the weights
 
+# reweights hits to strains more heavily than spcies to push towards strain level specificity
+def weight_strains(r,treadlist, weight_multiplier):
+    for t in range(len(treadlist)):
+        if treadlist[t].rank == 'strain':
+            read_dict[r].weights[t] = read_dict[r].weights[t] * weight_multiplier
+
 # look into collections.defaultdict
 assignments = {}
 taxid_to_read = {}
@@ -173,6 +179,7 @@ for read in read_dict.keys():
             else:
                 read_dict[read].weights[read_dict[read].weights < 0] = 0 # replace only the negative alignment scores with weight 0
         else:
+            weight_strains(read, taxopy_read_list, 3)
             lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
             #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
             lca = lca_lineage.taxid
@@ -186,6 +193,7 @@ for read in read_dict.keys():
             taxid_to_read[lca].append(read_dict[read].id)
         if sys.argv[3] == 'save':
             read_id_to_taxid[read_dict[read].id] = lca
+
 # write the number of hits per taxa to this temp file for krakenuniq-report to turn into a pavian report later on
 outfilename = sys.argv[2] + '.prekraken.tsv'
 
