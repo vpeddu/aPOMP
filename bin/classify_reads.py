@@ -128,7 +128,7 @@ for read in read_dict.keys():
             top_10 = indexed_overlap_sort[::-1][0:10] # order the top 10 aligned lengths backwards
             taxid_list = numpy.array(read_dict[read].taxid) #get all taxids
             read_dict[read].taxid = taxid_list[top_10] # extract the taxids for the top sorted aligned lengths
-            read_dict[read].weights = [read_dict[read].ascore[pos] for pos in top_10]
+            read_dict[read].weights = numpy.array([read_dict[read].ascore[pos] for pos in top_10])
             #old read_dict[read].weights = top_10 # assign taxids to the weights
 
 
@@ -147,6 +147,7 @@ taxid_to_read = {}
 read_id_to_taxid = {}
 #not_in_accs_file.writelines('failed LCA: \n')
 for read in read_dict.keys():
+    #print(read)
     taxopy_read_list = []
     for tid in read_dict[read].taxid:
         taxopy_read_list.append(taxopy.Taxon(int(tid),taxdb))
@@ -166,9 +167,15 @@ for read in read_dict.keys():
             read_id_to_taxid[read_dict[read].id] = lca
     # if there are multiple hits for a read, run taxopy LCA weighted by alignment lengths
     else:
-        lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights)
-        #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
-        lca = lca_lineage.taxid
+        if numpy.any(read_dict[read].weights <= 0): # if any of the alignment scores are negative or 0 
+            if numpy.all(read_dict[read].weights <= 0):  # check if all alignment scores are negative or 0
+                lca = 0 # assign the read as unclassified 
+            else:
+                read_dict[read].weights[read_dict[read].weights < 0] = 0 # replace only the negative alignment scores with weight 0
+        else:
+            lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
+            #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
+            lca = lca_lineage.taxid
         if lca not in assignments:
             assignments[lca] = 1
         else:
