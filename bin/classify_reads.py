@@ -142,9 +142,17 @@ for read in read_dict.keys():
             read_dict[read].weights = top_10 # assign taxids to the weights
 
 # reweights hits to strains more heavily than spcies to push towards strain level specificity
-def weight_strains(r,treadlist, weight_multiplier):
+def weight_strains(r,treadlist, weight_multiplier,ll):
+    straincount = {}
     for t in range(len(treadlist)):
         if treadlist[t].rank == 'strain':
+            #tax = taxopy.taxid_from_name(treadlist[t].name,taxdb)[0]
+            #if ll.name in [x for x in treadlist[t].name_lineage]:
+                # if tax not in straincount:
+                #     straincount[tax] = 1
+                # else:
+                #     straincount[tax] += 1
+                #     print(r,read_dict[r].refname, ll.name)
             read_dict[r].weights[t] = read_dict[r].weights[t] * weight_multiplier
 
 # look into collections.defaultdict
@@ -179,10 +187,10 @@ for read in read_dict.keys():
             else:
                 read_dict[read].weights[read_dict[read].weights < 0] = 0 # replace only the negative alignment scores with weight 0
         else:
-            weight_strains(read, taxopy_read_list, 3)
             lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
-            #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
+            weight_strains(read, taxopy_read_list, 3, lca_lineage)
             lca = lca_lineage.taxid
+            #old lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
         if lca not in assignments:
             assignments[lca] = 1
         else:
