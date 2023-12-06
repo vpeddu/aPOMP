@@ -190,7 +190,7 @@ workflow{
                 Host_depletion_nanopore.out[0]
             )
             Kraken_prefilter_nanopore(
-                MetaFlye.out,
+                Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
         }
