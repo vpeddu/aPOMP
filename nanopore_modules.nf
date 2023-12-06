@@ -344,7 +344,7 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta.gz")
+    tuple val("${base}"), file("${base}.flye.fasta.gz"), file("${base}.flye/")
 script:
 """
 #!/bin/bash
