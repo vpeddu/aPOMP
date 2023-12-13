@@ -161,7 +161,7 @@ input:
 output: 
     tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
-    file "${base}.trna.mapped.bam"
+    file "${base}.trna.mapped.fastq.gz"
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
 
 script:
@@ -177,7 +177,7 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 
 
     minimap2 \
-        -ax map-ont \
+        -ax asm5 \
         -t "\$((${task.cpus}-2))" \
         -2 \
         ${minimap2_host_index} \
@@ -205,45 +205,83 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 // if filtering out tRNA and other stuff (default)
 else 
     {
-    """
-    #!/bin/bash
-    #logging
-    echo "ls of directory" 
-    ls -lah 
+//         if ("${params.SKIP_HOST_DEPLETION}" == true) { 
+// """
+//         #!/bin/bash
+//         #logging
+//         echo "ls of directory" 
+//         ls -lah 
 
-    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+//         #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
 
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${ribosome_trna} \
-        ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+//         minimap2 \
+//             -ax map-ont \
+//             -t "\$((${task.cpus}-2))" \
+//             -2 \
+//             ${ribosome_trna} \
+//             ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
 
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
-        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
+//             samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.host_filtered.fastq.gz
+//             samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+            
+//             touch ${base}.host_mapped.bam
 
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${minimap2_host_index} \
-        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+//         minimap2 \
+//             -ax asm5 \
+//             -t ${task.cpus} \
+//             --sam-hit-only \
+//             ${minimap2_plasmid_db} \
+//             ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
 
-    minimap2 \
-        -ax asm5 \
-        -t ${task.cpus} \
-        --sam-hit-only \
-        ${minimap2_plasmid_db} \
-        ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+//         samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
 
-    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+//         /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
 
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-
+//     """
+//             }
+//         else{ 
 """
-    }
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
+
+        #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+        minimap2 \
+            -ax map-ont \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${ribosome_trna} \
+            ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+
+            samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
+            samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+
+        # require 95 percent match to human to deplete
+        minimap2 \
+            -ax asm5 \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${minimap2_host_index} \
+            ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
+            samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+
+        minimap2 \
+            -ax asm5 \
+            -t ${task.cpus} \
+            --sam-hit-only \
+            ${minimap2_plasmid_db} \
+            ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+
+        samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+        /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+
+    """
+       // }
+        
+        }
 }
 
 // idenitfy resistant plasmids
@@ -306,7 +344,7 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta.gz")
+    tuple val("${base}"), file("${base}.flye.fasta.gz"), file("${base}.flye/")
 script:
 """
 #!/bin/bash
@@ -407,6 +445,7 @@ input:
     file sourmash_db
     file taxdump
     file taxonomy_parse_script
+    val prefilter_threshold
 output: 
     tuple val("${base}"), file("${base}.sourmash_to_genus.txt")
 script:
@@ -420,7 +459,7 @@ ls -lah
 
 /usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
 
-/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 1 
+/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 1
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
@@ -436,7 +475,7 @@ ls -lah
 
 /usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
 
-/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 2 
+/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold ${prefilter_threshold} 
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
@@ -521,7 +560,7 @@ script:
         echo "running Minimap2 on ${base}"
         # run minimap2 and pipe to bam output 
         minimap2 \
-            -ax asm20 \
+            -ax map-ont \
             -t "\$((${task.cpus}-4))" \
             -2 \
             -K 25M \

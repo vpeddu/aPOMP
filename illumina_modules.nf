@@ -189,6 +189,7 @@ input:
     file fastadb
     file extract_script
     file fungi_genera_list
+    val prefilter_threshold
 output: 
     file("${base}__*")
 
@@ -212,7 +213,7 @@ if (params.ALIGN_ALL_FUNGI == true) {
         cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
 
         #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${prefilter_threshold}' | cut -f5`
         do
         echo adding \$i
         if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
@@ -476,7 +477,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 // run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'vpeddu/nanopore_metagenomics:latest'
+container 'vpeddu/nanopore_metagenomics:v01'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
@@ -490,6 +491,7 @@ output:
     tuple val("${base}"), file("${base}.prekraken.tsv")
     file "${base}.prekraken.tsv"
 script:
+
 """
 #!/bin/bash 
 #logging
@@ -502,7 +504,7 @@ ls -lah
 cp taxdump/*.dmp .
 
 # run LCA script
-python3.7 ${classify_script} ${bam} ${base} 
+python3.7 ${classify_script} ${bam} ${base} 'save'
 
 # counting unassigned reads to add back into final report
 #echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
@@ -514,6 +516,9 @@ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
 
+samtools --version
+
+find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
 """
 }
 
@@ -552,7 +557,7 @@ python3.7 ${classify_script} ${base}.emapper.annotations ${base}
 // write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
+container 'vpeddu/nanopore_metagenomics:latest'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -569,7 +574,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-krakenuniq-report --db ${krakenuniqdb} \
+/usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
 ${prekraken} > ${base}.final.report.tsv
 """

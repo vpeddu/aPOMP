@@ -28,7 +28,6 @@ RUN   apt install -y python-biopython \
                    wget \
                    curl \
                    bedtools \
-                   samtools \
                    pigz \
                    git \
                    bc \
@@ -65,12 +64,13 @@ RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x
 
 RUN apt install -y zlib1g-dev 
 
-RUN wget https://github.com/samtools/samtools/releases/download/1.13/samtools-1.13.tar.bz2 && \
-    tar -xf samtools-1.13.tar.bz2 && \
-    cd samtools-1.13 && \
+RUN wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2 && \
+    tar -xf samtools-1.17.tar.bz2 && \
+    cd samtools-1.17 && \
     ./configure --prefix=/usr/bin/ --without-curses --disable-bz2 --disable-lzma  && \
     make && \
-    make install 
+    make install && \
+    mv samtools /usr/bin/
 
 # Install conda, bowtie2, and krakenuniq
 #RUN cd /usr/local/ && \
