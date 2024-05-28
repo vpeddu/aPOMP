@@ -459,7 +459,7 @@ ls -lah
 
 /usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
 
-/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 1
+/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold ${prefilter_threshold}
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 

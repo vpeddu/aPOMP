@@ -50,11 +50,14 @@ if (params.help){
 params.EGGNOG = false
 //Flye assembly off be default
 params.METAFLYE = false
-
+params.NANOPORE = true
 params.ALIGN_ALL_FUNGI = false
 params.LEAVE_TRNA_IN = false
 params.REALTIME = false
 params.PREFILTER_THRESHOLD = 10
+params.LOW_COMPLEXITY_FILTER_NANOPORE = false
+params.IDENTIFY_RESISTANCE_PLASMIDS = false
+
 
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
