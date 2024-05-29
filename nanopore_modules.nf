@@ -414,6 +414,7 @@ input:
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
+    tuple env(linecount), val(base)
 script:
 """
 #!/bin/bash
@@ -430,6 +431,8 @@ kraken2 --db ${kraken2_db} \
     --gzip-compressed \
     --unclassified-out ${base}.kraken2.unclassified \
     ${fastq} 
+
+linecount=$(cat ${base}.kraken2.report | wc -l)
 
 """
 }
