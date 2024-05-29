@@ -432,7 +432,7 @@ kraken2 --db ${kraken2_db} \
     --unclassified-out ${base}.kraken2.unclassified \
     ${fastq} 
 
-linecount=$(cat ${base}.kraken2.report | wc -l)
+linecount=\$(cat ${base}.kraken2.report | wc -l)
 
 """
 }
