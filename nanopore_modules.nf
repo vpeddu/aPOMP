@@ -577,7 +577,7 @@ script:
 
         # cleanup intermediate file
         # TODO uncomment later
-        rm ${base}.bam
+        #rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
