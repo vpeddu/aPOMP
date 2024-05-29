@@ -58,7 +58,6 @@ params.PREFILTER_THRESHOLD = 10
 params.LOW_COMPLEXITY_FILTER_NANOPORE = false
 params.IDENTIFY_RESISTANCE_PLASMIDS = false
 
-
 // Import modules from modules files
 include { Trimming_FastP } from './illumina_modules.nf'
 include { Low_complexity_filtering } from './illumina_modules.nf'
@@ -204,11 +203,16 @@ workflow{
                 Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
-            prefilterCh = Channel( 
+            prefilterCh =
                 Kraken_prefilter_nanopore.out[0]
-                .filter{ it -> it[1].countLines[0] > 0 }
-            )
-            prefilterCh.view()
+                .filter{ it -> it[1].countLines() > 0 }
+
+            prefilterfailCh= Kraken_prefilter_nanopore.out[0]
+                .filter{ it ->  it[1].countLines() == 0}
+                .map{ it -> it[0]}
+
+                prefilterfailCh.view(f -> "$f failed prefiltering- skipping")
+
             } else { 
             Sourmash_prefilter_nanopore( 
                 Host_depletion_nanopore.out[0],
@@ -223,7 +227,7 @@ workflow{
             // extract databases from NT index 
             if ( params.KRAKEN_PREFILTER ) { 
             Extract_db(
-                Kraken_prefilter_nanopore.out,
+                prefilterCh,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
                 file("${baseDir}/bin/fungi_genera_list.txt"),
