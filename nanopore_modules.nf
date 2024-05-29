@@ -414,7 +414,7 @@ input:
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
-    tuple env(linecount), val(base)
+    //tuple env(linecount), val(base)
 script:
 """
 #!/bin/bash

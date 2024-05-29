@@ -204,9 +204,11 @@ workflow{
                 Host_depletion_nanopore.out[0],
                 Kraken2_db.collect()
             )
-            if(Kraken_prefilter_nanopore.out[1][0]  == 0) { 
-                println(Kraken_prefilter_nanopore.out[1][1] + " failed prefiltering.")
-            }
+            prefilterCh = Channel( 
+                Kraken_prefilter_nanopore.out[0]
+                .filter{ it -> it[1].countLines[0] > 0 }
+            )
+            prefilterCh.view()
             } else { 
             Sourmash_prefilter_nanopore( 
                 Host_depletion_nanopore.out[0],
