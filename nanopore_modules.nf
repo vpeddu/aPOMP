@@ -727,7 +727,7 @@ cpus 28
 errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 
-    tuple val(base),file(r1)
+    tuple val(base),file(r1), file(report)
     file fungi_db
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
