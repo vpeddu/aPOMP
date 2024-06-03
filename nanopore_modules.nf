@@ -1,13 +1,13 @@
 
 // set defaults
 params.MINIMAPSPLICE = false 
-params.NANOFILT_MAXLENGTH = 20000
-params.NANOFILT_MINLENGTH = 100
+params.CHOPPER_MAXLENGTH = 20000
+params.CHOPPER_MINLENGTH = 100
 params.MINIMAP2_RETRIES = 10 
 params.NANOFILT_QUALITY = 10
 
-process NanoFilt { 
-publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
+process Chopper { 
+publishDir "${params.OUTPUT}/Chopper/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
 //TODO: change container to metagenomics container
 
@@ -16,9 +16,9 @@ publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 //execution of the other samples will continue
 errorStrategy 'ignore'
 
-container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
+container "quay.io/biocontainers/nanofilt:2.8.0--py_0"
 beforeScript 'chmod o+rw .'
-cpus 6
+cpus 8
 input: 
     tuple val(base), file(r1)
 output: 
@@ -60,9 +60,10 @@ else {
     echo "running Nanofilt on ${base}"
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
-            --maxlength ${params.NANOFILT_MAXLENGTH} \
-            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+    gunzip -c ${r1} | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
+            --maxlength ${params.CHOPPER_MAXLENGTH} \
+            --threads ${task.cpus}
+            --length ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then

@@ -73,8 +73,8 @@ include { Accumulate_reports } from './nanopore_modules.nf'
 include { Sourmash_prefilter_nanopore } from './nanopore_modules.nf'
 
 include { Combine_fq } from './nanopore_modules.nf'
-include { NanoFilt } from './nanopore_modules.nf'
-include { NanoFilt_RT } from './nanopore_modules.nf'
+include { Chopper } from './nanopore_modules.nf'
+include { Chopper_RT } from './nanopore_modules.nf'
 include { NanoPlot } from './nanopore_modules.nf'
 include { Low_complexity_filtering_nanopore } from './nanopore_modules.nf'
 include { Host_depletion_nanopore } from './nanopore_modules.nf'
@@ -129,7 +129,7 @@ workflow{
 
         if ( params.REALTIME ) {
             params.PREFILTER_THRESHOLD = 1
-            params.NANOFILT_QUALITY = 10
+            params.CHOPPER_QUALITY = 10
             input_read_Ch = Channel.watchPath("${params.FAST5_FOLDER}*.fastq")
             .map { it -> file(it) }
 //            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
@@ -138,26 +138,26 @@ workflow{
             Combine_fq(
                 input_read_Ch
             )
-            NanoFilt(
+            Chopper(
                 Combine_fq.out[0]
                 )
         } else { input_read_Ch = Channel
             .fromPath("${params.INPUT_FOLDER}**.fastq.gz")
             .map { it -> [it.name.replace(".fastq.gz", ""), file(it)]}
         //run nanofilt
-            NanoFilt(
+            Chopper(
             input_read_Ch
                 )
         }
 
         //run nanoplot on nanofilt output
         NanoPlot (
-            NanoFilt.out[0]
+            Chopper.out[0]
         )
         // if --LOW_COMPLEXITY_FILTER_NANOPORE, run low complexity filtering on nanofilt  output 
         if( params.LOW_COMPLEXITY_FILTER_NANOPORE){
             Low_complexity_filtering_nanopore(
-                NanoFilt.out[0]
+                Chopper.out[0]
             )
             // run host depletion after low complexity filtering
             Host_depletion_nanopore(
@@ -171,7 +171,7 @@ workflow{
         else {
             // tRNA depletion is evaluated within the process
             Host_depletion_nanopore( 
-                NanoFilt.out[0],
+                Chopper.out[0],
                 //Minimap2_host_index
                 file("${params.INDEX}/minimap2_host/hg38.fa"),
                 file("${params.INDEX}/ribosome_trna/all_trna.fa"),
@@ -211,7 +211,7 @@ workflow{
                 .filter{ it ->  it[1].countLines() == 0}
                 .map{ it -> it[0]}
 
-                prefilterfailCh.view(f -> "$f failed prefiltering- skipping")
+                prefilterfailCh.view(f -> "\u001B[33m" + "$f failed prefiltering- skipping" + "\u001B[0m")
 
             } else { 
             Sourmash_prefilter_nanopore( 
@@ -256,8 +256,8 @@ workflow{
                     NT_db.collect()
                 )
                 Align_fungi( 
-                    Host_depletion_nanopore.out[0],
-                    Extract_fungi.out[0]
+                    Host_depletion_nanopore.out[0].join(prefilterCh).groupTuple(),
+                        Extract_fungi.out[0]
                 )
                 // fungiCh = Channel( 
                 //     Minimap2_nanopore.out[0].mix(Align_fungi.out[0])
