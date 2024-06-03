@@ -76,7 +76,7 @@ else {
 }
 
 
-process NanoFilt_RT { 
+process Chopper_RT { 
 
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
