@@ -4,7 +4,7 @@ params.MINIMAPSPLICE = false
 params.CHOPPER_MAXLENGTH = 20000
 params.CHOPPER_MINLENGTH = 100
 params.MINIMAP2_RETRIES = 10 
-params.NANOFILT_QUALITY = 10
+params.CHOPPER_QUALITY = 10
 
 process Chopper { 
 publishDir "${params.OUTPUT}/Chopper/${base}", mode: 'symlink', overwrite: true
@@ -39,9 +39,9 @@ if ( params.REALTIME ){
     cat *.fastq >  tmp.merged.fastq
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    cat tmp.merged.fastq | NanoFilt -q ${params.NANOFILT_QUALITY} \
-            --maxlength ${params.NANOFILT_MAXLENGTH} \
-            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+    cat tmp.merged.fastq | NanoFilt -q ${params.CHOPPER_QUALITY} \
+            --maxlength ${params.CHOPPER_MAXLENGTH} \
+            --length ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
