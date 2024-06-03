@@ -16,7 +16,7 @@ publishDir "${params.OUTPUT}/Chopper/${base}", mode: 'symlink', overwrite: true
 //execution of the other samples will continue
 errorStrategy 'ignore'
 
-container "quay.io/biocontainers/nanofilt:2.8.0--py_0"
+container "quay.io/biocontainers/chopper:0.8.0--hdcf5f25_0"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
