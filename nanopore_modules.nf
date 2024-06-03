@@ -63,7 +63,7 @@ else {
     gunzip -c ${r1} | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
             --maxlength ${params.CHOPPER_MAXLENGTH} \
             --threads ${task.cpus}
-            --length ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+            --minlength ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
