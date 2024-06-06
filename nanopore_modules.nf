@@ -125,6 +125,7 @@ if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]]
 
 process NanoPlot { 
 //conda "${baseDir}/env/env.yml"
+errorStrategy 'ignore'
 publishDir "${params.OUTPUT}/NanoPlot/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/nanoplot:1.38.1--pyhdfd78af_0"
 beforeScript 'chmod o+rw .'
