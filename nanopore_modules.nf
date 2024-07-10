@@ -41,7 +41,8 @@ if ( params.REALTIME ){
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
     cat tmp.merged.fastq | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
             --maxlength ${params.CHOPPER_MAXLENGTH} \
-            --length ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+            --threads ${task.cpus} \
+            --minlength ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
