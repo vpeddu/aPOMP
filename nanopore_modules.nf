@@ -39,7 +39,7 @@ if ( params.REALTIME ){
     cat *.fastq >  tmp.merged.fastq
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    cat tmp.merged.fastq | NanoFilt -q ${params.CHOPPER_QUALITY} \
+    cat tmp.merged.fastq | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
             --maxlength ${params.CHOPPER_MAXLENGTH} \
             --length ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
