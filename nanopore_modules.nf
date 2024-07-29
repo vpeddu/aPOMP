@@ -153,7 +153,7 @@ NanoPlot -t ${task.cpus} \
 
 process Host_depletion_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -290,7 +290,7 @@ else
 // idenitfy resistant plasmids
 process Identify_resistant_plasmids { 
 publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod a+rw .'
 cpus 8
 
@@ -443,7 +443,7 @@ linecount=\$(cat ${base}.kraken2.report | wc -l)
 process Sourmash_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
 //#TODO need to fix container
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -497,7 +497,7 @@ python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
@@ -623,7 +623,7 @@ script:
         #echo "fasta being split \$split_num times"
         
         # faSplit has some weird splitting activity but it works
-        /usr/local/miniconda/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
+        /usr/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
         
         #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
         # something like if bam empty, exit 1
@@ -691,7 +691,7 @@ script:
 
 process Extract_fungi { 
 //conda "${baseDir}/env/env.yml"
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 errorStrategy 'retry'
@@ -723,7 +723,7 @@ done
 process Align_fungi { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
@@ -809,7 +809,7 @@ script:
         #echo "fasta being split \$split_num times"
         
         # faSplit has some weird splitting activity but it works
-        /usr/local/miniconda/bin/faSplit sequence ${fungi_db} ${task.attempt} genus_split
+        /usr/bin/faSplit sequence ${fungi_db} ${task.attempt} genus_split
         
         #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
         # something like if bam empty, exit 1
@@ -878,7 +878,7 @@ script:
 // Collect minimap2 alignments from each sample and merge into one large bam
 process Collect_alignment_results{ 
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
@@ -915,7 +915,7 @@ script:
 process Collect_unassigned_results{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
@@ -1104,7 +1104,7 @@ input:
 output: 
     file outprekraken
 
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 script: 
 """
@@ -1121,7 +1121,7 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 // write pavian style report
 process Accumulate_reports { 
 publishDir "${params.OUTPUT}/Accumulate/", mode: 'copy', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1153,7 +1153,7 @@ cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 //container "evolbioinfo/krakenuniq:v0.5.8"
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1186,7 +1186,7 @@ python3 ${mergescript} ${prekraken} \$timestamp
 }
 process Combine_fq {
 //publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1

@@ -6,32 +6,52 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 
 RUN apt update && \
-    apt-get upgrade -y && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-add-repository universe && \
+    apt update && \
     apt-get clean
 
-RUN apt-get install -y curl python3.7 python3.7-dev python3.7-distutils
-
-# Register the version in alternatives
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
-
-# Set python 3 as the default python
-RUN update-alternatives --set python /usr/bin/python3.7
-
-# Upgrade pip to latest version
-RUN curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py --force-reinstall && \
-    rm get-pip.py
-
-RUN   apt install -y python-biopython \
-                   python3-pip \
-                   python3-pysam \
-                   wget \
+RUN   apt install -y wget \
                    curl \
                    bedtools \
                    pigz \
                    git \
                    bc \
-                   unzip 
+                   unzip \
+                   build-essential \
+                   checkinstall \
+                   libreadline-gplv2-dev \
+                   libncursesw5-dev \
+                   libssl-dev \
+                   libsqlite3-dev \
+                   tk-dev \
+                   libgdbm-dev \
+                   libc6-dev \
+                   libbz2-dev \
+                   liblzma-dev
+
+RUN wget https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tgz && \
+    tar -xzf Python-3.12.4.tgz && \
+    cd Python-3.12.4 && \
+    ./configure && \
+    make altinstall
+
+RUN apt install -y python-biopython \
+                   python3-pip \
+                   python3-pysam 
+
+# Register the version in alternatives
+#RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+
+# Set python 3 as the default python
+#RUN update-alternatives --set python /usr/bin/python3.12
+
+# Upgrade pip to latest version
+# RUN curl -s https://bootstrap.pypa.io/pip/3.12/get-pip.py -o get-pip.py && \
+#     python get-pip.py --force-reinstall && \
+#     rm get-pip.py
+
 
 RUN cd /usr/local/ && \
     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
@@ -39,11 +59,18 @@ RUN cd /usr/local/ && \
     rm Miniconda3-latest-Linux-x86_64.sh && \
     ln -s /usr/local/miniconda/bin/conda /usr/local/bin/ && \
     conda init bash && \
-    /bin/bash -c "source /root/.bashrc" && \
-    conda install -c bioconda ucsc-fasplit seqkit blast hmmer  seqtk krakenuniq 
+    /bin/bash -c "source /root/.bashrc" 
 
-RUN /usr/bin/python3.7 -m pip install cython
-RUN  /usr/bin/python3.7 -m  pip install biopython \
+RUN conda install -c bioconda -c conda-forge \
+    #ucsc-fasplit \
+    seqkit \
+    blast \
+    hmmer\
+    seqtk \
+    krakenuniq 
+
+RUN /usr/bin/python3 -m pip install cython
+RUN  /usr/bin/python3 -m  pip install biopython \
          ete3 \
          pysam \
          typing \
@@ -51,11 +78,8 @@ RUN  /usr/bin/python3.7 -m  pip install biopython \
          taxopy \
          pyfasta \
          ncbi-taxonomist \
-         sourmash \
          ete3 \
          pandas
-
-RUN /usr/bin/python3.7 -m  pip install pysam --user --upgrade
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \
@@ -64,13 +88,21 @@ RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x
 
 RUN apt install -y zlib1g-dev 
 
-RUN wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2 && \
-    tar -xf samtools-1.17.tar.bz2 && \
-    cd samtools-1.17 && \
+RUN wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2 && \
+    tar -xf samtools-1.20.tar.bz2 && \
+    cd samtools-1.20 && \
     ./configure --prefix=/usr/bin/ --without-curses --disable-bz2 --disable-lzma  && \
     make && \
     make install && \
     mv samtools /usr/bin/
+
+RUN apt install -y libjpeg-dev zlib1g-dev
+
+RUN /usr/bin/python3 -m  pip install sourmash 
+
+RUN wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/faSplit && \
+    chmod +x faSplit && \
+    mv faSplit /usr/bin/
 
 # Install conda, bowtie2, and krakenuniq
 #RUN cd /usr/local/ && \
@@ -120,3 +152,4 @@ RUN wget -q -O bowtie2.zip http://sourceforge.net/projects/bowtie-bio/files/bowt
 	ln -s /opt/bowtie2-2.3.4.1-linux-x86_64/ /opt/bowtie2; \ 
 	rm bowtie2.zip 
 ENV PATH $PATH:/opt/bowtie2 
+

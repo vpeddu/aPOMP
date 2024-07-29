@@ -61,7 +61,7 @@ bbduk.sh \
 // run host depletion with star (just against host, no plasmid or tRNA)
 process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.1:latest"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -477,7 +477,11 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 // run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
+<<<<<<< Updated upstream
 container 'vpeddu/nanopore_metagenomics:v01'
+=======
+container 'vpeddu/nanopore_metagenomics:v01.1:latest'
+>>>>>>> Stashed changes
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
@@ -610,7 +614,7 @@ ${prekraken} > ${base}.orthologs.final.report.tsv
 process Collect_unassigned_results_illumina{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
