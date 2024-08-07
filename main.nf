@@ -221,6 +221,15 @@ workflow{
                 file("${baseDir}/bin/sourmash_to_taxonomy.py"),
                 params.PREFILTER_THRESHOLD
             )
+            prefilterCh =
+                Sourmash_prefilter_nanopore.out[0]
+                .filter{ it -> it[1].countLines() > 0 }
+
+            prefilterfailCh= Sourmash_prefilter_nanopore.out[0]
+                .filter{ it ->  it[1].countLines() == 0}
+                .map{ it -> it[0]}
+
+                prefilterfailCh.view(f -> "\u001B[33m" + "$f failed prefiltering- skipping" + "\u001B[0m")
 
             }
         }
@@ -235,7 +244,7 @@ workflow{
                 ) 
             } else { 
             Extract_db(
-                Sourmash_prefilter_nanopore.out,
+                prefilterCh,
                 NT_db.collect(),
                 file("${baseDir}/bin/extract_seqs.py"),
                 file("${baseDir}/bin/fungi_genera_list.txt"),

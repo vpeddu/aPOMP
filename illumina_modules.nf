@@ -61,7 +61,7 @@ bbduk.sh \
 // run host depletion with star (just against host, no plasmid or tRNA)
 process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:v01.1:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -477,7 +477,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 // run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'vpeddu/nanopore_metagenomics:v01.1:latest'
+container 'vpeddu/nanopore_metagenomics:v01.3.1'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
@@ -504,7 +504,7 @@ ls -lah
 cp taxdump/*.dmp .
 
 # run LCA script
-python3.7 ${classify_script} ${bam} ${base} 'save'
+/usr/local/miniconda/bin/python3 ${classify_script} ${bam} ${base} 'save'
 
 # counting unassigned reads to add back into final report
 #echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
@@ -517,7 +517,7 @@ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 echo \$fastqlinecount \$linecount unclassified reads 
 
 samtools --version
-
+ 
 find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
 """
 }
@@ -549,7 +549,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3.7 ${classify_script} ${base}.emapper.annotations ${base} 
+/usr/local/miniconda/bin/python3 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }
@@ -610,7 +610,7 @@ ${prekraken} > ${base}.orthologs.final.report.tsv
 process Collect_unassigned_results_illumina{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics:v01.1"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
@@ -627,7 +627,7 @@ script:
     #!/bin/bash
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
-    python3.7 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/python3 ${filter_unassigned_reads}
     /usr/local/miniconda/bin/seqtk mergepe ${depleted_fastq_r1} ${depleted_fastq_r2} | pigz > host_depleted_merged.fastq.gz
     /usr/local/miniconda/bin/seqtk subseq host_depleted_merged.fastq.gz true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 
