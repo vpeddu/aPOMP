@@ -74,15 +74,15 @@ RUN conda install -c bioconda -c conda-forge \
     krakenuniq 
 
 # RUN /usr/local/miniconda/bin/python3 -m pip install cython
-# RUN /usr/local/miniconda/bin/python3  -m  pip install biopython \
-#          ete3 \
-#          typing \
-#          pickle5 \
-#          taxopy \
-#          pyfasta \
-#          ncbi-taxonomist \
-#          ete3 \
-#          pandas
+RUN /usr/local/miniconda/bin/python3  -m  pip install biopython \
+         ete3 \
+         typing \
+         pickle5 \
+         taxopy \
+         pyfasta \
+         ncbi-taxonomist \
+         ete3 \
+         pandas
 
 RUN python3 -m pip install cython
 RUN python3  -m  pip install biopython \
