@@ -134,7 +134,7 @@ workflow{
             .map { it -> file(it) }
 //            .map { it -> [it.name.replace(".fastq", ""), file(it)]}
             .buffer( size: 4, remainder: true)
-            input_read_Ch.view()
+            // input_read_Ch.view()
             Combine_fq(
                 input_read_Ch
             )
@@ -264,22 +264,26 @@ workflow{
                     file("${baseDir}/bin/fungi_genera_list.txt"),
                     NT_db.collect()
                 )
+                // Host_depletion_nanopore.out[0].view()
+                // prefilterCh.view()
+                Host_depletion_nanopore.out[0].join(prefilterCh).groupTuple()
+
                 Align_fungi( 
-                    Host_depletion_nanopore.out[0].join(prefilterCh).groupTuple(),
+                    Host_depletion_nanopore.out[0].join(prefilterCh).map{key, fastq, report -> tuple( groupKey(key, key.size()), fastq, report )},
                         Extract_fungi.out[0]
                 )
                 // fungiCh = Channel( 
                 //     Minimap2_nanopore.out[0].mix(Align_fungi.out[0])
                 // ) 
                 Collect_alignment_results(
-                Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).groupTuple().join(
+                Minimap2_nanopore.out[0].mix(Align_fungi.out[0]).map{key, bam, bai  -> tuple( groupKey(key, key.size()), bam, bai )}.join(
                 Host_depletion_nanopore.out[3]
                 )
             )
             // Collection hold for each sample's Minimap2 unaligned results
             // Unique read IDs found to be unassignable are extracted from the host filtered fastq here for downstream classification
             Collect_unassigned_results(
-                Minimap2_nanopore.out[1].mix(Align_fungi.out[1]).groupTuple().join(
+                Minimap2_nanopore.out[1].mix(Align_fungi.out[1]).map{key, unclassified -> tuple(groupKey(key, key.size()), unclassified)}.join(
                 Host_depletion_nanopore.out[0]
                 ),
                 file("${baseDir}/bin/filter_unassigned_reads.py")

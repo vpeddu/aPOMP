@@ -1,0 +1,14 @@
+nextflow run main.nf \
+	--REALTIME \
+	--INDEX /media/vikas/fast/data/metagenomics_index/ \
+	--FAST5_FOLDER ../coral/input/ \
+	--ALIGN_ALL_FUNGI \
+	--KRAKEN_PREFILTER \
+	--CHOPPER_MAXLENGTH 500000 \
+	--CHOPPER_QUALITY 9 \
+	--OUTPUT ~/data/aPOMP_out_kraken \
+	-with-docker ubuntu:18.04 \
+	-resume \
+	-with-report \
+	-with-trace \
+	-c desktop.config
