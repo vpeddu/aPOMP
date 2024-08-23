@@ -504,6 +504,7 @@ errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 
     tuple val(base), file(species_fasta), file(r1)
+    file fungi_db default: "fungi_db"
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
     tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
