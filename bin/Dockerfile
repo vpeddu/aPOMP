@@ -29,13 +29,17 @@ RUN   apt install -y wget \
                    libgdbm-dev \
                    libc6-dev \
                    libbz2-dev \
-                   liblzma-dev
+                   liblzma-dev \
+                   libffi-dev
 
 RUN wget https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tgz && \
     tar -xzf Python-3.12.4.tgz && \
     cd Python-3.12.4 && \
     ./configure && \
-    make altinstall
+    make install
+
+    #&& \
+    #make altinstall
 
 RUN apt install -y python-biopython \
                    python3-pip \
@@ -69,10 +73,9 @@ RUN conda install -c bioconda -c conda-forge \
     seqtk \
     krakenuniq 
 
-RUN /usr/bin/python3 -m pip install cython
-RUN  /usr/bin/python3 -m  pip install biopython \
+# RUN /usr/local/miniconda/bin/python3 -m pip install cython
+RUN /usr/local/miniconda/bin/python3  -m  pip install biopython \
          ete3 \
-         pysam \
          typing \
          pickle5 \
          taxopy \
@@ -80,6 +83,18 @@ RUN  /usr/bin/python3 -m  pip install biopython \
          ncbi-taxonomist \
          ete3 \
          pandas
+
+RUN python3 -m pip install cython
+RUN python3  -m  pip install biopython \
+         ete3 \
+         typing \
+         #pickle5 \
+         taxopy \
+         pyfasta \
+         ncbi-taxonomist \
+         ete3 \
+         pandas
+
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \
@@ -98,7 +113,14 @@ RUN wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.
 
 RUN apt install -y libjpeg-dev zlib1g-dev
 
-RUN /usr/bin/python3 -m  pip install sourmash 
+RUN /usr/local/miniconda/bin/python3 -m  pip install sourmash \
+    scipy \
+    pysam \
+    pandas \
+    ete3 \
+    typing \
+    biopython \
+    cython
 
 RUN wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/faSplit && \
     chmod +x faSplit && \
