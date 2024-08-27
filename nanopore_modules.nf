@@ -153,11 +153,7 @@ NanoPlot -t ${task.cpus} \
 
 process Host_depletion_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -294,11 +290,7 @@ else
 // idenitfy resistant plasmids
 process Identify_resistant_plasmids { 
 publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod a+rw .'
 cpus 8
 
@@ -451,11 +443,7 @@ linecount=\$(cat ${base}.kraken2.report | wc -l)
 process Sourmash_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
 //#TODO need to fix container
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -1210,11 +1198,7 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 // write pavian style report
 process Accumulate_reports { 
 publishDir "${params.OUTPUT}/Accumulate/", mode: 'copy', overwrite: true
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1246,11 +1230,7 @@ cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 //container "evolbioinfo/krakenuniq:v0.5.8"
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1283,11 +1263,7 @@ echo \$timestamp
 }
 process Combine_fq {
 //publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-<<<<<<< HEAD
-container "vpeddu/nanopore_metagenomics:v01.1"
-=======
 container "vpeddu/nanopore_metagenomics:v01.3.1"
->>>>>>> patch_align_fungi
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
