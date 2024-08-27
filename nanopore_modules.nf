@@ -503,11 +503,10 @@ cpus 28
 errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 
-    tuple val(base), file(species_fasta), file(r1)
-    file fungi_db defaultValue: "fungi_db"
+    tuple val(base), file(species_fasta), val(alignment_num), file(r1)
 output: 
-    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
-    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
+    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai"), env(alignment_num)
+    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt"), env(alignment_num)
 
 script:
     // Default is False
@@ -558,6 +557,9 @@ script:
     echo "ls of directory" 
     ls -lah 
 
+    echo "total number of alignments for sample ${alignment_num}"
+    alignment_num=${alignment_num}
+
     species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
     # if this is the first attempt at running an alignment against this reference for this sample proceed
@@ -565,6 +567,7 @@ script:
     if [ "${task.attempt}" -eq "1" ]
     then
         echo "running Minimap2 on ${base}"
+        echo "genus \$species_basename"
         # run minimap2 and pipe to bam output 
         minimap2 \
             -ax map-ont \
@@ -701,7 +704,7 @@ input:
     file fungi_list
     file fastadb
 output: 
-    file "all_fungi.fasta.gz"
+    file "fungi.fasta.gz"
 
 script:
     """
@@ -716,7 +719,7 @@ for i in `cat ${fungi_list}`
     fi
 done
 
-    cat *.fungi.genus.fasta.gz > all_fungi.fasta.gz
+    cat *.fungi.genus.fasta.gz > fungi.fasta.gz
 
     """
 }
@@ -883,13 +886,15 @@ container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(filtered_bam), file(bam_index), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
+    tuple val(base), file(filtered_bam), file(bam_index), val(aln_num), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
 output: 
     tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
 
 script:
     """
     #!/bin/bash
+
+    ls -lah 
 
     # merging plasmid bam in here so it goes into LCA algorithm
     samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
@@ -920,7 +925,7 @@ container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
-    tuple val(base), file(unclassified_fastq), file(depleted_fastq) // , file(fungi_unclassified)
+    tuple val(base), file(unclassified_fastq), val(aln_num), file(depleted_fastq) // , file(fungi_unclassified)
     file filter_unassigned_reads
     //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 
@@ -939,6 +944,77 @@ script:
 
     """
 }
+
+
+
+// Collect minimap2 alignments from each sample and merge into one large bam
+process Collect_alignment_results_RT { 
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics:v01.3.1"
+beforeScript 'chmod o+rw .'
+cpus 16
+input: 
+    tuple val(base), file(filtered_bam), file(bam_index), val(aln_num), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
+output: 
+    tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
+
+script:
+    """
+    #!/bin/bash
+
+    ls -lah 
+
+    # merging plasmid bam in here so it goes into LCA algorithm
+    samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
+    samtools index ${base}.sorted.filtered.plasmid.bam
+
+
+    #samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    #samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    #samtools index ${base}.merged.sorted.bam 
+
+    # speeding up samtools merge using gnu parallel  
+    find . -name '*.sorted.filtered.*.bam' |
+        parallel -j${task.cpus} --tmpdir . -N4 -m --files samtools merge -u - |
+        parallel --xargs samtools merge -@2 ${base}.merged.filtered.bam {}";" rm {}
+
+    samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    samtools index ${base}.merged.sorted.bam 
+
+
+    """
+}
+
+// Collect unaligned reads for each sample and extract the unique reads from the host filtered fastq
+process Collect_unassigned_results_RT { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics:v01.3.1"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(unclassified_fastq), val(aln_num), file(depleted_fastq) // , file(fungi_unclassified)
+    file filter_unassigned_reads
+    //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
+
+    
+output: 
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz") //, file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
+
+script:
+    """
+    #!/bin/bash
+
+    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt 
+    /usr/local/miniconda/bin/python3 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+
+
+    """
+}
+
+
+
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
 //legacy and not being used anymore. Could add back in later as an alternative to eggnog but it uses so much memory 
