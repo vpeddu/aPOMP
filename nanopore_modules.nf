@@ -590,10 +590,10 @@ script:
         #rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -base64 12).unclassified_reads.txt
         
         # adding random identifier to species bams to avoid filename collisions while merging later
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -base64 12).bam
 
         #index merged bam 
         samtools index ${base}.sorted.filtered.*.bam
@@ -648,7 +648,7 @@ script:
                 echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
                 exit 1
             fi
-            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$(openssl rand -base64 12).bam
         done
 
         # merge the fasta split alignments 
@@ -665,9 +665,9 @@ script:
         rm ${base}.merged.bam
 
         ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -base64 12).unclassified_reads.txt
         
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -base64 12).bam
         samtools index ${base}.sorted.filtered.*.bam
 
         readsmapped=`samtools view -c ${base}.filtered.bam`
@@ -776,10 +776,10 @@ script:
         rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -base64 12).unclassified_reads.txt
         
         # adding random identifier to species bams to avoid filename collisions while merging later
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -base64 12).bam
 
         #index merged bam 
         samtools index ${base}.sorted.filtered.*.bam
@@ -834,7 +834,7 @@ script:
                 echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
                 exit 1
             fi
-            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$(openssl rand -base64 12).bam
         done
 
         # merge the fasta split alignments 
@@ -851,9 +851,9 @@ script:
         rm ${base}.merged.bam
 
         ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -base64 12).unclassified_reads.txt
         
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -base64 12).bam
         samtools index ${base}.sorted.filtered.*.bam
 
         readsmapped=`samtools view -c ${base}.filtered.bam`ssh
