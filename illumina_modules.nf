@@ -220,8 +220,48 @@ if (params.KRAKEN_PREFILTER == true) {
         fi
         done
 
-        
+        echo adding fungi
+        for i in `cat ${fungi_genera_list}`
+        do
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz \$i.fungi.genus.fasta.gz
+        fi
+        done
 
+        cat *.fungi.genus.fasta.gz > ${base}__fungi.genus.fasta.gz
+
+
+        num_outputs=`ls ${base}__*.genus.fasta.gz | wc -l`
+
+        echo "num_outputs: \$num_outputs"
+
+        for file in ${base}__*.genus.fasta.gz; do
+            bname=\$(basename \$file .genus.fasta.gz)
+            apnd="\$bname""--""\${num_outputs}"
+            mv \$file \$apnd.fasta.gz
+        done
+        """
+
+    } else { 
+
+            """
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
+
+        cat ${fungi_genera_list} | grep -v -f - ${report} > fungi_removed_report.txt
+        awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' fungi_removed_report.txt | sort | uniq > fungi_modified_list.txt
+        #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
+        for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.PREFILTER_THRESHOLD}' | cut -f5`
+        do
+        echo adding \$i
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
+        fi
+        done
 
 
         echo adding fungi
@@ -245,31 +285,7 @@ if (params.KRAKEN_PREFILTER == true) {
             apnd="\$bname""--""\${num_outputs}"
             mv \$file \$apnd.fasta.gz
         done
-
-
-
-
-        """
-    } else { 
             """
-        #!/bin/bash
-        #logging
-        echo "ls of directory" 
-        ls -lah 
-
-        cat ${fungi_genera_list} | grep -v -f - ${report} > fungi_removed_report.txt
-        awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' fungi_removed_report.txt | sort | uniq > fungi_modified_list.txt
-        #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-        for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.PREFILTER_THRESHOLD}' | cut -f5`
-        do
-        echo adding \$i
-        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-            cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
-        fi
-        done
-            """
-            
         }
     }   
 
