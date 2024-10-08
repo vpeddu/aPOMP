@@ -1,14 +1,15 @@
 nextflow run main.nf \
-	--REALTIME \
-	--INDEX /media/vikas/fast/data/metagenomics_index/ \
-	--FAST5_FOLDER ../coral/input/ \
+	--INDEX  /private/groups/kimlab/vikas/refs/metagenomics_index/ \
+    --INPUT_FOLDER /private/groups/kimlab/vikas/metagenomics/publication/ncm_2024/input/time_tagged_input/CSF001/ \
+	--LOW_COMPLEXITY_FILTER_NANOPORE \
 	--ALIGN_ALL_FUNGI \
 	--KRAKEN_PREFILTER \
+    --PREFILTER_THRESHOLD 5 \
 	--CHOPPER_MAXLENGTH 500000 \
 	--CHOPPER_QUALITY 9 \
-	--OUTPUT ~/data/aPOMP_out_kraken \
+	--OUTPUT aPOMP_out_kraken \
 	-with-docker ubuntu:18.04 \
-	-resume \
 	-with-report \
 	-with-trace \
-	-c desktop.config
+    -profile cluster \
+    -resume

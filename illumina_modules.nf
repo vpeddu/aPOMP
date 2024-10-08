@@ -482,7 +482,6 @@ input:
     tuple val(base), file(bam), file(bamindex), file(unclassified_fastq) //,  file(plasmid_fastq), val(plasmid_count)
     file taxdump
     file classify_script
-    file accessiontotaxid
 
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
@@ -531,7 +530,6 @@ input:
     tuple val(base), file(bam), file(bamindex), file(unclassified_fastq) //,  file(plasmid_fastq), val(plasmid_count)
     file taxdump
     file classify_script
-    file accessiontotaxid
 
 output: 
     tuple val("${base}"), file("${base}.prekraken.tsv")
@@ -603,13 +601,14 @@ cp taxdump/*.dmp .
 // write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container 'vpeddu/nanopore_metagenomics:latest'
+container 'vpeddu/nanopore_metagenomics:v01.3.1'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
 input: 
     tuple val(base), file(prekraken)
-    file krakenuniqdb
+    file taxasqlite
+    file write_report_script
 output: 
     file "${base}.final.report.tsv"
 
@@ -620,9 +619,10 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-/usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
---taxon-counts \
-${prekraken} > ${base}.final.report.tsv
+/usr/local/miniconda/bin/python3 \
+    ${write_report_script} \
+        ${prekraken} \
+        ${base}.final.report.tsv
 """
 }
 

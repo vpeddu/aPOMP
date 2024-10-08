@@ -255,10 +255,10 @@ workflow{
                 ) 
             }
             // run Minimap2 on each individual genus 
-            Extract_db.out.flatten().map{
-                it -> [it.name.split("__")[0], it]}.map{
-                    it -> [it[0],it[1],it[1].name.split("--")[1].split('.fasta.gz')[0]]}.
-                    combine(Host_depletion_nanopore.out[0], by:0).view()
+            // Extract_db.out.flatten().map{
+            //     it -> [it.name.split("__")[0], it]}.map{
+            //         it -> [it[0],it[1],it[1].name.split("--")[1].split('.fasta.gz')[0]]}.
+            //         combine(Host_depletion_nanopore.out[0], by:0).view()
             // Extract_db.out.flatten().map{
             //         it -> [it.name.split("__")[0], it]}.view()
                     
@@ -356,9 +356,8 @@ workflow{
                 Collect_alignment_results_RT.out.join(
                 Collect_unassigned_results_RT.out), 
                 Taxdump.collect(),
-                file("${baseDir}/bin/classify_reads.py"),
-                file("${params.INDEX}/accession2taxid/")
-                )
+                file("${baseDir}/bin/classify_reads.py")
+                        )
         } else {
 
             Collect_alignment_results(
@@ -383,9 +382,8 @@ workflow{
                 Collect_alignment_results.out.join(
                 Collect_unassigned_results.out).groupTuple(), 
                 Taxdump.collect(),
-                file("${baseDir}/bin/classify_reads.py"),
-                file("${params.INDEX}/accession2taxid/")
-                )
+                file("${baseDir}/bin/classify_reads.py")
+                    )
         }
             // if --EGGNOG run clustering, metaflye, and the eggnog OG search
             if (params.EGGNOG){
@@ -403,8 +401,7 @@ workflow{
                 Classify_orthologs(
                     Eggnog_mapper.out, 
                     Taxdump.collect(),
-                    file("${baseDir}/bin/orthologs_to_pavian.py"),
-                    file("${params.INDEX}/accession2taxid/")
+                    file("${baseDir}/bin/orthologs_to_pavian.py")
                 )
                 // write OG classification results to pavian file
                 Write_report_orthologs(
@@ -419,8 +416,9 @@ workflow{
                 ) 
             Write_report_RT( 
                 Accumulate_reports.out,
-                Krakenuniq_db.collect(),
-                file("${baseDir}/bin/merge_realtime_prekraken.py")
+                file("${params.INDEX}/taxdump/taxa.sqlite"),
+                file("${baseDir}/bin/merge_realtime_prekraken.py"),
+                file("${baseDir}/bin/write_report.py"),
                 )
                 //Krakenuniq_db.collect() //,
                 //file("${baseDir}/bin/merge_rt_reports.py")
@@ -432,7 +430,8 @@ workflow{
             } else { 
             Write_report(
                 Classify.out[0],
-                Krakenuniq_db.collect()
+                file("${params.INDEX}/taxdump/taxa.sqlite"),
+                file("${baseDir}/bin/write_report.py")
             )
             }
     }
@@ -494,12 +493,12 @@ workflow{
             Collect_alignment_results.out.join(
             Collect_unassigned_results_illumina.out).groupTuple(), 
             Taxdump.collect(),
-            file("${baseDir}/bin/classify_reads.py"),
-            file("${params.INDEX}/accession2taxid/")
-            )
+            file("${baseDir}/bin/classify_reads.py")
+                )
         Write_report(
             Classify.out[0],
-            Krakenuniq_db.collect()
+            file("${params.INDEX}/taxdump/taxa.sqlite"),
+            file("${baseDir}/bin/write_report.py")
         )
     }
 }

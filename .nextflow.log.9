@@ -1,261 +1,31 @@
-Aug-19 19:30:23.003 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --REALTIME --INDEX /media/vikas/fast/data/metagenomics_index/ --FAST5_FOLDER ../coral/input/ --ALIGN_ALL_FUNGI --CHOPPER_MAXLENGTH 500000 --CHOPPER_QUALITY 9 --OUTPUT /home/vikas/data/aPOMP_out -with-docker 'ubuntu:18.04' -resume -with-report -with-trace -c desktop.config
-Aug-19 19:30:23.124 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 22.10.6
-Aug-19 19:30:23.153 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/vikas/.nextflow/plugins; core-plugins: nf-amazon@1.11.3,nf-azure@0.14.2,nf-codecommit@0.1.2,nf-console@1.0.4,nf-ga4gh@1.0.4,nf-google@1.4.5,nf-tower@1.5.6,nf-wave@0.5.3
-Aug-19 19:30:23.167 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
-Aug-19 19:30:23.169 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
-Aug-19 19:30:23.174 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.4.1 in 'deployment' mode
-Aug-19 19:30:23.191 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
-Aug-19 19:30:23.227 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /media/vikas/fast/data/apomp_test/aPOMP/nextflow.config
-Aug-19 19:30:23.230 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /media/vikas/fast/data/apomp_test/aPOMP/desktop.config
-Aug-19 19:30:23.230 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /media/vikas/fast/data/apomp_test/aPOMP/nextflow.config
-Aug-19 19:30:23.231 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /media/vikas/fast/data/apomp_test/aPOMP/desktop.config
-Aug-19 19:30:23.256 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Aug-19 19:30:24.260 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Aug-19 19:30:24.646 [main] DEBUG nextflow.config.ConfigBuilder - Enabling execution in Docker container as requested by command-line option `-with-docker ubuntu:18.04`
-Aug-19 19:30:24.656 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declararion
-Aug-19 19:30:24.686 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [condescending_fermi] DSL2 - revision: b16dff9423
-Aug-19 19:30:24.687 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
-Aug-19 19:30:24.688 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-tower@1.5.6]
-Aug-19 19:30:24.688 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-tower version: 1.5.6
-Aug-19 19:30:24.697 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-tower@1.5.6' resolved
-Aug-19 19:30:24.698 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-tower@1.5.6'
-Aug-19 19:30:24.714 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-tower@1.5.6
-Aug-19 19:30:24.727 [main] DEBUG nextflow.secret.LocalSecretsProvider - Secrets store: /home/vikas/.nextflow/secrets/store.json
-Aug-19 19:30:24.731 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@8cc8cdb] - activable => nextflow.secret.LocalSecretsProvider@8cc8cdb
-Aug-19 19:30:24.824 [main] DEBUG nextflow.Session - Session UUID: 1cf2e3c2-64a8-4876-8a9b-bdab0fb6acda
-Aug-19 19:30:24.824 [main] DEBUG nextflow.Session - Run name: condescending_fermi
-Aug-19 19:30:24.824 [main] DEBUG nextflow.Session - Executor pool size: 16
-Aug-19 19:30:24.842 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=48; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
-Aug-19 19:30:24.880 [main] DEBUG nextflow.cli.CmdRun - 
-  Version: 22.10.6 build 5843
-  Created: 23-01-2023 23:20 UTC (15:20 PDT)
-  System: Linux 5.15.0-43-generic
-  Runtime: Groovy 3.0.13 on OpenJDK 64-Bit Server VM 11.0.15+10-Ubuntu-0ubuntu0.20.04.1
-  Encoding: UTF-8 (UTF-8)
-  Process: 75243@vikas-System-Product-Name [127.0.1.1]
-  CPUs: 16 - Mem: 94.2 GB (18.9 GB) - Swap: 2 GB (2 GB)
-Aug-19 19:30:24.924 [main] DEBUG nextflow.Session - Work-dir: /media/vikas/fast/data/apomp_test/aPOMP/work [ext2/ext3]
-Aug-19 19:30:24.950 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
-Aug-19 19:30:24.967 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
-Aug-19 19:30:24.976 [main] DEBUG nextflow.Session - Observer factory: TowerFactory
-Aug-19 19:30:25.019 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
-Aug-19 19:30:25.033 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 17; maxThreads: 1000
-Aug-19 19:30:25.176 [main] DEBUG nextflow.Session - Session start
-Aug-19 19:30:25.184 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /media/vikas/fast/data/apomp_test/aPOMP/trace-20240819-70224609.txt
-Aug-19 19:30:26.309 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Aug-19 19:30:26.318 [main] WARN  nextflow.NextflowMeta$Preview - NEXTFLOW RECURSION IS A PREVIEW FEATURE - SYNTAX AND FUNCTIONALITY CAN CHANGE IN FUTURE RELEASE
-Aug-19 19:30:27.904 [main] WARN  nextflow.script.ScriptBinding - `params.PREFILTER_THRESHOLD` is defined multiple times -- Assignments following the first are ignored
-Aug-19 19:30:27.921 [main] DEBUG nextflow.file.DirWatcherV2 - Watch service for path=../coral/input/; syntax=glob; pattern=*.fastq; skipHidden=true; events=create
-Aug-19 19:30:28.040 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.040 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.048 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
-Aug-19 19:30:28.054 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=16; memory=94.2 GB; capacity=16; pollInterval=100ms; dumpInterval=5m
-Aug-19 19:30:28.213 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Chopper` matches process Chopper
-Aug-19 19:30:28.214 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.214 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.220 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:NanoPlot` matches process NanoPlot
-Aug-19 19:30:28.221 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.221 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.240 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Host_depletion_nanopore` matches process Host_depletion_nanopore
-Aug-19 19:30:28.243 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.243 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.249 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `KRAKEN_PREFILTER` -- Initialise it to a default value eg. `params.KRAKEN_PREFILTER = some_value`
-Aug-19 19:30:28.255 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Sourmash_prefilter_nanopore` matches process Sourmash_prefilter_nanopore
-Aug-19 19:30:28.256 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.256 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.290 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Extract_db` matches process Extract_db
-Aug-19 19:30:28.291 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.292 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.326 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Minimap2_nanopore` matches process Minimap2_nanopore
-Aug-19 19:30:28.328 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.329 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.341 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.341 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.377 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Align_fungi` matches process Align_fungi
-Aug-19 19:30:28.379 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.379 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.403 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Collect_alignment_results` matches process Collect_alignment_results
-Aug-19 19:30:28.406 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.406 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.424 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.424 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.441 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withName:Classify` matches process Classify
-Aug-19 19:30:28.442 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.442 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.461 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.461 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.469 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Aug-19 19:30:28.469 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Aug-19 19:30:28.473 [main] DEBUG nextflow.Session - Workflow process names [dsl2]: Low_complexity_filtering_nanopore, Extract_db, Cluster_unclassified_reads, Classify, Collect_unassigned_results_illumina, Host_depletion_illumina, Minimap2_nanopore, Sam_conversion, Chopper_RT, Write_report_RT, Align_fungi, Trimming_FastP, Minimap2_illumina, Kraken_prefilter, Extract_true_novel, NanoPlot, Collect_unassigned_results, Write_report, Sourmash_prefilter_nanopore, Eggnog_mapper, Identify_resistant_plasmids, Collect_alignment_results, Kraken_prefilter_nanopore, Merge_classifiy_RT, Accumulate_reports, MetaFlye, Extract_fungi, Low_complexity_filtering, Host_depletion_nanopore, Classify_orthologs, Diamond_translated_alignment_unclassified, Combine_fq, Chopper, Write_report_orthologs
-Aug-19 19:30:28.478 [main] DEBUG nextflow.Session - Igniting dataflow network (23)
-Aug-19 19:30:28.495 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Combine_fq
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Chopper
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > NanoPlot
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Host_depletion_nanopore
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Sourmash_prefilter_nanopore
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Extract_db
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Minimap2_nanopore
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Extract_fungi
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Align_fungi
-Aug-19 19:30:28.496 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Collect_alignment_results
-Aug-19 19:30:28.497 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Collect_unassigned_results
-Aug-19 19:30:28.497 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Classify
-Aug-19 19:30:28.499 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Accumulate_reports
-Aug-19 19:30:28.501 [main] DEBUG nextflow.processor.TaskProcessor - Starting process > Write_report_RT
-Aug-19 19:30:28.503 [main] DEBUG nextflow.script.ScriptRunner - > Awaiting termination 
-Aug-19 19:30:28.504 [main] DEBUG nextflow.Session - Session await
-Aug-19 19:30:28.709 [Actor Thread 7] INFO  nextflow.processor.TaskProcessor - [60/9f8cec] Cached process > Extract_fungi
-Aug-19 19:30:34.526 [Actor Thread 6] INFO  nextflow.processor.TaskProcessor - [95/0b660b] Cached process > Combine_fq (1)
-Aug-19 19:30:34.575 [Actor Thread 6] INFO  nextflow.processor.TaskProcessor - [95/2b4320] Cached process > Chopper (1)
-Aug-19 19:30:34.588 [Actor Thread 13] INFO  nextflow.processor.TaskProcessor - [27/48fd06] Cached process > NanoPlot (1)
-Aug-19 19:30:34.602 [Actor Thread 11] INFO  nextflow.processor.TaskProcessor - [f3/1d07a0] Cached process > Host_depletion_nanopore (1)
-Aug-19 19:30:34.612 [Actor Thread 7] ERROR nextflow.extension.OperatorImpl - @unknown
-groovy.lang.MissingMethodException: No signature of method: Script_fb5b7abb$_runScript_closure1$_closure2$_closure14.call() is applicable for argument types: (ArrayList) values: [[18852, /media/vikas/fast/data/apomp_test/aPOMP/work/f3/1d07a02e9e81622c59f0a377c1d187/18852.host_filtered.fastq.gz]]
-Possible solutions: any(), any(), each(groovy.lang.Closure), any(groovy.lang.Closure), tap(groovy.lang.Closure), each(groovy.lang.Closure)
-	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:266)
-	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1035)
-	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:819)
-	at groovy.lang.GroovyObject.invokeMethod(GroovyObject.java:39)
-	at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.call(PogoMetaClassSite.java:44)
-	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
-	at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.call(PogoMetaClassSite.java:53)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:139)
-	at nextflow.extension.MapOp$_apply_closure1.doCall(MapOp.groovy:57)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
-	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:107)
-	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
-	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:274)
-	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1035)
-	at groovy.lang.Closure.call(Closure.java:412)
-	at groovyx.gpars.dataflow.operator.DataflowOperatorActor.startTask(DataflowOperatorActor.java:120)
-	at groovyx.gpars.dataflow.operator.DataflowOperatorActor.onMessage(DataflowOperatorActor.java:108)
-	at groovyx.gpars.actor.impl.SDAClosure$1.call(SDAClosure.java:43)
-	at groovyx.gpars.actor.AbstractLoopingActor.runEnhancedWithoutRepliesOnMessages(AbstractLoopingActor.java:293)
-	at groovyx.gpars.actor.AbstractLoopingActor.access$400(AbstractLoopingActor.java:30)
-	at groovyx.gpars.actor.AbstractLoopingActor$1.handleMessage(AbstractLoopingActor.java:93)
-	at groovyx.gpars.util.AsyncMessagingCore.run(AsyncMessagingCore.java:132)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-	at java.base/java.lang.Thread.run(Thread.java:829)
-Aug-19 19:30:34.624 [Actor Thread 7] DEBUG nextflow.Session - Session aborted -- Cause: No signature of method: Script_fb5b7abb$_runScript_closure1$_closure2$_closure14.call() is applicable for argument types: (ArrayList) values: [[18852, /media/vikas/fast/data/apomp_test/aPOMP/work/f3/1d07a02e9e81622c59f0a377c1d187/18852.host_filtered.fastq.gz]]
-Possible solutions: any(), any(), each(groovy.lang.Closure), any(groovy.lang.Closure), tap(groovy.lang.Closure), each(groovy.lang.Closure)
-Aug-19 19:30:34.628 [Actor Thread 9] INFO  nextflow.processor.TaskProcessor - [d9/d8464c] Cached process > Sourmash_prefilter_nanopore (1)
-Aug-19 19:30:34.645 [Actor Thread 7] DEBUG nextflow.Session - The following nodes are still active:
-[process] Combine_fq
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: fq
-  port 1: (cntrl) -     ; channel: $
-
-[process] Chopper
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (cntrl) -     ; channel: $
-
-[process] NanoPlot
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (cntrl) -     ; channel: $
-
-[process] Host_depletion_nanopore
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: minimap2_host_index
-  port 2: (value) bound ; channel: ribosome_trna
-  port 3: (value) bound ; channel: minimap2_plasmid_db
-  port 4: (cntrl) -     ; channel: $
-
-[process] Sourmash_prefilter_nanopore
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: sourmash_db
-  port 2: (value) bound ; channel: taxdump
-  port 3: (value) bound ; channel: taxonomy_parse_script
-  port 4: (value) bound ; channel: prefilter_threshold
-  port 5: (cntrl) -     ; channel: $
-
-[process] Extract_db
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: fastadb
-  port 2: (value) bound ; channel: extract_script
-  port 3: (value) bound ; channel: fungi_genera_list
-  port 4: (value) bound ; channel: prefilter_threshold
-  port 5: (cntrl) -     ; channel: $
-
-[process] Minimap2_nanopore
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (cntrl) -     ; channel: $
-
-[process] Align_fungi
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: fungi_db
-  port 2: (cntrl) -     ; channel: $
-
-[process] Collect_alignment_results
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (cntrl) -     ; channel: $
-
-[process] Collect_unassigned_results
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: filter_unassigned_reads
-  port 2: (cntrl) -     ; channel: $
-
-[process] Classify
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: -
-  port 1: (value) bound ; channel: taxdump
-  port 2: (value) bound ; channel: classify_script
-  port 3: (value) bound ; channel: accessiontotaxid
-  port 4: (cntrl) -     ; channel: $
-
-[process] Accumulate_reports
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: prekraken
-  port 1: (cntrl) -     ; channel: $
-
-[process] Write_report_RT
-  status=ACTIVE
-  port 0: (queue) OPEN  ; channel: prekraken
-  port 1: (value) bound ; channel: krakenuniqdb
-  port 2: (value) bound ; channel: mergescript
-  port 3: (cntrl) -     ; channel: $
-
-Aug-19 19:30:34.648 [main] DEBUG nextflow.Session - Session await > all processes finished
-Aug-19 19:30:34.648 [main] DEBUG nextflow.Session - Session await > all barriers passed
-Aug-19 19:30:34.656 [main] DEBUG nextflow.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=0; ignoredCount=0; cachedCount=6; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=1h 4m 21s;loadCpus=0; loadMemory=0; peakRunning=0; peakCpus=0; peakMemory=0; ]
-Aug-19 19:30:34.656 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow completed -- saving trace file
-Aug-19 19:30:34.658 [main] DEBUG nextflow.trace.ReportObserver - Workflow completed -- rendering execution report
-Aug-19 19:30:34.679 [Actor Thread 13] INFO  nextflow.processor.TaskProcessor - [b3/07fe87] Cached process > Extract_db (1)
-Aug-19 19:30:34.680 [main] WARN  nextflow.trace.ReportObserver - Failed to render execution report -- see the log file for details
-java.util.ConcurrentModificationException: null
-	at java.base/java.util.LinkedHashMap$LinkedHashIterator.nextNode(LinkedHashMap.java:719)
-	at java.base/java.util.LinkedHashMap$LinkedKeyIterator.next(LinkedHashMap.java:741)
-	at org.codehaus.groovy.runtime.DefaultGroovyMethods.each(DefaultGroovyMethods.java:2358)
-	at org.codehaus.groovy.runtime.DefaultGroovyMethods.each(DefaultGroovyMethods.java:2344)
-	at org.codehaus.groovy.runtime.DefaultGroovyMethods.each(DefaultGroovyMethods.java:2397)
-	at nextflow.trace.ResourcesAggregator.computeSummaryMap(ResourcesAggregator.groovy:64)
-	at nextflow.trace.ResourcesAggregator.computeSummaryList(ResourcesAggregator.groovy:90)
-	at nextflow.trace.ResourcesAggregator.renderSummaryJson(ResourcesAggregator.groovy:105)
-	at nextflow.trace.ReportObserver.renderSummaryJson(ReportObserver.groovy:241)
-	at nextflow.trace.ReportObserver.renderPayloadJson(ReportObserver.groovy:247)
-	at nextflow.trace.ReportObserver.renderHtml(ReportObserver.groovy:258)
-	at nextflow.trace.ReportObserver.onFlowComplete(ReportObserver.groovy:140)
-	at nextflow.Session.notifyFlowComplete(Session.groovy:1075)
-	at nextflow.Session.shutdown0(Session.groovy:702)
-	at nextflow.Session.destroy(Session.groovy:644)
-	at nextflow.script.ScriptRunner.shutdown(ScriptRunner.groovy:240)
-	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:135)
-	at nextflow.cli.CmdRun.run(CmdRun.groovy:354)
-	at nextflow.cli.Launcher.run(Launcher.groovy:487)
-	at nextflow.cli.Launcher.main(Launcher.groovy:646)
-Aug-19 19:30:34.836 [main] DEBUG nextflow.cache.CacheDB - Closing CacheDB done
-Aug-19 19:30:34.836 [main] INFO  org.pf4j.AbstractPluginManager - Stop plugin 'nf-tower@1.5.6'
-Aug-19 19:30:34.836 [main] DEBUG nextflow.plugin.BasePlugin - Plugin stopped nf-tower
-Aug-19 19:30:34.857 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
+Oct-07 16:53:35.565 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --INDEX /media/vikas/fast/data/metagenomics_index/ --INPUT_FOLDER /private/groups/kimlab/vikas/metagenomics/publication/ncm_2024/input/time_tagged_input/CSF001/ --ALIGN_ALL_FUNGI --KRAKEN_PREFILTER --CHOPPER_MAXLENGTH 500000 --CHOPPER_QUALITY 9 --OUTPUT aPOMP_out_kraken -with-docker 'ubuntu:18.04' -resume -with-report -with-trace -profile desktop -c /private/home/vpeddu/nextflow.config
+Oct-07 16:53:35.749 [main] DEBUG nextflow.cli.CmdRun - N E X T F L O W  ~  version 24.04.4
+Oct-07 16:53:35.782 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/private/home/vpeddu/.nextflow/plugins; core-plugins: nf-amazon@2.5.3,nf-azure@1.6.1,nf-cloudcache@0.4.1,nf-codecommit@0.2.1,nf-console@1.1.3,nf-ga4gh@1.3.0,nf-google@1.13.2-patch1,nf-tower@1.9.1,nf-wave@1.4.2-patch1
+Oct-07 16:53:35.798 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Oct-07 16:53:35.800 [main] INFO  o.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Oct-07 16:53:35.805 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.12.0 in 'deployment' mode
+Oct-07 16:53:35.824 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Oct-07 16:53:35.856 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /data/scratch/vpeddu/aPOMP/nextflow.config
+Oct-07 16:53:35.861 [main] DEBUG nextflow.config.ConfigBuilder - User config file: /private/home/vpeddu/nextflow.config
+Oct-07 16:53:35.863 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /data/scratch/vpeddu/aPOMP/nextflow.config
+Oct-07 16:53:35.864 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /private/home/vpeddu/nextflow.config
+Oct-07 16:53:35.903 [main] DEBUG n.secret.LocalSecretsProvider - Secrets store: /private/home/vpeddu/.nextflow/secrets/store.json
+Oct-07 16:53:35.908 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@6e0cff20] - activable => nextflow.secret.LocalSecretsProvider@6e0cff20
+Oct-07 16:53:35.926 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `desktop`
+Oct-07 16:53:36.981 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `desktop`
+Oct-07 16:53:37.020 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [standard, server, cluster, laptop, aws]
+Oct-07 16:53:37.075 [main] DEBUG nextflow.cli.Launcher - Operation aborted
+nextflow.exception.AbortOperationException: Unknown configuration profile: 'desktop'
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.checkValidProfile(ConfigBuilder.groovy:514)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.buildConfig0(ConfigBuilder.groovy:388)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.buildGivenFiles(ConfigBuilder.groovy:320)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.buildConfigObject(ConfigBuilder.groovy:814)
+	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
+	at nextflow.config.ConfigBuilder.build(ConfigBuilder.groovy:827)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:328)
+	at nextflow.cli.Launcher.run(Launcher.groovy:503)
+	at nextflow.cli.Launcher.main(Launcher.groovy:657)

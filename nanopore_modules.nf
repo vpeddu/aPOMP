@@ -1236,10 +1236,9 @@ errorStrategy 'ignore'
 cpus 1
 input: 
     file prekraken
-    file krakenuniqdb
+    file taxasqlite
     file mergescript
-    //file krakenuniqdb
-    //file mergescript
+    file write_report_script
 output: 
     file "*.rt.report.tsv"
     //file "*.rt.report.tsv"
@@ -1256,9 +1255,8 @@ echo \$timestamp
 
 /usr/local/miniconda/bin/python3 ${mergescript} ${prekraken} \$timestamp
 
-/usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
---taxon-counts \$timestamp.merged.prekraken.tsv > \$timestamp.rt.report.tsv
-#mv \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
+/usr/local/miniconda/bin/python3 ${write_report_script} \$timestamp.merged.prekraken.tsv \$timestamp.rt.report.tsv
+
 """
 }
 process Combine_fq {

@@ -1,0 +1,5 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	df/17f062	2054339	Chopper (1)	CACHED	0	2024-10-07 16:53:54.978	1m 40s	1m 38s	369.7%	23.1 MB	609.6 MB	10.6 GB	8.2 GB
+2	7e/65394b	2059649	Host_depletion_nanopore (1)	CACHED	0	2024-10-07 16:55:34.665	3.2s	910ms	17.8%	3 MB	18 MB	137.8 KB	4.4 KB
+4	88/2172ec	2068489	Kraken_prefilter_nanopore (1)	FAILED	0	2024-10-07 17:03:59.442	1.3s	39ms	104.0%	10 MB	13.8 MB	231.5 KB	2.5 KB
+3	c6/2d1e7a	2068481	NanoPlot (1)	ABORTED	-	2024-10-07 17:03:59.422	-	-	-	-	-	-	-
