@@ -82,7 +82,6 @@ def main():
     
     for node in tree.traverse("preorder"):
         space_num = len(node.lineage) - 1
-        seen.append(node.name)
         output_file.write(" %s" % "{:.2f}".format(node.percent))
         output_file.write("\t%i" % node.cum_sum)
         output_file.write("\t%i" % node.taxon_count)
