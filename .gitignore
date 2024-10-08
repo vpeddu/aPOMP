@@ -2,7 +2,7 @@
 *.bam
 work/*
 *testing*
-*.nextflow.log
+*.nextflow.log*
 test_output/
 trace.txt.*
 *.nextflow*
