@@ -61,7 +61,7 @@ bbduk.sh \
 // run host depletion with star (just against host, no plasmid or tRNA)
 process Host_depletion_illumina { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -189,15 +189,14 @@ input:
     file fastadb
     file extract_script
     file fungi_genera_list
+    val prefilter_threshold
 output: 
     file("${base}__*")
 
 
 script:
-
-if (params.ALIGN_ALL_FUNGI == true) { 
-    
-    if (params.KRAKEN_PREFILTER == true) {
+//TODO: Create a fasta of just all fungi and hardcode it in here so we don't have to create it every time
+if (params.KRAKEN_PREFILTER == true) {
         """
         #!/bin/bash
         #logging
@@ -212,7 +211,7 @@ if (params.ALIGN_ALL_FUNGI == true) {
         cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
 
         #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        for i in `grep -P "\tG\t" fungi_removed_report.txt | awk '\$2>=${prefilter_threshold}' | cut -f5`
         do
         echo adding \$i
         if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
@@ -220,8 +219,32 @@ if (params.ALIGN_ALL_FUNGI == true) {
             cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
         fi
         done
+
+        echo adding fungi
+        for i in `cat ${fungi_genera_list}`
+        do
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz \$i.fungi.genus.fasta.gz
+        fi
+        done
+
+        cat *.fungi.genus.fasta.gz > ${base}__fungi.genus.fasta.gz
+
+
+        num_outputs=`ls ${base}__*.genus.fasta.gz | wc -l`
+
+        echo "num_outputs: \$num_outputs"
+
+        for file in ${base}__*.genus.fasta.gz; do
+            bname=\$(basename \$file .genus.fasta.gz)
+            apnd="\$bname""--""\${num_outputs}"
+            mv \$file \$apnd.fasta.gz
+        done
         """
-        } else { 
+
+    } else { 
+
             """
         #!/bin/bash
         #logging
@@ -231,7 +254,7 @@ if (params.ALIGN_ALL_FUNGI == true) {
         cat ${fungi_genera_list} | grep -v -f - ${report} > fungi_removed_report.txt
         awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' fungi_removed_report.txt | sort | uniq > fungi_modified_list.txt
         #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-        for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
+        for i in `grep -P "\tG\t" fungi_modified_list.txt | awk '\$2>=${params.PREFILTER_THRESHOLD}' | cut -f5`
         do
         echo adding \$i
         if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
@@ -239,59 +262,34 @@ if (params.ALIGN_ALL_FUNGI == true) {
             cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
         fi
         done
+
+
+        echo adding fungi
+        for i in `cat ${fungi_genera_list}`
+        do
+        if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
+            ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
+            cp ${fastadb}/\$i.genus.fasta.gz \$i.fungi.genus.fasta.gz
+        fi
+        done
+
+        cat *.fungi.genus.fasta.gz > ${base}__fungi.genus.fasta.gz
+
+
+        num_outputs=`ls ${base}__*.genus.fasta.gz | wc -l`
+
+        echo "num_outputs: \$num_outputs"
+
+        for file in ${base}__*.genus.fasta.gz; do
+            bname=\$(basename \$file .genus.fasta.gz)
+            apnd="\$bname""--""\${num_outputs}"
+            mv \$file \$apnd.fasta.gz
+        done
             """
-            
         }
     }   
-else { 
-
-    if (params.KRAKEN_PREFILTER == true) {
-"""
-#!/bin/bash
-#logging
-echo "ls of directory" 
-ls -lah 
-
-# python3 ${extract_script} ${report} ${fastadb}
-
-#grep -P "\tG\t" ${report} | cut -f5 | parallel {}.genus.fasta.gz /scratch/vpeddu/genus_level_download/test_index/
-# could filter by kraken report column 2 for all above some parameter (if > 25)
-for i in `grep -P "\tG\t" ${report} | awk '\$2>${params.KRAKEN2_THRESHOLD}' | cut -f5`
-do
-echo adding \$i
-if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-    ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-    cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
-fi
-done
-"""
-    } else { 
-            """
-            #!/bin/bash
-            #logging
-            echo "ls of directory" 
-            ls -lah 
-
-            # could filter by kraken report column 2 for all above some parameter (default: if > 25)
 
 
-            awk 'BEGIN{FS=OFS="\t"} {print ("blank\t30\tblank\tG"), \$0}' ${report}  > ${base}.modified_list.txt
-
-            #cat fungi_modified_list.txt | cut -f5 | sed 's/^/G\\t/' | sed 's/\$/\\'\\t'/' | grep -v -f - ${report} > fungi_removed_report.txt
-
-            #cat fungi_modified_list.txt ${report} >> fungi_added_kraken_report.txt
-            for i in `grep -P "\tG\t" ${base}.modified_list.txt | awk '\$2>=${params.KRAKEN2_THRESHOLD}' | cut -f5`
-            do
-            echo adding \$i
-            if [[ -f ${fastadb}/\$i.genus.fasta.gz ]]; then
-                ##cat ${fastadb}/\$i.genus.fasta.gz >> species.fasta.gz
-                cp ${fastadb}/\$i.genus.fasta.gz ${base}__\$i.genus.fasta.gz
-            fi
-            done
-            """
-    }
-    }
-}
 
 process Minimap2_illumina { 
 //conda "${baseDir}/env/env.yml"
@@ -476,7 +474,7 @@ samtools view -Sb -@  ${task.cpus} -f 4 ${sam} > ${base}.unclassfied.bam
 // run LCA algorithm
 process Classify { 
 publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
-container 'vpeddu/nanopore_metagenomics:latest'
+container 'vpeddu/nanopore_metagenomics:v01.3.1'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 8
@@ -490,6 +488,7 @@ output:
     tuple val("${base}"), file("${base}.prekraken.tsv")
     file "${base}.prekraken.tsv"
 script:
+
 """
 #!/bin/bash 
 #logging
@@ -502,7 +501,7 @@ ls -lah
 cp taxdump/*.dmp .
 
 # run LCA script
-python3.7 ${classify_script} ${bam} ${base} 
+/usr/local/miniconda/bin/python3 ${classify_script} ${bam} ${base} 'save'
 
 # counting unassigned reads to add back into final report
 #echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
@@ -514,6 +513,58 @@ echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
 
 echo \$fastqlinecount \$linecount unclassified reads 
 
+samtools --version
+ 
+find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
+"""
+}
+
+
+
+process Classify_RT { 
+publishDir "${params.OUTPUT}/Classification/${base}", mode: 'symlink', overwrite: true
+container 'vpeddu/nanopore_metagenomics:v01.3.1'
+beforeScript 'chmod o+rw .'
+errorStrategy 'ignore'
+cpus 8
+input: 
+    tuple val(base), file(bam), file(bamindex), file(unclassified_fastq) //,  file(plasmid_fastq), val(plasmid_count)
+    file taxdump
+    file classify_script
+    file accessiontotaxid
+
+output: 
+    tuple val("${base}"), file("${base}.prekraken.tsv")
+    file "${base}.prekraken.tsv"
+script:
+
+"""
+#!/bin/bash 
+#logging
+echo "ls of directory" 
+ls -lah 
+#mv taxonomy/taxdump.tar.gz .
+#tar -xvzf taxdump.tar.gz
+
+# for whatever reason if we don't copy the taxdump file, the original gets modified which breaks every other classification process
+cp taxdump/*.dmp .
+
+# run LCA script
+/usr/local/miniconda/bin/python3 ${classify_script} ${bam} ${base} 'save'
+
+# counting unassigned reads to add back into final report
+#echo \$(zcat ${unclassified_fastq} | wc -l)/4 | bc >> ${base}.prekraken.tsv
+linecount=\$(zcat ${unclassified_fastq} | wc -l)
+fastqlinecount=\$(awk -v lc=\$linecount 'BEGIN {  print (lc/4) }')
+echo -e "0\\t\$fastqlinecount" >> ${base}.prekraken.tsv
+
+# add plasmid count back into results
+
+echo \$fastqlinecount \$linecount unclassified reads 
+
+samtools --version
+ 
+find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
 """
 }
 
@@ -544,7 +595,7 @@ ls -lah
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
 cp taxdump/*.dmp .
-python3.7 ${classify_script} ${base}.emapper.annotations ${base} 
+/usr/local/miniconda/bin/python3 ${classify_script} ${base}.emapper.annotations ${base} 
 
 """
 }
@@ -552,7 +603,7 @@ python3.7 ${classify_script} ${base}.emapper.annotations ${base}
 // write pavian style report
 process Write_report { 
 publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container "evolbioinfo/krakenuniq:v0.5.8"
+container 'vpeddu/nanopore_metagenomics:latest'
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -569,7 +620,7 @@ script:
 echo "ls of directory" 
 ls -lah 
 
-krakenuniq-report --db ${krakenuniqdb} \
+/usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \
 ${prekraken} > ${base}.final.report.tsv
 """
@@ -605,7 +656,7 @@ ${prekraken} > ${base}.orthologs.final.report.tsv
 process Collect_unassigned_results_illumina{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
@@ -622,7 +673,7 @@ script:
     #!/bin/bash
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt
-    python3.7 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/python3 ${filter_unassigned_reads}
     /usr/local/miniconda/bin/seqtk mergepe ${depleted_fastq_r1} ${depleted_fastq_r2} | pigz > host_depleted_merged.fastq.gz
     /usr/local/miniconda/bin/seqtk subseq host_depleted_merged.fastq.gz true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 

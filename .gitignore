@@ -5,3 +5,5 @@ work/*
 *.nextflow.log
 test_output/
 trace.txt.*
+*.nextflow*
+null/*

@@ -3,6 +3,8 @@
 import csv
 import sys 
 import pandas as pd
+
+print(sys.version)
 from ete3 import NCBITaxa
 
 ncbi = NCBITaxa(dbfile = 'taxa.sqlite')

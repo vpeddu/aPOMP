@@ -1,13 +1,13 @@
 
 // set defaults
 params.MINIMAPSPLICE = false 
-params.NANOFILT_MAXLENGTH = 20000
-params.NANOFILT_MINLENGTH = 100
+params.CHOPPER_MAXLENGTH = 20000
+params.CHOPPER_MINLENGTH = 100
 params.MINIMAP2_RETRIES = 10 
-params.NANOFILT_QUALITY = 10
+params.CHOPPER_QUALITY = 10
 
-process NanoFilt { 
-publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
+process Chopper { 
+publishDir "${params.OUTPUT}/Chopper/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
 //TODO: change container to metagenomics container
 
@@ -16,9 +16,9 @@ publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 //execution of the other samples will continue
 errorStrategy 'ignore'
 
-container " quay.io/biocontainers/nanofilt:2.8.0--py_0"
+container "quay.io/biocontainers/chopper:0.8.0--hdcf5f25_0"
 beforeScript 'chmod o+rw .'
-cpus 6
+cpus 8
 input: 
     tuple val(base), file(r1)
 output: 
@@ -39,9 +39,10 @@ if ( params.REALTIME ){
     cat *.fastq >  tmp.merged.fastq
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    cat tmp.merged.fastq | NanoFilt -q ${params.NANOFILT_QUALITY} \
-            --maxlength ${params.NANOFILT_MAXLENGTH} \
-            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+    cat tmp.merged.fastq | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
+            --maxlength ${params.CHOPPER_MAXLENGTH} \
+            --threads ${task.cpus} \
+            --minlength ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
@@ -60,9 +61,10 @@ else {
     echo "running Nanofilt on ${base}"
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    gunzip -c ${r1} | NanoFilt -q ${params.NANOFILT_QUALITY} \
-            --maxlength ${params.NANOFILT_MAXLENGTH} \
-            --length ${params.NANOFILT_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+    gunzip -c ${r1} | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
+            --maxlength ${params.CHOPPER_MAXLENGTH} \
+            --threads ${task.cpus} \
+            --minlength ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
@@ -75,7 +77,7 @@ else {
 }
 
 
-process NanoFilt_RT { 
+process Chopper_RT { 
 
 publishDir "${params.OUTPUT}/Nanofilt/${base}", mode: 'symlink', overwrite: true
 // need to change this to the nanopore metagenomics container
@@ -124,6 +126,7 @@ if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]]
 
 process NanoPlot { 
 //conda "${baseDir}/env/env.yml"
+errorStrategy 'ignore'
 publishDir "${params.OUTPUT}/NanoPlot/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/nanoplot:1.38.1--pyhdfd78af_0"
 beforeScript 'chmod o+rw .'
@@ -150,7 +153,7 @@ NanoPlot -t ${task.cpus} \
 
 process Host_depletion_nanopore { 
 publishDir "${params.OUTPUT}/Host_filtered/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -161,7 +164,7 @@ input:
 output: 
     tuple val("${base}"), file("${base}.host_filtered.fastq.gz")
     file "${base}.host_mapped.bam"
-    file "${base}.trna.mapped.bam"
+    file "${base}.trna.mapped.fastq.gz"
     tuple val("${base}"), file("${base}.plasmid.fastq.gz"), file("${base}.plasmid_read_ids.txt"), file("${base}.plasmid_extraction.bam")
 
 script:
@@ -177,7 +180,7 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 
 
     minimap2 \
-        -ax map-ont \
+        -ax asm5 \
         -t "\$((${task.cpus}-2))" \
         -2 \
         ${minimap2_host_index} \
@@ -205,51 +208,89 @@ if ( "${params.LEAVE_TRNA_IN}" == true) {
 // if filtering out tRNA and other stuff (default)
 else 
     {
-    """
-    #!/bin/bash
-    #logging
-    echo "ls of directory" 
-    ls -lah 
+//         if ("${params.SKIP_HOST_DEPLETION}" == true) { 
+// """
+//         #!/bin/bash
+//         #logging
+//         echo "ls of directory" 
+//         ls -lah 
 
-    #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+//         #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
 
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${ribosome_trna} \
-        ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+//         minimap2 \
+//             -ax map-ont \
+//             -t "\$((${task.cpus}-2))" \
+//             -2 \
+//             ${ribosome_trna} \
+//             ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
 
-        samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
-        samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.bam
+//             samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.host_filtered.fastq.gz
+//             samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+            
+//             touch ${base}.host_mapped.bam
 
-    minimap2 \
-        -ax map-ont \
-        -t "\$((${task.cpus}-2))" \
-        -2 \
-        ${minimap2_host_index} \
-        ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
-        samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+//         minimap2 \
+//             -ax asm5 \
+//             -t ${task.cpus} \
+//             --sam-hit-only \
+//             ${minimap2_plasmid_db} \
+//             ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
 
-    minimap2 \
-        -ax asm5 \
-        -t ${task.cpus} \
-        --sam-hit-only \
-        ${minimap2_plasmid_db} \
-        ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+//         samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
 
-    samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+//         /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
 
-    /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
-
+//     """
+//             }
+//         else{ 
 """
-    }
+        #!/bin/bash
+        #logging
+        echo "ls of directory" 
+        ls -lah 
+
+        #cat ${minimap2_host_index} ${ribosome_trna} > host.fa
+
+        minimap2 \
+            -ax map-ont \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${ribosome_trna} \
+            ${r1} | samtools view -Sb -@ 2 - > ${base}.trna.bam
+
+            samtools fastq -@ 4 -n -f 4 ${base}.trna.bam | pigz > ${base}.trna_filtered.fastq.gz
+            samtools fastq -@ 4 -n -F 4 ${base}.trna.bam > ${base}.trna.mapped.fastq.gz
+
+        # require 95 percent match to human to deplete
+        minimap2 \
+            -ax asm5 \
+            -t "\$((${task.cpus}-2))" \
+            -2 \
+            ${minimap2_host_index} \
+            ${base}.trna_filtered.fastq.gz | samtools view -Sb -@ 2 - > ${base}.host_mapped.bam
+            samtools fastq -@ 4 -n -f 4 ${base}.host_mapped.bam | pigz > ${base}.host_filtered.fastq.gz
+
+        minimap2 \
+            -ax asm5 \
+            -t ${task.cpus} \
+            --sam-hit-only \
+            ${minimap2_plasmid_db} \
+            ${base}.host_filtered.fastq.gz | samtools view -F 4 -Sb - > ${base}.plasmid_extraction.bam
+
+        samtools view ${base}.plasmid_extraction.bam | cut -f1 | sort | uniq > ${base}.plasmid_read_ids.txt
+
+        /usr/local/miniconda/bin/seqkit grep -f ${base}.plasmid_read_ids.txt ${base}.host_filtered.fastq.gz | pigz > ${base}.plasmid.fastq.gz 
+
+    """
+       // }
+        
+        }
 }
 
 // idenitfy resistant plasmids
 process Identify_resistant_plasmids { 
 publishDir "${params.OUTPUT}/plasmid_identification/${base}", mode: 'symlink', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod a+rw .'
 cpus 8
 
@@ -306,7 +347,7 @@ cpus 16
 input: 
     tuple val(base), file(unassigned_fastq)
 output: 
-    tuple val("${base}"), file("${base}.flye.fasta.gz")
+    tuple val("${base}"), file("${base}.flye.fasta.gz"), file("${base}.flye/")
 script:
 """
 #!/bin/bash
@@ -376,6 +417,7 @@ input:
     file kraken2_db
 output: 
     tuple val("${base}"), file("${base}.kraken2.report")
+    //tuple env(linecount), val(base)
 script:
 """
 #!/bin/bash
@@ -393,13 +435,15 @@ kraken2 --db ${kraken2_db} \
     --unclassified-out ${base}.kraken2.unclassified \
     ${fastq} 
 
+linecount=\$(cat ${base}.kraken2.report | wc -l)
+
 """
 }
 
 process Sourmash_prefilter_nanopore { 
 publishDir "${params.OUTPUT}/Sourmash_prefilter/${base}", mode: 'symlink', overwrite: true
 //#TODO need to fix container
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 8
 input: 
@@ -407,6 +451,7 @@ input:
     file sourmash_db
     file taxdump
     file taxonomy_parse_script
+    val prefilter_threshold
 output: 
     tuple val("${base}"), file("${base}.sourmash_to_genus.txt")
 script:
@@ -418,13 +463,13 @@ if(params.REALTIME){
 echo "ls of directory" 
 ls -lah 
 
-/usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
+/usr/local/miniconda/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
 
-/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 1 
+/usr/local/miniconda/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold ${prefilter_threshold}
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
-python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
+/usr/local/miniconda/bin/python3 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 
 """
 } else{
@@ -434,13 +479,13 @@ python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 echo "ls of directory" 
 ls -lah 
 
-/usr/local/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
+/usr/local/miniconda/bin/sourmash sketch dna -p scaled=1000,k=31 ${fastq} --name-from-first
 
-/usr/local/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold 2 
+/usr/local/miniconda/bin/sourmash lca summarize --db ${sourmash_db} --query ${fastq}.sig -o ${base}.sourmash_lca_summ.csv --threshold ${prefilter_threshold} 
 
 cat ${base}.sourmash_lca_summ.csv | cut -f1,7 -d , | sed  '/^\$/d' > ${base}.sourmash_lca_summ.genus.csv
 
-python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
+/usr/local/miniconda/bin/python3 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 
 """
 }
@@ -452,16 +497,16 @@ python3.7 ${taxonomy_parse_script} ${base}.sourmash_lca_summ.csv ${base}
 process Minimap2_nanopore { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 
-    tuple val(base), file(species_fasta), file(r1)
+    tuple val(base), file(species_fasta), val(alignment_num), file(r1)
 output: 
-    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
-    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt")
+    tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai"), env(alignment_num)
+    tuple val("${base}"), file ("${base}.*.unclassified_reads.txt"), env(alignment_num)
 
 script:
     // Default is False
@@ -512,6 +557,9 @@ script:
     echo "ls of directory" 
     ls -lah 
 
+    echo "total number of alignments for sample ${alignment_num}"
+    alignment_num=${alignment_num}
+
     species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
     # if this is the first attempt at running an alignment against this reference for this sample proceed
@@ -519,9 +567,10 @@ script:
     if [ "${task.attempt}" -eq "1" ]
     then
         echo "running Minimap2 on ${base}"
+        echo "genus \$species_basename"
         # run minimap2 and pipe to bam output 
         minimap2 \
-            -ax asm20 \
+            -ax map-ont \
             -t "\$((${task.cpus}-4))" \
             -2 \
             -K 25M \
@@ -538,13 +587,13 @@ script:
 
         # cleanup intermediate file
         # TODO uncomment later
-        rm ${base}.bam
+        #rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -hex 12).unclassified_reads.txt
         
         # adding random identifier to species bams to avoid filename collisions while merging later
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -hex 12).bam
 
         #index merged bam 
         samtools index ${base}.sorted.filtered.*.bam
@@ -578,7 +627,7 @@ script:
         #echo "fasta being split \$split_num times"
         
         # faSplit has some weird splitting activity but it works
-        /usr/local/miniconda/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
+        /usr/bin/faSplit sequence ${species_fasta} ${task.attempt} genus_split
         
         #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
         # something like if bam empty, exit 1
@@ -599,7 +648,7 @@ script:
                 echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
                 exit 1
             fi
-            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$(openssl rand -hex 12).bam
         done
 
         # merge the fasta split alignments 
@@ -616,9 +665,9 @@ script:
         rm ${base}.merged.bam
 
         ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -hex 12).unclassified_reads.txt
         
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -hex 12).bam
         samtools index ${base}.sorted.filtered.*.bam
 
         readsmapped=`samtools view -c ${base}.filtered.bam`
@@ -646,7 +695,7 @@ script:
 
 process Extract_fungi { 
 //conda "${baseDir}/env/env.yml"
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 errorStrategy 'retry'
@@ -655,7 +704,7 @@ input:
     file fungi_list
     file fastadb
 output: 
-    file "all_fungi.fasta.gz"
+    file "fungi.fasta.gz"
 
 script:
     """
@@ -670,7 +719,7 @@ for i in `cat ${fungi_list}`
     fi
 done
 
-    cat *.fungi.genus.fasta.gz > all_fungi.fasta.gz
+    cat *.fungi.genus.fasta.gz > fungi.fasta.gz
 
     """
 }
@@ -678,13 +727,13 @@ done
 process Align_fungi { 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 28
 errorStrategy 'retry'
 maxRetries params.MINIMAP2_RETRIES
 input: 
-    tuple val(base),file(r1)
+    tuple val(base),file(r1), file(report)
     file fungi_db
 output: 
     tuple val("${base}"), file("${base}.sorted.filtered.*.bam"), file("${base}.sorted.filtered.*.bam.bai")
@@ -727,10 +776,10 @@ script:
         rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -hex 12).unclassified_reads.txt
         
         # adding random identifier to species bams to avoid filename collisions while merging later
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -hex 12).bam
 
         #index merged bam 
         samtools index ${base}.sorted.filtered.*.bam
@@ -764,7 +813,7 @@ script:
         #echo "fasta being split \$split_num times"
         
         # faSplit has some weird splitting activity but it works
-        /usr/local/miniconda/bin/faSplit sequence ${fungi_db} ${task.attempt} genus_split
+        /usr/bin/faSplit sequence ${fungi_db} ${task.attempt} genus_split
         
         #NEED TO FIX: check within the loop for blank output. Minimap2 running out of memory might not crash the loop
         # something like if bam empty, exit 1
@@ -785,7 +834,7 @@ script:
                 echo "minimap2 ran out of memory but failed to crash for ${base} retrying with fasta split"
                 exit 1
             fi
-            mv ${base}.sorted.temp.bam ${base}.sorted.\$RANDOM.bam
+            mv ${base}.sorted.temp.bam ${base}.sorted.\$(openssl rand -hex 12).bam
         done
 
         # merge the fasta split alignments 
@@ -802,9 +851,9 @@ script:
         rm ${base}.merged.bam
 
         ##samtools fastq -@ 4 ${base}.unclassified.bam | pigz > ${base}.unclassified.fastq.gz
-        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$RANDOM.unclassified_reads.txt
+        samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -hex 12).unclassified_reads.txt
         
-        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$RANDOM.bam
+        mv ${base}.sorted.filtered.bam ${base}.sorted.filtered.\$species_basename.\$(openssl rand -hex 12).bam
         samtools index ${base}.sorted.filtered.*.bam
 
         readsmapped=`samtools view -c ${base}.filtered.bam`ssh
@@ -833,17 +882,19 @@ script:
 // Collect minimap2 alignments from each sample and merge into one large bam
 process Collect_alignment_results{ 
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 16
 input: 
-    tuple val(base), file(filtered_bam), file(bam_index), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
+    tuple val(base), file(filtered_bam), file(bam_index), val(aln_num), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
 output: 
     tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
 
 script:
     """
     #!/bin/bash
+
+    ls -lah 
 
     # merging plasmid bam in here so it goes into LCA algorithm
     samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
@@ -870,11 +921,11 @@ script:
 process Collect_unassigned_results{ 
 //conda "${baseDir}/env/env.yml"
 publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 cpus 4
 input: 
-    tuple val(base), file(unclassified_fastq), file(depleted_fastq) // , file(fungi_unclassified)
+    tuple val(base), file(unclassified_fastq), val(aln_num), file(depleted_fastq) // , file(fungi_unclassified)
     file filter_unassigned_reads
     //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
 
@@ -887,12 +938,83 @@ script:
     #!/bin/bash
 
     #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt 
-    python3 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/python3 ${filter_unassigned_reads}
     /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
 
 
     """
 }
+
+
+
+// Collect minimap2 alignments from each sample and merge into one large bam
+process Collect_alignment_results_RT { 
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics:v01.3.1"
+beforeScript 'chmod o+rw .'
+cpus 16
+input: 
+    tuple val(base), file(filtered_bam), file(bam_index), val(aln_num), file(plasmid_fastq), file(plasmid_read_ids), file(plasmid_bam)
+output: 
+    tuple val("${base}"), file("${base}.merged.sorted.bam"), file("${base}.merged.sorted.bam.bai")
+
+script:
+    """
+    #!/bin/bash
+
+    ls -lah 
+
+    # merging plasmid bam in here so it goes into LCA algorithm
+    samtools sort -@ ${task.cpus} ${plasmid_bam} -o ${base}.sorted.filtered.plasmid.bam
+    samtools index ${base}.sorted.filtered.plasmid.bam
+
+
+    #samtools merge ${base}.merged.filtered.bam *.sorted.filtered.*.bam
+    #samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    #samtools index ${base}.merged.sorted.bam 
+
+    # speeding up samtools merge using gnu parallel  
+    find . -name '*.sorted.filtered.*.bam' |
+        parallel -j${task.cpus} --tmpdir . -N4 -m --files samtools merge -u - |
+        parallel --xargs samtools merge -@2 ${base}.merged.filtered.bam {}";" rm {}
+
+    samtools sort -@ ${task.cpus} ${base}.merged.filtered.bam -o ${base}.merged.sorted.bam
+    samtools index ${base}.merged.sorted.bam 
+
+
+    """
+}
+
+// Collect unaligned reads for each sample and extract the unique reads from the host filtered fastq
+process Collect_unassigned_results_RT { 
+//conda "${baseDir}/env/env.yml"
+publishDir "${params.OUTPUT}/Minimap2/${base}", mode: 'symlink'
+container "vpeddu/nanopore_metagenomics:v01.3.1"
+beforeScript 'chmod o+rw .'
+cpus 4
+input: 
+    tuple val(base), file(unclassified_fastq), val(aln_num), file(depleted_fastq) // , file(fungi_unclassified)
+    file filter_unassigned_reads
+    //tuple val(base), file(plasmid_fastq), file(plasmid_read_ids)
+
+    
+output: 
+    tuple val("${base}"), file ("${base}.merged.unclassified.fastq.gz") //, file("${base}.plasmid_unclassified_intersection.fastq.gz") , env(plasmid_count)
+
+script:
+    """
+    #!/bin/bash
+
+    #cat *.unclassified_reads.txt | sort | uniq > unique_unclassified_read_ids.txt 
+    /usr/local/miniconda/bin/python3 ${filter_unassigned_reads}
+    /usr/local/miniconda/bin/seqtk subseq ${depleted_fastq} true_unassigned_reads.txt | gzip > ${base}.merged.unclassified.fastq.gz
+
+
+    """
+}
+
+
+
 
 // TODO: UPDATE INDEX SO WE CAN USE NEWEST VERSION OF DIAMOND
 //legacy and not being used anymore. Could add back in later as an alternative to eggnog but it uses so much memory 
@@ -1059,7 +1181,7 @@ input:
 output: 
     file outprekraken
 
-container "vpeddu/nanopore_metagenomics"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 script: 
 """
@@ -1076,7 +1198,7 @@ awk '{arr[\$1]+=\$2} END {for (i in arr) {print i,arr[i]}}' combined_prekraken.t
 // write pavian style report
 process Accumulate_reports { 
 publishDir "${params.OUTPUT}/Accumulate/", mode: 'copy', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1108,7 +1230,7 @@ cat ${prekraken} > accumulated.${task.index}.prekraken.tsv
 process Write_report_RT { 
 publishDir "${params.OUTPUT}/RT_out/", mode: 'copy', overwrite: true
 //container "evolbioinfo/krakenuniq:v0.5.8"
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
@@ -1132,7 +1254,7 @@ ls -lah
 timestamp=\$( date +%T )
 echo \$timestamp
 
-python3 ${mergescript} ${prekraken} \$timestamp
+/usr/local/miniconda/bin/python3 ${mergescript} ${prekraken} \$timestamp
 
 /usr/local/miniconda/bin/krakenuniq-report --db ${krakenuniqdb} \
 --taxon-counts \$timestamp.merged.prekraken.tsv > \$timestamp.rt.report.tsv
@@ -1141,7 +1263,7 @@ python3 ${mergescript} ${prekraken} \$timestamp
 }
 process Combine_fq {
 //publishDir "${params.OUTPUT}/", mode: 'copy', overwrite: true
-container "vpeddu/nanopore_metagenomics:latest"
+container "vpeddu/nanopore_metagenomics:v01.3.1"
 beforeScript 'chmod o+rw .'
 errorStrategy 'ignore'
 cpus 1
