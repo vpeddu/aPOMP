@@ -62,7 +62,7 @@ for file in tarballs:
                 SeqIO.write(record_list, temp_fasta, 'fasta')
             temp_fasta.close()
         # compress all of the fastas after writing them
-        compress_cmd = 'pigz -p 16 genus_organized/*.fasta'
+        compress_cmd = 'find genus_organized/ -name "*.fasta" -print0 | xargs -0  pigz -p16 -p 16'
         subprocess.call(compress_cmd, shell = True)
     # delete and close intermediates
     fasta_remove_cmd = 'rm temp.fasta'
