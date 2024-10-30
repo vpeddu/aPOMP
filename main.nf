@@ -99,8 +99,9 @@ include { Write_report_orthologs } from './illumina_modules.nf'
 
 
 // Define input channels 
-Star_index_Ch = Channel
-            .fromPath("${params.INDEX}/star_host/bowtie2_index/")
+
+// Star_index_Ch = Channel
+//             .fromPath("${params.INDEX}/star_host/bowtie2_index/")
 
 Kraken2_db = Channel
             .fromPath("${params.INDEX}/kraken2_db/")
@@ -165,7 +166,7 @@ workflow{
             // run host depletion after low complexity filtering
             Host_depletion_nanopore(
                 Low_complexity_filtering_nanopore.out[0],
-                file("${params.INDEX}/minimap2_host/hg38.fa"),
+                file("${params.INDEX}/minimap2_host/*.mmi"),
                 file("${params.INDEX}/ribosome_trna/all_trna.fa"),
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
@@ -176,7 +177,7 @@ workflow{
             Host_depletion_nanopore( 
                 Chopper.out[0],
                 //Minimap2_host_index
-                file("${params.INDEX}/minimap2_host/hg38.fa"),
+                file("${params.INDEX}/minimap2_host/*.mmi"),
                 file("${params.INDEX}/ribosome_trna/all_trna.fa"),
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
         )
@@ -219,7 +220,7 @@ workflow{
             } else { 
             Sourmash_prefilter_nanopore( 
                 Host_depletion_nanopore.out[0],
-                file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json"),
+                file("${params.INDEX}/sourmash/sourmash.nt.k31.lca.json.gz"),
                 file("${params.INDEX}/taxdump/taxa.sqlite"),
                 file("${baseDir}/bin/sourmash_to_taxonomy.py"),
                 params.PREFILTER_THRESHOLD

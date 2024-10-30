@@ -377,7 +377,7 @@ gzip ${base}.flye.fasta
 
 // should update with user definable flags
 process Low_complexity_filtering_nanopore { 
-publishDir "${params.OUTPUT}/low_comnplexity_filter_nanopore/${base}", mode: 'symlink', overwrite: true
+publishDir "${params.OUTPUT}/low_complexity_filter_nanopore/${base}", mode: 'symlink', overwrite: true
 container "quay.io/biocontainers/bbmap:38.76--h516909a_0"
 beforeScript 'chmod o+rw .'
 cpus 6

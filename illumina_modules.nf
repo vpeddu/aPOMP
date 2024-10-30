@@ -495,7 +495,7 @@ echo "ls of directory"
 ls -lah 
 #mv taxonomy/taxdump.tar.gz .
 #tar -xvzf taxdump.tar.gz
-
+  
 # for whatever reason if we don't copy the taxdump file, the original gets modified which breaks every other classification process
 cp taxdump/*.dmp .
 
