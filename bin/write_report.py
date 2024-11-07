@@ -35,8 +35,9 @@ def main():
     with open(prekraken, 'r') as file:
         reader = csv.reader(file, delimiter='\t')
         for row in reader:
-
             taxid_counts[int(row[0])] = int(row[1])
+    if 1 not in taxid_counts.keys():
+        taxid_counts[1] = 0
     tree = ncbi.get_topology([key for key in taxid_counts.keys() if key != 0], intermediate_nodes=True)
     print(taxid_counts)
     
