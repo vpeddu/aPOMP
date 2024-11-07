@@ -323,7 +323,7 @@ if [[ -f "${base}.plasmid.flye/assembly.fasta" ]]; then
         /amrfinder/amrfinder \
             -n ${base}.plasmid.flye/assembly.fasta \
             --threads ${task.cpus} \
-            -d ${amrdb}/2021-12-21.1/ \
+            -d ${amrdb}/amrfinder_db_*/ \
             -o ${base}.amrfinder.out.txt
 
     else 
