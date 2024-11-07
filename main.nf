@@ -167,7 +167,7 @@ workflow{
             Host_depletion_nanopore(
                 Low_complexity_filtering_nanopore.out[0],
                 file("${params.INDEX}/minimap2_host/*.mmi"),
-                file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+                file("${params.INDEX}/ribosome_trna/all_trna.fa.gz"),
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         }
@@ -178,7 +178,7 @@ workflow{
                 Chopper.out[0],
                 //Minimap2_host_index
                 file("${params.INDEX}/minimap2_host/*.mmi"),
-                file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+                file("${params.INDEX}/ribosome_trna/all_trna.fa.gz"),
                 file("${params.INDEX}/plasmid_db/plsdb.mmi")
         )
         }
@@ -459,7 +459,7 @@ workflow{
         Host_depletion_illumina(
             Low_complexity_filtering.out[0],
             Star_index_Ch.collect(),
-            file("${params.INDEX}/ribosome_trna/all_trna.fa"),
+            file("${params.INDEX}/ribosome_trna/all_trna.fa.gz"),
             file("${params.INDEX}/plasmid_db/plsdb.mmi")
             )
         Kraken_prefilter(
