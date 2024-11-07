@@ -499,6 +499,7 @@ workflow{
         Write_report(
             Classify.out[0],
             file("${params.INDEX}/taxdump/taxa.sqlite"),
+            file("${params.INDEX}/taxdump/taxa.sqlite.traverse.pkl"),
             file("${baseDir}/bin/write_report.py")
         )
     }

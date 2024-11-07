@@ -608,6 +608,7 @@ cpus 1
 input: 
     tuple val(base), file(prekraken)
     file taxasqlite
+    file taxasqlitetraversepkl
     file write_report_script
 output: 
     file "${base}.final.report.tsv"
