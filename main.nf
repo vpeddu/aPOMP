@@ -122,7 +122,6 @@ Amrfinder_db = Channel
             .fromPath("${params.INDEX}/plasmid_db/amrfinder/")
 
 
-
 // Workflow logic
 workflow{
     // Nanopore workflow (default)

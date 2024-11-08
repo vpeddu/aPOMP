@@ -312,7 +312,7 @@ ls -lah
 # assemble plasmids with flye
 # meta and plasmid flags are used here to find plasmids from a metagenomics sample 
 # need error handling for if nothing is assembled
-/Flye/bin/flye --plasmids \
+/usr/local/miniconda/bin/flye --plasmids \
     --meta \
     -t ${task.cpus} \
     -o ${base}.plasmid.flye \

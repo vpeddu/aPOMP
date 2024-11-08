@@ -71,13 +71,13 @@ RUN conda install -c bioconda -c conda-forge \
     blast \
     hmmer\
     seqtk \
-    krakenuniq 
+    krakenuniq  \
+    flye
 
 # RUN /usr/local/miniconda/bin/python3 -m pip install cython
 RUN /usr/local/miniconda/bin/python3  -m  pip install biopython \
          ete3 \
          typing \
-         pickle5 \
          taxopy \
          pyfasta \
          ncbi-taxonomist \
@@ -85,16 +85,6 @@ RUN /usr/local/miniconda/bin/python3  -m  pip install biopython \
          pandas
 
 RUN python3 -m pip install cython
-RUN python3  -m  pip install biopython \
-         ete3 \
-         typing \
-         #pickle5 \
-         taxopy \
-         pyfasta \
-         ncbi-taxonomist \
-         ete3 \
-         pandas
-
 
 # minimap2 binary 
 RUN wget https://github.com/lh3/minimap2/releases/download/v2.21/minimap2-2.21_x64-linux.tar.bz2 && \
@@ -136,9 +126,9 @@ RUN wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/faSplit && \
 #    /bin/bash -c "source /root/.bashrc" && \
 #    conda install -c bioconda ucsc-fasplit seqkit blast hmmer  seqtk 
 
-RUN git clone https://github.com/fenderglass/Flye && \
-    cd Flye && \
-    make
+# RUN git clone https://github.com/fenderglass/Flye && \
+#     cd Flye && \
+#     make
 
 RUN mkdir amrfinder && cd amrfinder && \
 # Get the URL of the latest binary tarball (linux only)
