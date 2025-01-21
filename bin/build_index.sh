@@ -2,7 +2,7 @@
 mkdir eggnog_db krakenuniq_db ribosome_trna star_host kraken2_db minimap2_host plasmid_db sourmash taxdump accession2taxid/
 
 # nt download
-`wget': seq -w 000 157 | \
+seq -w 000 157 | \
 	parallel -j 32 \
 	wget https://ftp.ncbi.nlm.nih.gov/blast/db/nt.{}.tar.gz
 
@@ -54,3 +54,9 @@ bzip2 -d plsdb.fna.bz2
 # downlaod and extract taxdump
 wget https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 tar -xvzf taxdump.tar.gz
+
+#sourmash index build takes a while
+# to build the taxonomy table first run aPOMP/bin/build-sourmash-taxtable.py <nt_fasta_index>
+# next index with sourmash (needs ~400gb memory) 
+# I had success using this to build on an HPC https://github.com/UnseenBio/build-sourmash-index/tree/main
+
