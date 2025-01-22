@@ -36,11 +36,11 @@ def main():
         reader = csv.reader(file, delimiter='\t')
         for row in reader:
             taxid_counts[int(row[0])] = int(row[1])
+    print(taxid_counts[1])
     if 1 not in taxid_counts.keys():
         taxid_counts[1] = 0
     tree = ncbi.get_topology([key for key in taxid_counts.keys() if key != 0], intermediate_nodes=True)
-    print(taxid_counts)
-    
+    #print(taxid_counts)
     # initialize leafs
     unclassified_count = taxid_counts[0] if 0 in taxid_counts.keys()  else 0
     tree_level_count = taxid_counts[1] if 1 in taxid_counts.keys()  else 0
@@ -81,6 +81,12 @@ def main():
     output_file.write("\t%i" % unclassified_count)
     output_file.write('\tU\t0\tunclassified\n')
     
+    output_file.write(" %s" % "{:.2f}".format(100))
+    output_file.write("\t%i" % tree_root_cum_count)
+    output_file.write("\t%i" % tree_level_count)
+    output_file.write("\t%s" % '-')
+    output_file.write("\t%s" % '1\troot\n')
+
     for node in tree.traverse("preorder"):
         space_num = len(node.lineage) - 1
         output_file.write(" %s" % "{:.2f}".format(node.percent))
