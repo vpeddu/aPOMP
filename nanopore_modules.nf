@@ -535,7 +535,7 @@ script:
     samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
     # cleanup intermediate file
-   # rm ${base}.bam
+    rm ${base}.bam
 
     species_basename=`basename ${species_fasta} | cut -f1 -d .`
 
@@ -586,8 +586,7 @@ script:
         samtools view -Sb -@  ${task.cpus} -f 4 ${base}.bam > ${base}.unclassified.bam
 
         # cleanup intermediate file
-        # TODO uncomment later
-        #rm ${base}.bam
+        rm ${base}.bam
 
         # gather the read IDs of unassigned reads to extract from host filtered fastq downstream
         samtools view ${base}.unclassified.bam | cut -f1 > ${base}.\$species_basename.\$(openssl rand -hex 12).unclassified_reads.txt
