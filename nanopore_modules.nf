@@ -61,10 +61,11 @@ else {
     echo "running Nanofilt on ${base}"
 
     # nanofilt doesn't have gzip support so we have to pipe in from gunzip
-    gunzip -c ${r1} | /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
+    /usr/local/bin/chopper -q ${params.CHOPPER_QUALITY} \
             --maxlength ${params.CHOPPER_MAXLENGTH} \
             --threads ${task.cpus} \
-            --minlength ${params.CHOPPER_MINLENGTH} | gzip > ${base}.filtered.fastq.gz
+            --minlength ${params.CHOPPER_MINLENGTH} \
+            -i ${r1} | gzip > ${base}.filtered.fastq.gz
 
     if [[ \$(gunzip -c ${base}.filtered.fastq.gz | head -c1 | wc -c) == "0" ]] 
         then
