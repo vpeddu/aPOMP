@@ -55,50 +55,55 @@ for record in bamfile:
     acc_num = record.reference_name.split('|')[0]
     # Taxid is second split in reference name
     record_tid = record.reference_name.split('|')[1]
-    # if read ID has not been seen before
-    if record.query_name not in read_dict:
-        # create read object
-        read_dict[record.query_name] = read()
-        # store read in read dictionary
-        read_dict[record.query_name].id = record.query_name
-        # store alignment score
-        # used to weight LCA below
-        read_dict[record.query_name].ascore = [record.get_tag("AS")]
-        # store mapq
-        #read_dict[record.query_name].mapq = [record.query_qualities]
-        # store sequence (probably don't need this)
-        # store taxid in a list as taxopy object
-        # this is necessary for LCA later on
-        # if the record hits a plasmid, assign it the plasmid taxid 36549 not the species taxid
-        if acc_num.startswith('p_'):
-            read_dict[record.query_name].taxid = [36549]
+    try:
+        taxopy.Taxon(int(record_tid), taxdb)
+    except:
+        print(record_tid + ' not in taxdb')
+        continue
+        # if read ID has not been seen before
+        if record.query_name not in read_dict:
+            # create read object
+            read_dict[record.query_name] = read()
+            # store read in read dictionary
+            read_dict[record.query_name].id = record.query_name
+            # store alignment score
+            # used to weight LCA below
+            read_dict[record.query_name].ascore = [record.get_tag("AS")]
+            # store mapq
+            #read_dict[record.query_name].mapq = [record.query_qualities]
+            # store sequence (probably don't need this)
+            # store taxid in a list as taxopy object
+            # this is necessary for LCA later on
+            # if the record hits a plasmid, assign it the plasmid taxid 36549 not the species taxid
+            if acc_num.startswith('p_'):
+                read_dict[record.query_name].taxid = [36549]
+            else:
+                read_dict[record.query_name].taxid = [record_tid]
+            # read has been seen (probably don't need this)
+            read_dict[record.query_name].seen = True
+            # number of bases overlapping with reference
+            read_dict[record.query_name].alen = [record.query_alignment_length]
+            read_dict[record.query_name].qlen = record.infer_query_length()
+            read_dict[record.query_name].refname = [record.reference_name]
+            read_dict[record.query_name].reflen = [record.reference_length]
+        # if read aready exists in read dictionary
         else:
-            read_dict[record.query_name].taxid = [record_tid]
-        # read has been seen (probably don't need this)
-        read_dict[record.query_name].seen = True
-        # number of bases overlapping with reference
-        read_dict[record.query_name].alen = [record.query_alignment_length]
-        read_dict[record.query_name].qlen = record.infer_query_length()
-        read_dict[record.query_name].refname = [record.reference_name]
-        read_dict[record.query_name].reflen = [record.reference_length]
-    # if read aready exists in read dictionary
-    else:
-        # append alignment scores
-        read_dict[record.query_name].ascore.append(record.get_tag("AS"))
-        # store mapq
-        #read_dict[record.query_name].mapq.append(record.query_qualities)
-        # append this taxid to the read taxid list as taxopy object
-        # this taxid is plasmid
-        if acc_num.startswith('p_'):
-            read_dict[record.query_name].taxid.append(36549)
-        else:
-            read_dict[record.query_name].taxid.append(record_tid)
-        # append length of alignment
-        read_dict[record.query_name].alen.append(record.query_alignment_length)
-        
-        read_dict[record.query_name].refname.append(record.reference_name)
-        
-        read_dict[record.query_name].reflen.append(record.reference_length)
+            # append alignment scores
+            read_dict[record.query_name].ascore.append(record.get_tag("AS"))
+            # store mapq
+            #read_dict[record.query_name].mapq.append(record.query_qualities)
+            # append this taxid to the read taxid list as taxopy object
+            # this taxid is plasmid
+            if acc_num.startswith('p_'):
+                read_dict[record.query_name].taxid.append(36549)
+            else:
+                read_dict[record.query_name].taxid.append(record_tid)
+            # append length of alignment
+            read_dict[record.query_name].alen.append(record.query_alignment_length)
+            
+            read_dict[record.query_name].refname.append(record.reference_name)
+            
+            read_dict[record.query_name].reflen.append(record.reference_length)
 print('done creating read dictionary')
 
 # for each read, if there is more than one hit per read, weight the top 10 alignments by the length of their aligned sequence
