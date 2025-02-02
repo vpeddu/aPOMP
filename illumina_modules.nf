@@ -514,7 +514,7 @@ echo \$fastqlinecount \$linecount unclassified reads
 
 samtools --version
  
-find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
+#find . -name *read_ids.txt | parallel -j 8 "samtools view -Sb -N {} ${bam} > {}.bam"
 """
 }
 
