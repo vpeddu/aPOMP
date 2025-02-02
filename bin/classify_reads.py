@@ -191,6 +191,8 @@ for read in read_dict.keys():
                 lca = 0 # assign the read as unclassified 
             else:
                 read_dict[read].weights[read_dict[read].weights < 0] = 0 # replace only the negative alignment scores with weight 0
+                lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
+                lca = lca_lineage.taxid
         else:
             lca_lineage = taxopy.find_majority_vote(taxopy_read_list, taxdb, weights = read_dict[read].weights.tolist())
             #weight_strains(read, taxopy_read_list, 3, lca_lineage)
