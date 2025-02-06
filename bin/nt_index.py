@@ -135,7 +135,7 @@ pool = multiprocessing.Pool(24)
 
 # Map the process_genus_node function to each genus node in parallel
 results = []
-for result in tqdm(pool.imap_unordered(process_genus_node, genus_nodes, chunksize=200), total=len(genus_nodes)):
+for result in tqdm(pool.imap_unordered(process_genus_node, genus_nodes, chunksize=5), total=len(genus_nodes)):
     results.append(result)
 
 # Close the pool to prevent any more tasks from being submitted
